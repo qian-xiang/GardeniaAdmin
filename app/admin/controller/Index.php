@@ -7,7 +7,7 @@ class Index extends BaseController
 {
     public function index()
     {
-        return '后台应用';
+        return view('index');
     }
 
     public function hello($name = 'ThinkPHP6')

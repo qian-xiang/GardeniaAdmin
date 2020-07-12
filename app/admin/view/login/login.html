@@ -4,8 +4,129 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />
     <title>栀子后台管理系统-登录</title>
+    <link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css">
+    <script src="/static/layui-v2.5.6/layui/layui.js"></script>
+    <style>
+        @font-face {
+            font-family: 'webfont';
+            font-display: swap;
+            src: url('//at.alicdn.com/t/webfont_cnxcd83tde.eot'); /* IE9*/
+            src: url('//at.alicdn.com/t/webfont_cnxcd83tde.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+            url('//at.alicdn.com/t/webfont_cnxcd83tde.woff2') format('woff2'),
+            url('//at.alicdn.com/t/webfont_cnxcd83tde.woff') format('woff'), /* chrome、firefox */
+            url('//at.alicdn.com/t/webfont_cnxcd83tde.ttf') format('truetype'), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+            url('//at.alicdn.com/t/webfont_cnxcd83tde.svg#Alibaba-PuHuiTi-Regular') format('svg'); /* iOS 4.1- */
+        }
+
+        body {
+            /*background-color: #FBDA61;*/
+            /*background-image: linear-gradient(45deg, #FBDA61 0%, #FF5ACD 100%);*/
+            width: 100%;
+        }
+        .login-form {
+            width: 30rem;
+            /*height: 20rem;*/
+            /*background: rgba(0,0,0,0.7)*/
+        }
+        .login-form label {
+            /*color: #e6e6e6;;*/
+        }
+        .root-container {
+            width: inherit;
+            height: 100vh;
+            display: flex;
+            display: -webkit-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .copyright-info {
+            display: flex;
+            display: -webkit-flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .copyright-info > img {
+            width: 5rem;
+            height: 5rem;
+            margin-bottom: 2rem;
+        }
+        .brand-title {
+            font-size: 1.5rem;
+        }
+        .layui-form-item {
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
 <body>
-<h1>sfsfsf</h1>
+    <div class="root-container">
+        <form class="login-form layui-form" method="post" action="/{:app('http')->getName()}.php/login">
+            <div class="copyright-info">
+                <img src="/static/image/logo.png" alt="">
+                <div class="brand-title">栀子后台管理系统</div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">用户名</label>
+                <div class="layui-input-block">
+                    <input type="text" name="username" required  lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">密码</label>
+                <div class="layui-input-block">
+                    <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">验证码</label>
+                <div class="layui-input-block">
+                    <input type="text" name="captcha" required lay-verify="required" placeholder="请输入验证码" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+<!--                <label class="layui-form-label">验证码</label>-->
+                <div class="layui-input-block">
+                    <div>{:captcha_img()}</div>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="layui-input-block" style="text-align: center;margin-left: 0px;">
+                    <button class="layui-btn" lay-submit lay-filter="formDemo">登录</button>
+<!--                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>-->
+                </div>
+            </div>
+
+            <input type="hidden" name="__token__" value="{:token()}" />
+        </form>
+    </div>
+
+<script>
+    //Demo
+    // layui.use('form', function(){
+    //     var form = layui.form;
+    //
+    //     //监听提交
+    //     form.on('submit(formDemo)', function(data){
+    //         $.ajax({
+    //             url: "{:url('login/login')}",
+    //             method: 'POST',
+    //             dataType: 'json',
+    //             data: data.field,
+    //             success: function (e) {
+    //                 console.log(e);
+    //             },
+    //             error: function (res) {
+    //                 console.log(res);
+    //             }
+    //         });
+    //         layer.msg(JSON.stringify(data.field));
+    //         return false;
+    //     });
+    // });
+</script>
 </body>
 </html>
