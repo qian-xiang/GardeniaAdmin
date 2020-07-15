@@ -20,8 +20,10 @@ class Index extends BaseController
     public function index()
     {
 //        $list = Db::name(AppConstant::TABLE_USER)->select()->toArray();
-        $gardeniaTable = new GardeniaForm();
-        return $gardeniaTable->display();
+        $gardeniaForm = new GardeniaForm();
+        $gardeniaForm = $gardeniaForm->addFormItem('用户名啊啊','text','username','嘿嘿和')
+            ->addFormItem('是否是发','switch','switch1');
+        return $gardeniaForm->display();
 
     }
 
