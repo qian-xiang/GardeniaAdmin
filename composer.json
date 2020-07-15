@@ -34,7 +34,8 @@
     },
     "autoload": {
         "psr-4": {
-            "app\\": "app"
+            "app\\": "app",
+            "gardenia_admin\\": "vendor/gardenia_admin"
         },
         "psr-0": {
             "": "extend/"
