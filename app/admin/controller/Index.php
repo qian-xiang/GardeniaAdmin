@@ -9,25 +9,41 @@
 namespace app\admin\controller;
 
 
-//use app\admin\extend\core\core_class\GardeniaTable;
-//use app\admin\extend\diy\extra_class\AppConstant;
+use app\admin\extend\diy\extra_class\AppConstant;
 use \gardenia_admin\src\core\core_class\GardeniaForm;
+use gardenia_admin\src\core\core_class\GardeniaList;
+use gardenia_admin\src\core\core_class\GardeniaStaticList;
 use \think\facade\Db;
 
 class Index
 {
     public function index()
     {
-//        $list = Db::name(AppConstant::TABLE_USER)->select()->toArray();
-        $gardeniaForm = new GardeniaForm();
-        $gardeniaForm = $gardeniaForm->addFormItem('用户名啊啊','text','username','嘿嘿和')
-            ->addFormItem('ooo','switch','switch1');
-        $gardeniaForm->display();
-
+        $gardeniaList = new GardeniaList();
+        $gardeniaList->addListHead('id','ID')
+            ->addListHead('username','用户名')
+            ->addListHead('login_code','登录标识')
+            ->addListHead('login_status','状态')
+            ->display();
     }
+    public function getData() {
+        $list = Db::name(AppConstant::TABLE_USER)
+            ->withAttr('login_status',function ($value){
+                return AppConstant::getStatusAttr($value);
+            })->select()->toArray();
 
-    public function hello($name = 'ThinkPHP6')
+        $data = [
+            'code' => AppConstant::CODE_SUCCESS,
+            'msg' => '获取成功！',
+            'count' => count($list),
+            'data' => $list
+        ];
+
+        return response($data,200,[],'json');
+    }
+    public function test()
     {
-        return 'hello,后台应用';
+        $auth = new \Auth();
+        dump($auth);
     }
 }

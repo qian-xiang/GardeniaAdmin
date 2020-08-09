@@ -1,7 +1,7 @@
 <?php
 declare (strict_types = 1);
 
-namespace app;
+namespace app\admin;
 
 use think\App;
 use think\Exception;
@@ -55,7 +55,8 @@ abstract class BaseController
     protected function initialize()
     {
         //
-        
+//        return redirect(url('/GardeniaTransit/error',['content' => '出错了！'])->build())->send();
+//        return $this->success('成功');
     }
 
     /**
@@ -110,5 +111,21 @@ abstract class BaseController
             'data' => $data,
             'redirectUrl' => $redirectUrl,
         ],200,[],'json');
+    }
+    protected function success($content = '',$redirectUrl = null,$second = 3) {
+        $redirectUrl = $redirectUrl === null ? $this->request->header('referer') : $redirectUrl;
+        return view('common/success',[
+            'content' => $content,
+            'redirectUrl' => $redirectUrl,
+            'second' => $second
+        ])->send();
+    }
+    protected function error($content = '',$redirectUrl = null,$second = 3) {
+        $redirectUrl = $redirectUrl === null ? $this->request->header('referer') : $redirectUrl;
+        return view('common/error',[
+            'content' => $content,
+            'redirectUrl' => $redirectUrl,
+            'second' => $second
+        ])->send();
     }
 }
