@@ -8,7 +8,8 @@ use app\admin\BaseController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\facade\Db;
-
+use think\Validate;
+use think\validate\ValidateRule;
 
 class Menu extends BaseController
 {
@@ -19,35 +20,31 @@ class Menu extends BaseController
      */
     public function index()
     {
-        $template = "<script type=\"text/html\" id=\"rightToolbox\">
-  <button class=\"layui-btn layui-bg-blue layui-btn-sm\">查看</button>
-  <button class=\"layui-btn layui-bg-green layui-btn-sm\">编辑</button>
-  <button class=\"layui-btn layui-bg-red layui-btn-sm\">删除</button>
-</script>";
-
-//        $headTemplate = "<script type=\"text/html\" id=\"toolbarDemo\">
-//  <button class=\"layui-btn layui-bg-blue layui-btn-sm\" lay-event=\"add\">新增</button>
-//</script>";
 
 //            ,height: 312
 //            ,url: '/admin.php/index/getData' //数据接口
         $gardeniaList = new GardeniaList();
         $gardeniaList
 //            ->setHeadToolbox('#toolbarDemo','path','./static/js/gardenia/text_template.js')
-            ->setTableAttr('url','/admin.php/index/getData')
+            ->setTableAttr('url','/admin.php/Menu/getData')
             ->setTableAttr('page',true)
             ->addExtraLayuiJS('path','./static/js/gardenia/list_extra_layui.js')
             ->addListHead('choose','选择','checkbox')
             ->addListHead('id','ID')
-            ->addListHead('username','用户名')
-            ->addListHead('login_code','登录标识')
-            ->addListHead('login_status','状态')
+            ->addListHead('title','标题')
+            ->addListHead('type','规则类型')
+            ->addListHead('icon','图标')
+            ->addListHead('name','规则')
+            ->addListHead('sort','排序')
+            ->addListHead('status','状态')
 //            ->addListHead('operate','操作','normal','#rightToolbox',$template)
             ->addListHead('operate','操作','normal')
             ->addTopOperateButton('gardenia','新增','create',['id'=> 'create',
                 'onclick'=> 'location.href="'.url('/'.request()->controller().'/create').'"'])
             ->addTopOperateButton('gardenia','删除','delete',['id'=> 'delete'])
+            ->addColumnOperateButton('operate','查看','gardenia','read',['onclick'=> "location.href= '/admin.php/menu/edit/id/2'"])
             ->addColumnOperateButton('operate','编辑','gardenia','edit',['onclick'=> "location.href= '/admin.php/menu/edit/id/2'"])
+            ->addColumnOperateButton('operate','删除','gardenia','delete',null,['rule-name' => 'item_delete'])
 //            ->setDeleteTip('删除有风险，你确定删除么？')
             ->display();
     }
@@ -62,11 +59,11 @@ class Menu extends BaseController
         $request = request();
         if ($request->isGet()){
             $ruleTypeList = [
-                ['label'=> '菜单', 'value' => 'menu'],
-                ['label'=> '其它', 'value' => 'other'],
+                ['label'=> '菜单', 'value' => 0],
+                ['label'=> '其它', 'value' => 1],
             ];
-            $parentCategory = [
-                ['label'=> '无', 'value' => '/'],
+            $parent = [
+                ['label'=> '无', 'value' => 0],
             ];
             $statusList = [
                 ['label'=> '禁用', 'value' => 0],
@@ -74,15 +71,66 @@ class Menu extends BaseController
             ];
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm->addFormItem('gardenia','select','rule_type','规则类型',$ruleTypeList)
-                ->addFormItem('gardenia','select','category','父级分类',$parentCategory)
+                ->addFormItem('gardenia','select','pid','父级',$parent)
                 ->addFormItem('gardenia','text','title','标题')
-                ->addFormItem('gardenia','text','icon','图标')
+                ->addFormItem('gardenia','text','icon','图标',null,['value' => 'icon-menu'])
                 ->addFormItem('gardenia','text','rule','规则',null,['placeholder' => '根目录/控制器名/行为名称，如/Menu/index，其中/不可省略'])
                 ->addFormItem('gardenia','text','rule_condition','规则条件')
                 ->addFormItem('gardenia','number','sort','排序',null,['value' => 0])
                 ->addFormItem('gardenia','select','status','状态',$statusList)
                 ->addBottomButton('gardenia','submit','submit','提交')
                 ->display();
+        } elseif ($request->isPost()) {
+            $data = $_POST;
+            $validate = new Validate();
+            $validate->rule([
+                'rule_type' => ValidateRule::isRequire(null,'规则类型必选！')->isInteger(null,'规则类型格式必须是整数！'),
+                'pid' => ValidateRule::isRequire(null,'父级必选！')->isInteger(null,'父级格式必须是整数！'),
+                'title' => ValidateRule::isRequire(null,'标题必填！'),
+                'icon' => ValidateRule::isRequire(null,'图标必填！'),
+                'rule' => ValidateRule::requireIf('rule_type,'.AppConstant::RULE_TYPE_OTHER,'规则类型为其它时，规则必填！'),
+                'sort' => ValidateRule::isRequire(null,'排序必填！')->isInteger(null,'排序格式必须是整数！'),
+                'status' => ValidateRule::isRequire(null,'状态必填！')->isInteger(null,'排序格式必须是整数！'),
+            ]);
+
+            if (!$validate->check($data)) {
+                $this->error($validate->getError());
+            }
+//
+//            if ($data['rule_type'] === AppConstant::RULE_TYPE_OTHER){
+//                !isset($data['rule']) && $this->error('规则类型为其它时，规则必填！');
+//            }
+
+            $insertData = [
+                'type' => $data['rule_type'],
+                'pid' => $data['pid'],
+                'title' => $data['title'],
+                'icon' => $data['icon'],
+                'name' => $data['rule'],
+                'sort' => $data['sort'],
+                'status' => $data['status'],
+            ];
+
+            isset($data['rule_condition']) && $insertData['condition'] = $data['rule_condition'];
+            if ((int)$data['pid'] === 0){
+                $insertData['root_id'] = 0;
+            } else {
+                $res = Db::name('auth_rule')->where(['id' => $data['pid']])->field('root_id')->find();
+                if (!$res){
+                    $this->error('该父级规则不存在，或已被删除！');
+                }
+                $insertData['root_id'] = $res['root_id'] === 0 ? $data['pid'] : $res['root_id'];
+            }
+
+            $res = Db::name('auth_rule')->save($insertData);
+            if (!$res){
+                $this->error('添加规则失败，请稍候重试。');
+            }
+
+            $this->success('添加成功！',url('/'.$request->controller()));
+
+        } else {
+            $this->error('访问方式非法！');
         }
     }
 
@@ -147,11 +195,13 @@ class Menu extends BaseController
         return $this->layuiAjaxReturn(1,'删除成功');
     }
     public function getData() {
-        $list = Db::name(AppConstant::TABLE_USER)
-            ->withAttr('login_status',function ($value){
+        $list = Db::name('auth_rule')
+            ->withAttr('status',function ($value) {
                 return AppConstant::getStatusAttr($value);
-            })->select()->toArray();
-
+            })
+            ->withAttr('type',function ($value) {
+                return AppConstant::getRuleTypeAttr($value);
+            })->order(['sort' => 'asc','id' => 'desc'])->select()->toArray();
         $data = [
             'code' => AppConstant::CODE_SUCCESS,
             'msg' => '获取成功！',

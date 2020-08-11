@@ -20,11 +20,23 @@ class AppConstant
     const CODE_SUCCESS = 0;
     const CODE_ERROR = 1;
 
+    //规则类型：菜单
+    const RULE_TYPE_MENU = 0;
+    //规则类型：其它
+    const RULE_TYPE_OTHER = 1;
+
     public static function getStatusList() {
         return [self::STATUS_FORBID=> '禁用', self::STATUS_FORMAL=> '正常'];
     }
     public static function getStatusAttr($value) {
         $list = self::getStatusList();
+        return $list[$value];
+    }
+    public static function getRuleTypeList() {
+        return [self::RULE_TYPE_MENU=> '菜单', self::RULE_TYPE_OTHER=> '其它'];
+    }
+    public static function getRuleTypeAttr($value) {
+        $list = self::getRuleTypeList();
         return $list[$value];
     }
 }
