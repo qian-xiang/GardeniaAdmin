@@ -23,14 +23,14 @@ class Menu extends BaseController
 
 //            ,height: 312
 //            ,url: '/admin.php/index/getData' //数据接口
-        $gardeniaList = new GardeniaList();
+        $gardeniaList = new GardeniaList('id');
         $gardeniaList
 //            ->setHeadToolbox('#toolbarDemo','path','./static/js/gardenia/text_template.js')
             ->setTableAttr('url','/admin.php/Menu/getData')
             ->setTableAttr('page',true)
             ->addExtraLayuiJS('path','./static/js/gardenia/list_extra_layui.js')
             ->addListHead('choose','选择','checkbox')
-            ->addListHead('id','ID')
+//            ->addListHead('id','ID')
             ->addListHead('title','标题')
             ->addListHead('type','规则类型')
             ->addListHead('icon','图标')
@@ -44,10 +44,11 @@ class Menu extends BaseController
             ->addTopOperateButton('gardenia','删除','delete',['id'=> 'delete'])
             ->addColumnOperateButton('operate','查看','gardenia','read',['onclick'=> "location.href= '/admin.php/menu/edit/id/2'"])
             ->addColumnOperateButton('operate','编辑','gardenia','edit',['onclick'=> "location.href= '/admin.php/menu/edit/id/2'"])
-            ->addColumnOperateButton('operate','删除','gardenia','delete',null,['rule-name' => 'item_delete'])
+            ->addColumnOperateButton('operate','删除','gardenia','delete',['name' => 'item_delete'],['rule-name' => 'item_delete'])
 //            ->setDeleteTip('删除有风险，你确定删除么？')
             ->display();
     }
+    
 
     /**
      * 显示创建资源表单页.

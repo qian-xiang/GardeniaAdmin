@@ -5,7 +5,7 @@
 
 return [
     //应用名称
-    'app_name' => '栀子Admin后台管理系统',
+    'app_name' => 'GardeniaAdmin',
     // 应用地址
     'app_host'         => env('app.host', ''),
     // 应用的命名空间
