@@ -105,12 +105,12 @@ abstract class BaseController
      * @return \think\Response
      */
     protected function layuiAjaxReturn($code,$msg,$data = '',$redirectUrl = '') {
-        return response([
+        response([
             'code' => $code,
             'msg' => $msg,
             'data' => $data,
             'redirectUrl' => $redirectUrl,
-        ],200,[],'json');
+        ],200,[],'json')->send();
     }
     protected function success($content = '',$redirectUrl = null,$second = 3) {
         $redirectUrl = $redirectUrl === null ? $this->request->header('referer') : $redirectUrl;

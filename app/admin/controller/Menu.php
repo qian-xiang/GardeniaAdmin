@@ -192,8 +192,14 @@ class Menu extends BaseController
      */
     public function delete($id)
     {
-        //
-        return $this->layuiAjaxReturn(1,'删除成功');
+        !isset($id) && $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'id必传');
+        $res = Db::name('auth_rule')->where([
+            ['id','=',$id],
+        ])->whereOr(['root_id' => $id])->whereOr(['pid' => $id])->delete();
+        if (!$res){
+            return $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'删除失败');
+        }
+        return $this->layuiAjaxReturn(AppConstant::CODE_SUCCESS,'删除成功');
     }
     public function getData() {
         $list = Db::name('auth_rule')
