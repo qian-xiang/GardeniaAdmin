@@ -42,9 +42,10 @@ class Menu extends BaseController
             ->addTopOperateButton('gardenia','新增','create',['id'=> 'create',
                 'onclick'=> 'location.href="'.url('/'.request()->controller().'/create').'"'])
             ->addTopOperateButton('gardenia','删除','delete',['id'=> 'delete'])
-            ->addColumnOperateButton('operate','查看','gardenia','read',['onclick'=> "location.href= '/admin.php/menu/edit/id/2'"])
-            ->addColumnOperateButton('operate','编辑','gardenia','edit',['onclick'=> "location.href= '/admin.php/menu/edit/id/2'"])
-            ->addColumnOperateButton('operate','删除','gardenia','delete',['name' => 'item_delete'],['rule-name' => 'item_delete'])
+            ->addColumnOperateButton('operate','查看','gardenia','read',['name'=> "item_read",'lay-event' => 'read'],['rule-name' => 'item_read'])
+            ->addColumnOperateButton('operate','编辑','gardenia','edit',['name'=> "item_edit",'lay-event' => 'edit'],[
+                'rule-name' => 'item_edit','redirect-url' => url('/'.request()->controller().'/edit')])
+            ->addColumnOperateButton('operate','删除','gardenia','delete',['name' => 'item_delete','lay-event' => 'delete'],['rule-name' => 'item_delete'])
 //            ->setDeleteTip('删除有风险，你确定删除么？')
             ->display();
     }
@@ -166,10 +167,11 @@ class Menu extends BaseController
     public function edit($id)
     {
         //
-        $gardeniaForm = new GardeniaForm();
-        $gardeniaForm->addFormItem('username','用户名','gardenia','text',null,['style'=> 'width: fit-content;'])
-            ->addFormItem('password','密码','normal','input',null,['placeholder' => '请输入密码'])
-            ->display();
+        return 0;
+//        $gardeniaForm = new GardeniaForm();
+//        $gardeniaForm->addFormItem('username','用户名','gardenia','text',null,['style'=> 'width: fit-content;'])
+//            ->addFormItem('password','密码','normal','input',null,['placeholder' => '请输入密码'])
+//            ->display();
     }
 
     /**
