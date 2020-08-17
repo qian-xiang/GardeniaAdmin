@@ -46,7 +46,6 @@ class Menu extends BaseController
             ->addColumnOperateButton('operate','编辑','gardenia','edit',['name'=> "item_edit",'lay-event' => 'edit'],[
                 'rule-name' => 'item_edit','redirect-url' => url('/'.request()->controller().'/edit')])
             ->addColumnOperateButton('operate','删除','gardenia','delete',['name' => 'item_delete','lay-event' => 'delete'],['rule-name' => 'item_delete'])
-//            ->setDeleteTip('删除有风险，你确定删除么？')
             ->display();
     }
     
