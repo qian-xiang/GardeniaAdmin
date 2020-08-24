@@ -171,60 +171,65 @@ class Menu extends BaseController
             $parent = [
                 ['label'=> '无', 'value' => 0],
             ];
-            $parent[0]['selected'] = $id === 0;
 
-
+            $currentMenu = Db::name('auth_rule')->where(['id'=> $id])->find();
+            if (!$currentMenu){
+                $this->error('该条规则信息不存在！');
+            }
             //获取菜单列表
-            $menu = Db::name('auth_rule')->select()->toArray();
+            $menu = Db::name('auth_rule')->whereOr([
+                ['id','>',$id],
+                ['id','<',$id],
+            ])->select()->toArray();
             if (!$menu) {
-                $this->error('所有规则信息均不存在！');
+                //所有规则信息均不存在时，则有默认数组成员  无
+                $menu =  [];
             }
             $authList = [];
-            $ruleInfo = [];
 
-            foreach ($menu as $item) {
-                $temp = [
-                    'label' => $item['title'],
-                    'value' => $item['id']
-                ];
+            if ($menu) {
+                foreach ($menu as $item) {
+                    $temp = [
+                        'label' => $item['title'],
+                        'value' => $item['id']
+                    ];
 
-                $temp['selected'] = (int)$id === $item['id'];
-                $authList[] = $temp;
-
-                if ((int)$id === $item['id']){
-                    $ruleInfo = $item;
+                    $temp['selected'] = $currentMenu['pid'] === $item['id'];
+                    $authList[] = $temp;
                 }
             }
 
-            if (!$ruleInfo){
-                $this->error('该条规则信息不存在！');
-            }
+            $parent[0]['selected'] = $currentMenu['pid'] === 0;
+
             $menu = null;
             $ruleTypeList = [
-                ['label'=> '菜单', 'value' => AppConstant::RULE_TYPE_MENU, 'selected' => $ruleInfo['type'] === AppConstant::RULE_TYPE_MENU],
-                ['label'=> '其它', 'value' => AppConstant::RULE_TYPE_OTHER, 'selected' => $ruleInfo['type'] === AppConstant::RULE_TYPE_OTHER],
+                ['label'=> '菜单', 'value' => AppConstant::RULE_TYPE_MENU, 'selected' => $currentMenu['type'] === AppConstant::RULE_TYPE_MENU],
+                ['label'=> '其它', 'value' => AppConstant::RULE_TYPE_OTHER, 'selected' => $currentMenu['type'] === AppConstant::RULE_TYPE_OTHER],
             ];
             $statusList = [
-                ['label'=> '禁用', 'value' => AppConstant::STATUS_FORBID, 'selected' => $ruleInfo['status'] === AppConstant::STATUS_FORBID],
-                ['label'=> '正常', 'value' => AppConstant::STATUS_FORMAL, 'selected' => $ruleInfo['status'] === AppConstant::STATUS_FORMAL],
+                ['label'=> '禁用', 'value' => AppConstant::STATUS_FORBID, 'selected' => $currentMenu['status'] === AppConstant::STATUS_FORBID],
+                ['label'=> '正常', 'value' => AppConstant::STATUS_FORMAL, 'selected' => $currentMenu['status'] === AppConstant::STATUS_FORMAL],
             ];
             $parent = array_merge($parent,$authList);
 
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm->addFormItem('gardenia','select','rule_type','规则类型',$ruleTypeList)
+                ->addFormItem('gardenia','hidden','id','规则ID',null,['value' => $id])
                 ->addFormItem('gardenia','select','pid','父级',$parent)
-                ->addFormItem('gardenia','text','title','标题',null,['value'=> $ruleInfo['title']])
-                ->addFormItem('gardenia','text','icon','图标',null,['value' => $ruleInfo['icon']])
-                ->addFormItem('gardenia','text','rule','规则',null,['value' => $ruleInfo['name']])
-                ->addFormItem('gardenia','text','rule_condition','规则条件',null,['value' => $ruleInfo['condition']])
-                ->addFormItem('gardenia','number','sort','排序',null,['value' => $ruleInfo['sort']])
+                ->addFormItem('gardenia','text','title','标题',null,['value'=> $currentMenu['title']])
+                ->addFormItem('gardenia','text','icon','图标',null,['value' => $currentMenu['icon']])
+                ->addFormItem('gardenia','text','rule','规则',null,['value' => $currentMenu['name']])
+                ->addFormItem('gardenia','text','rule_condition','规则条件',null,['value' => $currentMenu['condition']])
+                ->addFormItem('gardenia','number','sort','排序',null,['value' => $currentMenu['sort']])
                 ->addFormItem('gardenia','select','status','状态',$statusList)
                 ->addBottomButton('gardenia','submit','submit','提交')
+                ->addBottomButton('gardenia','cancel','cancel','取消')
                 ->display();
         } elseif ($request->isPost()) {
             $data = $_POST;
             $validate = new Validate();
             $validate->rule([
+                'id' => ValidateRule::isRequire(null,'规则ID必传！')->isInteger(null,'规则ID格式必须是整数！'),
                 'rule_type' => ValidateRule::isRequire(null,'规则类型必选！')->isInteger(null,'规则类型格式必须是整数！'),
                 'pid' => ValidateRule::isRequire(null,'父级必选！')->isInteger(null,'父级格式必须是整数！'),
                 'title' => ValidateRule::isRequire(null,'标题必填！'),
@@ -237,12 +242,9 @@ class Menu extends BaseController
             if (!$validate->check($data)) {
                 $this->error($validate->getError());
             }
-//
-//            if ($data['rule_type'] === AppConstant::RULE_TYPE_OTHER){
-//                !isset($data['rule']) && $this->error('规则类型为其它时，规则必填！');
-//            }
 
-            $insertData = [
+            $updateData = [
+                'id' => $data['id'],
                 'type' => $data['rule_type'],
                 'pid' => $data['pid'],
                 'title' => $data['title'],
@@ -252,23 +254,23 @@ class Menu extends BaseController
                 'status' => $data['status'],
             ];
 
-            isset($data['rule_condition']) && $insertData['condition'] = $data['rule_condition'];
+            isset($data['rule_condition']) && $updateData['condition'] = $data['rule_condition'];
             if ((int)$data['pid'] === 0){
-                $insertData['root_id'] = 0;
+                $updateData['root_id'] = 0;
             } else {
                 $res = Db::name('auth_rule')->where(['id' => $data['pid']])->field('root_id')->find();
                 if (!$res){
                     $this->error('该父级规则不存在，或已被删除！');
                 }
-                $insertData['root_id'] = $res['root_id'] === 0 ? $data['pid'] : $res['root_id'];
+                $updateData['root_id'] = $res['root_id'] === 0 ? $data['pid'] : $res['root_id'];
             }
 
-            $res = Db::name('auth_rule')->save($insertData);
+            $res = Db::name('auth_rule')->save($updateData);
             if (!$res){
-                $this->error('添加规则失败，请稍候重试。');
+                $this->error('修改规则失败，请稍候重试。');
             }
 
-            $this->success('添加成功！',url('/'.$request->controller()));
+            $this->success('修改成功！',url('/'.$request->controller()));
 
         } else {
             $this->error('访问方式非法！');
