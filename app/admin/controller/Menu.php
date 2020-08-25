@@ -26,7 +26,7 @@ class Menu extends BaseController
         $gardeniaList = new GardeniaList('id');
         $gardeniaList
 //            ->setHeadToolbox('#toolbarDemo','path','./static/js/gardenia/text_template.js')
-            ->setTableAttr('url','/admin.php/Menu/getData')
+            ->setTableAttr('url',url('/Menu/getData')->build())
             ->setTableAttr('page',true)
             ->addExtraLayuiJS('path','./static/js/gardenia/list_extra_layui.js')
             ->addListHead('choose','选择','checkbox')
@@ -154,7 +154,66 @@ class Menu extends BaseController
      */
     public function read($id)
     {
-        //
+        $request = request();
+        if ($request->isGet()){
+
+            $parent = [
+                ['label'=> '无', 'value' => 0],
+            ];
+
+            $currentMenu = Db::name('auth_rule')->where(['id'=> $id])->find();
+            if (!$currentMenu){
+                $this->error('该条规则信息不存在！');
+            }
+            //获取菜单列表
+            $menu = Db::name('auth_rule')->whereOr([
+                ['id','>',$id],
+                ['id','<',$id],
+            ])->select()->toArray();
+            if (!$menu) {
+                //所有规则信息均不存在时，则有默认数组成员  无
+                $menu =  [];
+            }
+            $authList = [];
+
+            if ($menu) {
+                foreach ($menu as $item) {
+                    $temp = [
+                        'label' => $item['title'],
+                        'value' => $item['id']
+                    ];
+
+                    $temp['selected'] = $currentMenu['pid'] === $item['id'];
+                    $authList[] = $temp;
+                }
+            }
+
+            $parent[0]['selected'] = $currentMenu['pid'] === 0;
+
+            $menu = null;
+            $ruleTypeList = [
+                ['label'=> '菜单', 'value' => AppConstant::RULE_TYPE_MENU, 'selected' => $currentMenu['type'] === AppConstant::RULE_TYPE_MENU],
+                ['label'=> '其它', 'value' => AppConstant::RULE_TYPE_OTHER, 'selected' => $currentMenu['type'] === AppConstant::RULE_TYPE_OTHER],
+            ];
+            $statusList = [
+                ['label'=> '禁用', 'value' => AppConstant::STATUS_FORBID, 'selected' => $currentMenu['status'] === AppConstant::STATUS_FORBID],
+                ['label'=> '正常', 'value' => AppConstant::STATUS_FORMAL, 'selected' => $currentMenu['status'] === AppConstant::STATUS_FORMAL],
+            ];
+            $parent = array_merge($parent,$authList);
+
+            $gardeniaForm = new GardeniaForm();
+            $gardeniaForm->addFormItem('gardenia','select','rule_type','规则类型',$ruleTypeList,['disabled' => 'disabled'])
+                ->addFormItem('gardenia','hidden','id','规则ID',null,['value' => $id])
+                ->addFormItem('gardenia','select','pid','父级',$parent,['disabled' => 'disabled'])
+                ->addFormItem('gardenia','text','title','标题',null,['value'=> $currentMenu['title'], 'readonly' => 'readonly'])
+                ->addFormItem('gardenia','text','icon','图标',null,['value' => $currentMenu['icon'], 'readonly' => 'readonly'])
+                ->addFormItem('gardenia','text','rule','规则',null,['value' => $currentMenu['name'], 'readonly' => 'readonly'])
+                ->addFormItem('gardenia','text','rule_condition','规则条件',null,['readonly' => 'readonly','value' => $currentMenu['condition']])
+                ->addFormItem('gardenia','number','sort','排序',null,['value' => $currentMenu['sort'], 'readonly' => 'readonly'])
+                ->addFormItem('gardenia','select','status','状态',$statusList,['disabled' => 'disabled'])
+                ->addBottomButton('gardenia','cancel','cancel','取消')
+                ->display();
+        }
     }
 
     /**
