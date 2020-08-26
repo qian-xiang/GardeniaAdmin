@@ -41,8 +41,60 @@ class UserGroup extends BaseController
      */
     public function create()
     {
+        $nodeList = [
+            [
+                'id' => 1,
+                'field' => 'category',
+                'title' => '分类',
+                'spread' => true,
+                'children' => [
+                    [
+                        'id' => 1,
+                        'field' => 'category',
+                        'title' => '新闻',
+                        'spread' => true,
+                    ],
+                    [
+                        'id' => 2,
+                        'field' => 'category',
+                        'title' => '媒体',
+                        'spread' => true,
+                    ]
+                ]
+            ],
+            [
+                'id' => 2,
+                'field' => 'category',
+                'title' => '管理',
+                'spread' => true,
+                'children' => [
+                    [
+                        'id' => 1,
+                        'field' => 'category',
+                        'title' => '新闻管理',
+                        'spread' => true,
+                    ],
+                    [
+                        'id' => 3,
+                        'field' => 'category',
+                        'title' => '内容管理',
+                        'spread' => true,
+                    ],
+                ]
+            ]
+        ];
+
+        $statusList = [
+            ['label'=> '禁用', 'value' => 0],
+            ['label'=> '正常', 'value' => 1,'selected' => 'selected'],
+        ];
+
         $gardeniaForm = new GardeniaForm();
-        $gardeniaForm->addFormItem('gardenia','tree','rule','规则')
+        $gardeniaForm->addFormItem('gardenia','text','title','用户名',null,null,true)
+            ->addFormItem('gardenia','select','status','状态',$statusList,null,true)
+            ->addFormItem('gardenia','tree','rule','规则',$nodeList,null,true)
+            ->addBottomButton('gardenia','submit','submit','提交')
+            ->addBottomButton('gardenia','cancel','cancel','取消')
             ->display();
     }
 

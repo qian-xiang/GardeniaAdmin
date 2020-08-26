@@ -63,13 +63,17 @@ class Menu extends BaseController
                 ['label'=> '菜单', 'value' => 0],
                 ['label'=> '其它', 'value' => 1],
             ];
-            $parent = [
+            $initParent = [
                 ['label'=> '无', 'value' => 0],
             ];
             $statusList = [
                 ['label'=> '禁用', 'value' => 0],
                 ['label'=> '正常', 'value' => 1],
             ];
+
+            $parent = Db::name('auth_rule')->field('id as value,title as label')->select()->toArray();
+            $parent = array_merge($initParent,$parent);
+
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm->addFormItem('gardenia','select','rule_type','规则类型',$ruleTypeList)
                 ->addFormItem('gardenia','select','pid','父级',$parent)
@@ -80,6 +84,7 @@ class Menu extends BaseController
                 ->addFormItem('gardenia','number','sort','排序',null,['value' => 0])
                 ->addFormItem('gardenia','select','status','状态',$statusList)
                 ->addBottomButton('gardenia','submit','submit','提交')
+                ->addBottomButton('gardenia','cancel','cancel','取消')
                 ->display();
         } elseif ($request->isPost()) {
             $data = $_POST;
