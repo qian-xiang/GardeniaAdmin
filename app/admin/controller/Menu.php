@@ -71,7 +71,7 @@ class Menu extends BaseController
                 ['label'=> '正常', 'value' => 1],
             ];
 
-            $parent = Db::name('auth_rule')->field('id as value,title as label')->select()->toArray();
+            $parent = Db::name('auth_rule')->where(['type' => AppConstant::RULE_TYPE_MENU])->field('id as value,title as label')->select()->toArray();
             $parent = array_merge($initParent,$parent);
 
             $gardeniaForm = new GardeniaForm();

@@ -41,49 +41,18 @@ class UserGroup extends BaseController
      */
     public function create()
     {
-        $nodeList = [
-            [
-                'id' => 1,
-                'field' => 'category',
-                'title' => '分类',
-                'spread' => true,
-                'children' => [
-                    [
-                        'id' => 1,
-                        'field' => 'category',
-                        'title' => '新闻',
-                        'spread' => true,
-                    ],
-                    [
-                        'id' => 2,
-                        'field' => 'category',
-                        'title' => '媒体',
-                        'spread' => true,
-                    ]
-                ]
-            ],
-            [
-                'id' => 2,
-                'field' => 'category',
-                'title' => '管理',
-                'spread' => true,
-                'children' => [
-                    [
-                        'id' => 1,
-                        'field' => 'category',
-                        'title' => '新闻管理',
-                        'spread' => true,
-                    ],
-                    [
-                        'id' => 3,
-                        'field' => 'category',
-                        'title' => '内容管理',
-                        'spread' => true,
-                    ],
-                ]
-            ]
-        ];
-
+        $maxLevel = Db::name('auth_rule')->max('level');
+        $maxLevel = (int)$maxLevel;
+        $ruleList = Db::name('auth_rule')->field('id,title,pid,name as field')->select()->toArray();
+//        $arr = [
+//            'id' => 2,
+//            'field' => 'category',
+//            'title' => '管理',
+//            'spread' => true,
+//        ];
+        if ($ruleList){
+            $nodeList = $this->buildTreeData($ruleList,0,0,0);
+        }
         $statusList = [
             ['label'=> '禁用', 'value' => 0],
             ['label'=> '正常', 'value' => 1,'selected' => 'selected'],
@@ -98,6 +67,24 @@ class UserGroup extends BaseController
             ->display();
     }
 
+    private function buildTreeData($ruleList,$pid,$currentLevel = 0,$maxLevel = 0) {
+        $treeData = [];
+        foreach ($ruleList as $key => $item){
+            if ($maxLevel && $currentLevel === $maxLevel){
+                return $treeData;
+            }
+            if ($item['pid'] === $pid) {
+                unset($ruleList[$key]);
+                $result = $this->buildTreeData($ruleList,$item['id'],$currentLevel,$maxLevel);
+                if ($result){
+                    $item['children'] = $result;
+                }
+                $item['spread'] = true;
+                $treeData[] = $item;
+            }
+        }
+        return $treeData;
+    }
     /**
      * 保存新建的资源
      *
