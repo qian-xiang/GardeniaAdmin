@@ -20,13 +20,13 @@ class Menu extends BaseController
      */
     public function index()
     {
-
+        $request = request();
 //            ,height: 312
 //            ,url: '/admin.php/index/getData' //数据接口
         $gardeniaList = new GardeniaList('id');
         $gardeniaList
 //            ->setHeadToolbox('#toolbarDemo','path','./static/js/gardenia/text_template.js')
-            ->setTableAttr('url',url('/Menu/getData')->build())
+            ->setTableAttr('url',url('/'.$request->controller().'/getData')->build())
             ->setTableAttr('page',true)
             ->addExtraLayuiJS('path','./static/js/gardenia/list_extra_layui.js')
             ->addListHead('choose','选择','checkbox')

@@ -1,4 +1,8 @@
 <?php
+/**
+ * [Gardenia Admin] Copyright (c) 2020 https://github.com/qian-xiang/GardeniaAdmin
+ * Gardenia Admin is a free software, it under the MIT license, visited https://github.com/qian-xiang/GardeniaAdmin for more details.
+ */
 declare (strict_types = 1);
 
 namespace app\admin\controller;
@@ -21,8 +25,9 @@ class UserGroup extends BaseController
      */
     public function index()
     {
+        $request = \request();
         $gardeniaList = new GardeniaList();
-        $gardeniaList->setTableAttr('url',url('/UserGroup/getData')->build())
+        $gardeniaList->setTableAttr('url',url('/'.$request->controller().'/getData')->build())
             ->addListHead('title','用户组')
             ->addListHead('status','状态')
             ->addListHead('operate','操作','normal')

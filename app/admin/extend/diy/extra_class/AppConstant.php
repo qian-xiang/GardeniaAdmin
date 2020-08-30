@@ -39,4 +39,7 @@ class AppConstant
         $list = self::getRuleTypeList();
         return $list[$value];
     }
+    public static function timestampToMinute($value) {
+        return date('Y-m-d H:i',$value);
+    }
 }

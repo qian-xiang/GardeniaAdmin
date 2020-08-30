@@ -113,7 +113,7 @@ abstract class BaseController
         ],200,[],'json')->send();
     }
     protected function success($content = '',$redirectUrl = null,$second = 3) {
-        $redirectUrl = $redirectUrl === null ? $this->request->header('referer') : $redirectUrl;
+        $redirectUrl = $redirectUrl === null ? url('/'.request()->controller()) : $redirectUrl;
         return view('common/success',[
             'content' => $content,
             'redirectUrl' => $redirectUrl,
