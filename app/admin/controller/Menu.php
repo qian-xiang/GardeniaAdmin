@@ -361,6 +361,7 @@ class Menu extends BaseController
      */
     public function delete($id)
     {
+        $request = request();
         !isset($id) && $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'id必传');
         $res = Db::name('auth_rule')->where([
             ['id','=',$id],
@@ -368,7 +369,7 @@ class Menu extends BaseController
         if (!$res){
             return $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'删除失败');
         }
-        return $this->layuiAjaxReturn(AppConstant::CODE_SUCCESS,'删除成功');
+        return $this->layuiAjaxReturn(AppConstant::CODE_SUCCESS,'删除成功','',url('/'.$request->controller())->build());
     }
     public function getData() {
         $list = Db::name('auth_rule')

@@ -9,6 +9,8 @@ use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\facade\Db;
 use think\Request;
+use think\Validate;
+use think\validate\ValidateRule;
 
 class UserGroup extends BaseController
 {
@@ -21,7 +23,7 @@ class UserGroup extends BaseController
     {
         $gardeniaList = new GardeniaList();
         $gardeniaList->setTableAttr('url',url('/UserGroup/getData')->build())
-            ->addListHead('group_name','用户组')
+            ->addListHead('title','用户组')
             ->addListHead('status','状态')
             ->addListHead('operate','操作','normal')
             ->addTopOperateButton('gardenia','新增','create',['id'=> 'create',
@@ -41,33 +43,49 @@ class UserGroup extends BaseController
      */
     public function create()
     {
-        $maxLevel = Db::name('auth_rule')->max('level');
-        $maxLevel = (int)$maxLevel;
-        $ruleList = Db::name('auth_rule')->field('id,title,pid,name as field')->select()->toArray();
-//        $arr = [
-//            'id' => 2,
-//            'field' => 'category',
-//            'title' => '管理',
-//            'spread' => true,
-//        ];
-        if ($ruleList){
-            $nodeList = $this->buildTreeData($ruleList,0,0,0);
-        }
-        $statusList = [
-            ['label'=> '禁用', 'value' => 0],
-            ['label'=> '正常', 'value' => 1,'selected' => 'selected'],
-        ];
+        $request = \request();
+        if ($request->isGet()){
+            $ruleList = Db::name('auth_rule')->field('id,title,pid,name as field')->select()->toArray();
+            $nodeList = [];
+            if ($ruleList){
+                $nodeList = $this->buildTreeData($ruleList,0);
+            }
+            $statusList = [
+                ['label'=> '禁用', 'value' => 0],
+                ['label'=> '正常', 'value' => 1,'selected' => 'selected'],
+            ];
 
-        $gardeniaForm = new GardeniaForm();
-        $gardeniaForm->addFormItem('gardenia','text','title','用户名',null,null,true)
-            ->addFormItem('gardenia','select','status','状态',$statusList,null,true)
-            ->addFormItem('gardenia','tree','rule','规则',$nodeList,null,true)
-            ->addBottomButton('gardenia','submit','submit','提交')
-            ->addBottomButton('gardenia','cancel','cancel','取消')
-            ->display();
+            $js = "./static/js/gardenia/UserGroupTreeExtraJs.js";
+
+            $gardeniaForm = new GardeniaForm();
+            $gardeniaForm->addFormItem('gardenia','text','title','用户组名',null,null,true)
+                ->addFormItem('gardenia','select','status','状态',$statusList,null,true)
+                ->addFormItem('gardenia','tree','rules','规则',$nodeList,null,true)
+                ->addBottomButton('gardenia','submit','submit','提交')
+                ->addBottomButton('gardenia','cancel','cancel','取消')
+                ->addTreeItemJs('rules','path',$js)
+                ->setFormStatus(false)
+                ->display();
+        }elseif ($request->isPost()) {
+            $data = $request->post();
+            $validate = new Validate();
+            $validate->rule([
+                'title|用户组名' => ValidateRule::isRequire(),
+                'status|状态' => ValidateRule::isRequire()->isInteger(),
+                'rules|规则' => ValidateRule::isRequire(),
+            ]);
+            if (!$validate->check($data)){
+                $this->layuiAjaxReturn(AppConstant::CODE_ERROR,$validate->getError());
+            }
+            $res = Db::name('auth_group')->strict(false)->save($data);
+            if (!$res){
+                $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'新增用户组名失败，请稍候重试。');
+            }
+            $this->layuiAjaxReturn(AppConstant::CODE_SUCCESS,'新增用户组成功！','',url('/'.$request->controller())->build());
+        }
     }
 
-    private function buildTreeData($ruleList,$pid,$currentLevel = 0,$maxLevel = 0) {
+    private function buildTreeData($ruleList,$pid,$checkData = [],$currentLevel = 0,$maxLevel = 0) {
         $treeData = [];
         foreach ($ruleList as $key => $item){
             if ($maxLevel && $currentLevel === $maxLevel){
@@ -75,11 +93,12 @@ class UserGroup extends BaseController
             }
             if ($item['pid'] === $pid) {
                 unset($ruleList[$key]);
-                $result = $this->buildTreeData($ruleList,$item['id'],$currentLevel,$maxLevel);
+                $result = $this->buildTreeData($ruleList,$item['id'],$checkData,$currentLevel,$maxLevel);
                 if ($result){
                     $item['children'] = $result;
                 }
                 $item['spread'] = true;
+                $item['checked'] = in_array($item['id'],$checkData);
                 $treeData[] = $item;
             }
         }
@@ -115,7 +134,49 @@ class UserGroup extends BaseController
      */
     public function edit($id)
     {
-        //
+        $request = \request();
+        if ($request->isGet()){
+            $userGroup = Db::name('auth_group')->field('id,title,status,rules')->find($id);
+            $ruleList = Db::name('auth_rule')->field('id,title,pid,name as field')->select()->toArray();
+            $userGroup['rules'] = explode(',',$userGroup['rules']);
+            if ($ruleList){
+                $nodeList = $this->buildTreeData($ruleList,0,$userGroup['rules']);
+            }
+            $statusList = [
+                ['label'=> '禁用', 'value' => 0,'selected' => $userGroup['status'] === 0],
+                ['label'=> '正常', 'value' => 1,'selected' => $userGroup['status'] === 1],
+            ];
+
+            $js = "./static/js/gardenia/userGroup_edit.js";
+
+            $gardeniaForm = new GardeniaForm();
+            $gardeniaForm->addFormItem('gardenia','hidden','id','ID',null,['value'=> $userGroup['id']])
+                ->addFormItem('gardenia','text','title','用户组名',null,['value'=> $userGroup['title']],true)
+                ->addFormItem('gardenia','select','status','状态',$statusList,null,true)
+                ->addFormItem('gardenia','tree','rules','规则',$nodeList,null,true)
+                ->addBottomButton('gardenia','submit','submit','提交')
+                ->addBottomButton('gardenia','cancel','cancel','取消')
+                ->addTreeItemJs('rules','path',$js)
+                ->setFormStatus(false)
+                ->display();
+        }elseif ($request->isPost()) {
+            $data = $request->post();
+            $validate = new Validate();
+            $validate->rule([
+                'title|用户组名' => ValidateRule::isRequire(),
+                'status|状态' => ValidateRule::isRequire()->isInteger(),
+                'rules|规则' => ValidateRule::isRequire(),
+                'id|ID' => ValidateRule::isRequire(),
+            ]);
+            if (!$validate->check($data)){
+                $this->layuiAjaxReturn(AppConstant::CODE_ERROR,$validate->getError());
+            }
+            $res = Db::name('auth_group')->strict(false)->save($data);
+            if (!$res){
+                $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'更新用户组名失败，请稍候重试。');
+            }
+            $this->layuiAjaxReturn(AppConstant::CODE_SUCCESS,'更新用户组成功！','',url('/'.$request->controller())->build());
+        }
     }
 
     /**
@@ -138,7 +199,13 @@ class UserGroup extends BaseController
      */
     public function delete($id)
     {
-        //
+        $request = request();
+        !isset($id) && $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'id必传');
+        $res = Db::name('auth_group')->where(['id' => $id])->delete();
+        if (!$res){
+            return $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'删除失败');
+        }
+        return $this->layuiAjaxReturn(AppConstant::CODE_SUCCESS,'删除成功','',url('/'.$request->controller())->build());
     }
     public function getData() {
         $list = Db::name('auth_group')
