@@ -4,7 +4,6 @@ declare (strict_types = 1);
 namespace app\admin;
 
 use think\App;
-use think\Exception;
 use think\exception\ValidateException;
 use think\Validate;
 
@@ -55,8 +54,6 @@ abstract class BaseController
     protected function initialize()
     {
         //
-//        return redirect(url('/GardeniaTransit/error',['content' => '出错了！'])->build())->send();
-//        return $this->success('成功');
     }
 
     /**
@@ -96,36 +93,5 @@ abstract class BaseController
         return $v->failException(true)->check($data);
     }
 
-    /**
-     * 以layui请求数据返回的格式来返回数据
-     * @param $code
-     * @param $msg
-     * @param string $data
-     * @param string $redirectUrl
-     * @return \think\Response
-     */
-    protected function layuiAjaxReturn($code,$msg,$data = '',$redirectUrl = '') {
-        response([
-            'code' => $code,
-            'msg' => $msg,
-            'data' => $data,
-            'redirectUrl' => $redirectUrl,
-        ],200,[],'json')->send();
-    }
-    protected function success($content = '',$redirectUrl = null,$second = 3) {
-        $redirectUrl = $redirectUrl === null ? url('/'.request()->controller()) : $redirectUrl;
-        return view('common/success',[
-            'content' => $content,
-            'redirectUrl' => $redirectUrl,
-            'second' => $second
-        ])->send();
-    }
-    protected function error($content = '',$redirectUrl = null,$second = 3) {
-        $redirectUrl = $redirectUrl === null ? $this->request->header('referer') : $redirectUrl;
-        return view('common/error',[
-            'content' => $content,
-            'redirectUrl' => $redirectUrl,
-            'second' => $second
-        ])->send();
-    }
+
 }

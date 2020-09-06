@@ -4,14 +4,14 @@ declare (strict_types = 1);
 namespace app\admin\controller;
 
 use app\admin\extend\diy\extra_class\AppConstant;
-use app\admin\BaseController;
+use app\admin\GardeniaController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\facade\Db;
 use think\Validate;
 use think\validate\ValidateRule;
 
-class Menu extends BaseController
+class Menu extends GardeniaController
 {
     /**
      * 显示资源列表

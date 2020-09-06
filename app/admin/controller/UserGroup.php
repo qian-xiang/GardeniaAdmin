@@ -7,8 +7,8 @@ declare (strict_types = 1);
 
 namespace app\admin\controller;
 
-use app\admin\BaseController;
 use app\admin\extend\diy\extra_class\AppConstant;
+use app\admin\GardeniaController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\facade\Db;
@@ -16,7 +16,7 @@ use think\Request;
 use think\Validate;
 use think\validate\ValidateRule;
 
-class UserGroup extends BaseController
+class UserGroup extends GardeniaController
 {
     /**
      * 显示资源列表
@@ -90,25 +90,6 @@ class UserGroup extends BaseController
         }
     }
 
-    private function buildTreeData($ruleList,$pid,$checkData = [],$currentLevel = 0,$maxLevel = 0) {
-        $treeData = [];
-        foreach ($ruleList as $key => $item){
-            if ($maxLevel && $currentLevel === $maxLevel){
-                return $treeData;
-            }
-            if ($item['pid'] === $pid) {
-                unset($ruleList[$key]);
-                $result = $this->buildTreeData($ruleList,$item['id'],$checkData,$currentLevel,$maxLevel);
-                if ($result){
-                    $item['children'] = $result;
-                }
-                $item['spread'] = true;
-                $item['checked'] = in_array($item['id'],$checkData);
-                $treeData[] = $item;
-            }
-        }
-        return $treeData;
-    }
     /**
      * 保存新建的资源
      *

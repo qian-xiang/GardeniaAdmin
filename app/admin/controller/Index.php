@@ -10,21 +10,20 @@ namespace app\admin\controller;
 
 
 use app\admin\extend\diy\extra_class\AppConstant;
-use \gardenia_admin\src\core\core_class\GardeniaForm;
-use gardenia_admin\src\core\core_class\GardeniaList;
-use gardenia_admin\src\core\core_class\GardeniaStaticList;
+use app\admin\GardeniaController;
 use \think\facade\Db;
 
-class Index
+class Index extends GardeniaController
 {
     public function index()
     {
-        $gardeniaList = new GardeniaList();
-        $gardeniaList->addListHead('id','ID')
-            ->addListHead('username','用户名')
-            ->addListHead('login_code','登录标识')
-            ->addListHead('login_status','状态')
-            ->display();
+//        return 1111;
+//        $gardeniaList = new GardeniaList();
+//        $gardeniaList->addListHead('id','ID')
+//            ->addListHead('username','用户名')
+//            ->addListHead('login_code','登录标识')
+//            ->addListHead('login_status','状态')
+//            ->display();
     }
     public function getData() {
         $list = Db::name(AppConstant::TABLE_USER)
