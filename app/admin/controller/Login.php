@@ -8,13 +8,13 @@
  */
 namespace app\admin\controller;
 
-use app\admin\extend\extra_class\AppConstant;
-use app\BaseController;
+use app\admin\extend\diy\extra_class\AppConstant;
+use app\admin\GardeniaController;
 use think\facade\Db;
 use think\Validate;
 use think\validate\ValidateRule;
 
-class Login extends BaseController
+class Login extends GardeniaController
 {
     public function index()
     {
@@ -33,19 +33,19 @@ class Login extends BaseController
             return $validate->getError();
         }
         if (!captcha_check($data['captcha'])) {
-            return '验证码错误！';
+            $this->error('验证码错误！');
         }
         $result = Db::name(AppConstant::TABLE_USER)->where([
             'username'=> $data['username'],
         ])->find();
         if (!$result || $result['is_delete']) {
-            return '该用户不存在或已被删除！';
+            $this->error('该用户不存在或已被删除！');
         }
         if (!$result['login_status']){
-            return '您已被禁止登录！';
+            $this->error('您已被禁止登录！');
         }
         if (!password_verify($data['password'],$result['password'])) {
-            return '用户名或密码错误，请重新输入！';
+            $this->error('用户名或密码错误，请重新输入！');
         }
 
         //生成登录token存入数据库
@@ -54,13 +54,17 @@ class Login extends BaseController
         $updateData = [
             'id'=> $result['id'],
             'login_code'=> $token,
-            'last_login_ip'=> get_client_ip(),
-            'last_login_time'=> time(),
+            'login_ip'=> get_client_ip(),
+            'login_time'=> time(),
+            'last_login_ip'=> $result['login_ip'],
+            'last_login_time'=> $result['login_time'],
         ];
         $res = Db::name(AppConstant::TABLE_USER)->save($updateData);
         trace($res ? '登录时更新数据成功！' : '登录时更新数据失败！','log');
         trace('用户：'.$result['username'].' 于'.date('Y-m-d H:i:s').' 登录！','log');
-        return redirect('index/index');
+        //登录有效期，7天
+        setcookie('login_code',$updateData['login_code'],time() + 7*24*60*60);
+        $this->success('登录成功！即将跳转到首页...',url('/index/index'));
     }
     public function test() {
         return password_encrypt('122333');

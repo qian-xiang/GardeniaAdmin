@@ -17,13 +17,12 @@ class Index extends GardeniaController
 {
     public function index()
     {
-//        return 1111;
-//        $gardeniaList = new GardeniaList();
-//        $gardeniaList->addListHead('id','ID')
-//            ->addListHead('username','用户名')
-//            ->addListHead('login_code','登录标识')
-//            ->addListHead('login_status','状态')
-//            ->display();
+        $loginCode = cookie('login_code');
+        if (!$loginCode){
+            $this->error('检测到您尚未登录或登录状态已过期，即将前往登录页面...',url('/Login/index'));
+        }
+        $user = Db::name('user')->where(['login_code' => $loginCode])->find();
+        return view('/');
     }
     public function getData() {
         $list = Db::name(AppConstant::TABLE_USER)
