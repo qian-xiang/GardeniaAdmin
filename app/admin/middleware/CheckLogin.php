@@ -19,6 +19,7 @@ class CheckLogin extends GardeniaController
 
         $server = $request->server();
         $pathInfo = $server['PATH_INFO'];
+
         if (strpos($pathInfo,'.'.config('view.view_suffix')) !== false){
             $arr = explode('.',$pathInfo);
         }
@@ -32,14 +33,11 @@ class CheckLogin extends GardeniaController
             $controller = $arr[1] ? $arr[1] : config('route.default_controller');
             $action = config('route.default_action');
 
-        } else if (count($arr) === 3) {
+        } else if (count($arr) >= 3) {
             $controller = $arr[1] ? $arr[1] : config('route.default_controller');
             $action = $arr[2] ? $arr[2] : config('route.default_action');
 
-        } else {
-            $this->error('输入的url有误，请重新输入');
         }
-
         foreach ($checkWhiteList as $item){
             $arr = explode('/',$item);
             if (strtolower($controller) === strtolower($arr[0]) && strtolower($action) === strtolower($arr[1])){

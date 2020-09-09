@@ -11,6 +11,7 @@ namespace app\admin\controller;
 
 use app\admin\extend\diy\extra_class\AppConstant;
 use app\admin\GardeniaController;
+use gardenia_admin\src\core\core_class\GardeniaList;
 use \think\facade\Db;
 
 class Index extends GardeniaController
@@ -21,8 +22,9 @@ class Index extends GardeniaController
         if (!$loginCode){
             $this->error('检测到您尚未登录或登录状态已过期，即将前往登录页面...',url('/Login/index'));
         }
-        $user = Db::name('user')->where(['login_code' => $loginCode])->find();
-        return view('/');
+//        $user = Db::name('user')->where(['login_code' => $loginCode])->find();
+        $gardeniaList = new GardeniaList();
+        $gardeniaList->view();
     }
     public function getData() {
         $list = Db::name(AppConstant::TABLE_USER)
