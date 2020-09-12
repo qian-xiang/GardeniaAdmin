@@ -18,7 +18,6 @@ class Index extends GardeniaController
 {
     public function index()
     {
-
         $loginCode = cookie('login_code');
         if (!$loginCode){
             $this->error('检测到您尚未登录或登录状态已过期，即将前往登录页面...',url('/Login/index'));

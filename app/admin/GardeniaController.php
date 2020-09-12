@@ -133,13 +133,13 @@ abstract class GardeniaController
         $request = request();
         $controller = $request->controller();
         $action = $request->action();
-        $menuUrl = '/'.$controller.'/'.$action;
-        if ($controller === config('route.default_controller') && $action === config('route.default_action')){
-            $menuUrl = '/';
-        }
+        if ($controller === config('route.default_controller') &&
+            $action === config('route.default_action')){
 
-//        $ruleList = Db::name('auth_rule')->where(['type' => AppConstant::RULE_TYPE_MENU])
-//            ->field('id,title,pid,name as field,root_id')->order('id','desc')->select()->toArray();
+            $menuUrl = '/';
+        } else {
+            $menuUrl = '/'.$controller.'/'.$action;
+        }
         $ruleList = Db::name('auth_group_access')->alias('a')->join('auth_group g','g.id = a.group_id')
             ->where(['a.uid' => $this->request->user['id'],'g.status'=> AppConstant::STATUS_FORMAL])
             ->value('g.rules');
@@ -166,7 +166,6 @@ abstract class GardeniaController
         if ($ruleList){
             $nodeList = $this->getIndexTreeMenu($ruleList,0,$currentMenuId,$rootId);
         }
-
         return $nodeList;
     }
     protected function buildTreeData($ruleList,$pid,$checkData = [],$currentLevel = 0,$maxLevel = 0) {

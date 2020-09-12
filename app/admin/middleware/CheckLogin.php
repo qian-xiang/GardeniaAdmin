@@ -53,6 +53,7 @@ class CheckLogin
         }
         $request->user = [
             'id' => $user['id'],
+            'username' => $user['username'],
             'login_code' => $loginCode,
             'last_login_time' => $user['last_login_time'],
             'last_login_ip' => $user['last_login_ip'],
