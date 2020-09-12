@@ -115,7 +115,7 @@ abstract class GardeniaController
     }
     protected function success($content = '',$redirectUrl = null,$second = 3) {
         $redirectUrl = $redirectUrl === null ? url('/'.request()->controller()) : $redirectUrl;
-        return view('common/success',[
+        view('common/success',[
             'content' => $content,
             'redirectUrl' => $redirectUrl,
             'second' => $second
@@ -123,7 +123,7 @@ abstract class GardeniaController
     }
     protected function error($content = '',$redirectUrl = null,$second = 3) {
         $redirectUrl = $redirectUrl === null ? $this->request->header('referer') : $redirectUrl;
-        return view('common/error',[
+        view('common/error',[
             'content' => $content,
             'redirectUrl' => $redirectUrl,
             'second' => $second
@@ -138,8 +138,20 @@ abstract class GardeniaController
             $menuUrl = '/';
         }
 
-        $ruleList = Db::name('auth_rule')->where(['type' => AppConstant::RULE_TYPE_MENU])
+//        $ruleList = Db::name('auth_rule')->where(['type' => AppConstant::RULE_TYPE_MENU])
+//            ->field('id,title,pid,name as field,root_id')->order('id','desc')->select()->toArray();
+        $ruleList = Db::name('auth_group_access')->alias('a')->join('auth_group g','g.id = a.group_id')
+            ->where(['a.uid' => $this->request->user['id'],'g.status'=> AppConstant::STATUS_FORMAL])
+            ->value('g.rules');
+        $ruleList = Db::name('auth_rule')->where('id','in',$ruleList)
+            ->where([
+                'status'=> AppConstant::STATUS_FORMAL,
+                'type' => AppConstant::RULE_TYPE_MENU,
+            ])
             ->field('id,title,pid,name as field,root_id')->order('id','desc')->select()->toArray();
+        if (!$ruleList){
+            error('您没有权限访问');
+        }
         $currentMenuId = 0;
         $rootId = 0;
         foreach ($ruleList as $item) {
@@ -149,11 +161,12 @@ abstract class GardeniaController
                 break;
             }
         }
-//        dump($currentMenuId);halt($rootId);
+
         $nodeList = [];
         if ($ruleList){
             $nodeList = $this->getIndexTreeMenu($ruleList,0,$currentMenuId,$rootId);
         }
+
         return $nodeList;
     }
     protected function buildTreeData($ruleList,$pid,$checkData = [],$currentLevel = 0,$maxLevel = 0) {
@@ -181,6 +194,7 @@ abstract class GardeniaController
             if ($maxLevel && $currentLevel === $maxLevel){
                 return $treeData;
             }
+
             if ($item['pid'] === $pid) {
                 unset($ruleList[$key]);
                 $result = $this->getIndexTreeMenu($ruleList,$item['id'],$currentMenuId,$rootId,$currentLevel,$maxLevel);
@@ -194,13 +208,5 @@ abstract class GardeniaController
         }
         return $treeData;
     }
-//    function renderMenuDOM($arr){
-//        $treeData = [];
-//        foreach ($arr as $key => $item){
-//            if (isset($item['children']) && $item['children']) {
-//                $this->renderMenuDOM($arr['children']);
-//            }
-//        }
-//        return $treeData;
-//    }
+
 }

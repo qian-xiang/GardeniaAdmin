@@ -7,10 +7,9 @@
 namespace app\admin\middleware;
 
 use app\admin\extend\diy\extra_class\AppConstant;
-use app\admin\GardeniaController;
 use think\facade\Db;
 
-class CheckAccess extends GardeniaController
+class CheckAccess
 {
     public function handle($request, \Closure $next)
     {
@@ -20,19 +19,27 @@ class CheckAccess extends GardeniaController
         $server = $request->server();
         $pathInfo = $server['PATH_INFO'];
 
-        !$pathInfo && $pathInfo = '/';
         if (strpos($pathInfo,'.'.config('view.view_suffix')) !== false){
             $pathInfo = explode('.',$pathInfo);
             $pathInfo = $pathInfo[0];
         }
         $controller = '';
         $action = '';
-        if ($pathInfo !== '/'){
-            $pathInfo = explode('/',$pathInfo);
-            $controller = isset($pathInfo[1]) ? $pathInfo[1] : config('route.default_controller');
-            $action = isset($pathInfo[2]) ? $pathInfo[2] : config('route.default_action');
+        if (!$pathInfo) {
+            $pathInfo = ['',config('route.default_controller'),config('route.default_action')];
+            $controller = config('route.default_controller');
+            $action = config('route.default_action');
+        } else {
+            if ($pathInfo !== '/'){
+                $pathInfo = explode('/',$pathInfo);
+                $controller = isset($pathInfo[1]) ? $pathInfo[1] : config('route.default_controller');
+                $action = isset($pathInfo[2]) ? $pathInfo[2] : config('route.default_action');
+            } else {
+                $pathInfo = ['',config('route.default_controller'),config('route.default_action')];
+                $controller = config('route.default_controller');
+                $action = config('route.default_action');
+            }
         }
-
         foreach ($checkWhiteList as $item){
             $arr = explode('/',$item);
             if (strtolower($controller) === strtolower($arr[0]) && strtolower($action) === strtolower($arr[1])){
@@ -51,12 +58,22 @@ class CheckAccess extends GardeniaController
         $accessArr = Db::name('auth_rule')->where('id','in',$query)
             ->where(['status'=> AppConstant::STATUS_FORMAL])->column('name');
         if (!$accessArr){
-            $this->error('您没有权限访问');
+            error('您没有权限访问');
         }
-        $access = $pathInfo;
+        foreach ($accessArr as &$item) {
+            if ($item === '/'){
+                $item = '/'.config('route.default_controller').'/'.config('route.default_action');
+            }
+        }
+        $access = '/'.$controller.'/'.$action;
+
         if (!in_array($access,$accessArr)) {
-            $this->error('您没有权限访问');
+            error('您没有权限访问');
         }
+        $user = $request->user;
+        $user['access_list'] = $accessArr;
+        $request->user = $user;
+
         return $next($request);
     }
 }

@@ -7,10 +7,9 @@
 namespace app\admin\middleware;
 
 
-use app\admin\GardeniaController;
 use think\facade\Db;
 
-class CheckLogin extends GardeniaController
+class CheckLogin
 {
     public function handle($request, \Closure $next)
     {
@@ -46,12 +45,20 @@ class CheckLogin extends GardeniaController
         }
         $loginCode = cookie('login_code');
         if (!$loginCode){
-            $this->error('检测到您尚未登录或登录状态已过期，即将前往登录页面...',url('/Login/index'));
+            error('检测到您尚未登录或登录状态已过期，即将前往登录页面...',url('/Login/index'));
         }
         $user = Db::name('user')->where(['login_code' => $loginCode])->find();
         if (!$user){
-            $this->error('检测到您尚未登录或登录状态已过期，即将前往登录页面...',url('/Login/index'));
+            error('检测到您尚未登录或登录状态已过期，即将前往登录页面...',url('/Login/index'));
         }
+        $request->user = [
+            'id' => $user['id'],
+            'login_code' => $loginCode,
+            'last_login_time' => $user['last_login_time'],
+            'last_login_ip' => $user['last_login_ip'],
+            'login_time' => $user['login_time'],
+            'login_ip' => $user['login_ip'],
+        ];
         return $next($request);
     }
 

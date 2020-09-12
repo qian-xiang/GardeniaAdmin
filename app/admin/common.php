@@ -30,3 +30,25 @@ if (!function_exists('get_client_ip')) {
         return $_SERVER['REMOTE_ADDR'];
     }
 }
+if (!function_exists('success')) {
+    function success($content = '',$redirectUrl = null,$second = 3) {
+        $redirectUrl = $redirectUrl === null ? url('/'.request()->controller()) : $redirectUrl;
+        view('common/success',[
+            'content' => $content,
+            'redirectUrl' => $redirectUrl,
+            'second' => $second
+        ])->send();
+    }
+
+}
+if (!function_exists('error')) {
+    function error($content = '',$redirectUrl = null,$second = 3) {
+        $redirectUrl = $redirectUrl === null ? request()->header('referer') : $redirectUrl;
+        view('common/error',[
+            'content' => $content,
+            'redirectUrl' => $redirectUrl,
+            'second' => $second
+        ])->send();
+    }
+}
+
