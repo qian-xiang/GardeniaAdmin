@@ -43,6 +43,7 @@ class CheckAccess
         foreach ($checkWhiteList as $item){
             $arr = explode('/',$item);
             if (strtolower($controller) === strtolower($arr[0]) && strtolower($action) === strtolower($arr[1])){
+                $request->accessWhiteList = $checkWhiteList;
                 return $next($request);
             }
         }

@@ -25,6 +25,11 @@ class AppConstant
     //规则类型：其它
     const RULE_TYPE_OTHER = 1;
 
+    //超级管理
+    const GROUP_TYPE_SUPER_ADMIN = 0;
+    //一般管理
+    const GROUP_TYPE_ADMIN = 1;
+
     public static function getStatusList() {
         return [self::STATUS_FORBID=> '禁用', self::STATUS_FORMAL=> '正常'];
     }
@@ -42,4 +47,7 @@ class AppConstant
     public static function timestampToMinute($value) {
         return date('Y-m-d H:i',$value);
     }
+//    public function getGroupAdminTypeList() {
+//
+//    }
 }

@@ -62,8 +62,14 @@ class UserGroup extends GardeniaController
 
             $js = "./static/js/gardenia/UserGroupTreeExtraJs.js";
 
+            $typeList = [
+                ['label'=> '超级管理员', 'value' => 0],
+                ['label'=> '管理员', 'value' => 1,'selected' => 'selected'],
+            ];
+
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm->addFormItem('gardenia','text','title','用户组名',null,null,true)
+                ->addFormItem('gardenia','select','type','类型',$typeList,null,true)
                 ->addFormItem('gardenia','select','status','状态',$statusList,null,true)
                 ->addFormItem('gardenia','tree','rules','规则',$nodeList,null,true)
                 ->addBottomButton('gardenia','submit','submit','提交')
@@ -77,7 +83,8 @@ class UserGroup extends GardeniaController
             $validate->rule([
                 'title|用户组名' => ValidateRule::isRequire(),
                 'status|状态' => ValidateRule::isRequire()->isInteger(),
-                'rules|规则' => ValidateRule::isRequire(),
+                'type|类型' => ValidateRule::isRequire()->isInteger(),
+                'rules|规则' => ValidateRule::requireIf('type,'.AppConstant::GROUP_TYPE_ADMIN),
             ]);
             if (!$validate->check($data)){
                 $this->layuiAjaxReturn(AppConstant::CODE_ERROR,$validate->getError());

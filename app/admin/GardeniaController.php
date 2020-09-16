@@ -148,9 +148,11 @@ abstract class GardeniaController
                 'status'=> AppConstant::STATUS_FORMAL,
                 'type' => AppConstant::RULE_TYPE_MENU,
             ])
-            ->field('id,title,pid,name as field,root_id')->order('id','desc')->select()->toArray();
+            ->field('id,title,pid,name as field,root_id')->order('weigh','desc')->select()->toArray();
         if (!$ruleList){
-            error('您没有权限访问');
+            if (isset($this->request->accessWhiteList) && $this->request->accessWhiteList){
+                in_array($this->request->controller().'/'.$this->request->action(),$this->request->accessWhiteList) ? redirect($this->request->url()) : error('您没有权限访问');
+            }
         }
         $currentMenuId = 0;
         $rootId = 0;

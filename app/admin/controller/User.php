@@ -7,15 +7,15 @@
 namespace app\admin\controller;
 
 
-use app\admin\BaseController;
 use app\admin\extend\diy\extra_class\AppConstant;
+use app\admin\GardeniaController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\facade\Db;
 use think\Validate;
 use think\validate\ValidateRule;
 
-class User extends BaseController
+class User extends GardeniaController
 {
     public function index() {
         $request = request();
