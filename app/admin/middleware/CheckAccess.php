@@ -13,8 +13,10 @@ class CheckAccess
 {
     public function handle($request, \Closure $next)
     {
+        $loginCode = cookie('login_code');
+
         //免除权限校验的url
-        $checkWhiteList = ['Login/index','Captcha/index'];//最后一个是验证码的url
+        $checkWhiteList = ['Login/index','Login/login','Captcha/index'];//最后一个是验证码的url
 
         $server = $request->server();
         $pathInfo = $server['PATH_INFO'];
@@ -47,17 +49,23 @@ class CheckAccess
                 return $next($request);
             }
         }
-        $loginCode = cookie('login_code');
 
-        $query = Db::name('auth_group_access')->alias('a')->join('user u','u.id = a.uid')
-            ->where(['u.login_code' => $loginCode])->field('a.group_id')->buildSql(true);
+        if ($request->user['admin_type'] === AppConstant::GROUP_TYPE_ADMIN){
+            $query = Db::name('auth_group_access')->alias('a')->join('user u','u.id = a.uid')
+                ->where(['u.login_code' => $loginCode])->field('a.group_id')->buildSql(true);
 
-        $query = Db::table($query.' t')->join('auth_group g','g.id = t.group_id')
-            ->where(['status'=> AppConstant::STATUS_FORMAL])->field('g.rules')->find();
-        $query = $query['rules'];
+            $query = Db::table($query.' t')->join('auth_group g','g.id = t.group_id')
+                ->where(['status'=> AppConstant::STATUS_FORMAL])->field('g.rules')->find();
+            $query = $query['rules'];
 
-        $accessArr = Db::name('auth_rule')->where('id','in',$query)
-            ->where(['status'=> AppConstant::STATUS_FORMAL])->column('name');
+            $accessArr = Db::name('auth_rule')->where('id','in',$query)
+                ->where(['status'=> AppConstant::STATUS_FORMAL])->column('name');
+
+        } else {
+            $accessArr = Db::name('auth_rule')
+                ->where(['status'=> AppConstant::STATUS_FORMAL])->column('name');
+        }
+
         if (!$accessArr){
             error('您没有权限访问');
         }

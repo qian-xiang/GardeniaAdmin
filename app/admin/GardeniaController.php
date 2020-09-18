@@ -140,15 +140,26 @@ abstract class GardeniaController
         } else {
             $menuUrl = '/'.$controller.'/'.$action;
         }
-        $ruleList = Db::name('auth_group_access')->alias('a')->join('auth_group g','g.id = a.group_id')
-            ->where(['a.uid' => $this->request->user['id'],'g.status'=> AppConstant::STATUS_FORMAL])
-            ->value('g.rules');
-        $ruleList = Db::name('auth_rule')->where('id','in',$ruleList)
-            ->where([
-                'status'=> AppConstant::STATUS_FORMAL,
-                'type' => AppConstant::RULE_TYPE_MENU,
-            ])
-            ->field('id,title,pid,name as field,root_id')->order('weigh','desc')->select()->toArray();
+
+        if ($request->user['admin_type'] === AppConstant::GROUP_TYPE_SUPER_ADMIN) {
+            $ruleList = Db::name('auth_rule')
+                ->where([
+                    'status'=> AppConstant::STATUS_FORMAL,
+                    'type' => AppConstant::RULE_TYPE_MENU,
+                ])
+                ->field('id,title,pid,name as field,root_id')->order('weigh','desc')->select()->toArray();
+        } else {
+            $ruleList = Db::name('auth_group_access')->alias('a')->join('auth_group g','g.id = a.group_id')
+                ->where(['a.uid' => $this->request->user['id'],'g.status'=> AppConstant::STATUS_FORMAL])
+                ->value('g.rules');
+            $ruleList = Db::name('auth_rule')->where('id','in',$ruleList)
+                ->where([
+                    'status'=> AppConstant::STATUS_FORMAL,
+                    'type' => AppConstant::RULE_TYPE_MENU,
+                ])
+                ->field('id,title,pid,name as field,root_id')->order('weigh','desc')->select()->toArray();
+        }
+
         if (!$ruleList){
             if (isset($this->request->accessWhiteList) && $this->request->accessWhiteList){
                 in_array($this->request->controller().'/'.$this->request->action(),$this->request->accessWhiteList) ? redirect($this->request->url()) : error('您没有权限访问');

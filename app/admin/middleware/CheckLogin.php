@@ -14,7 +14,7 @@ class CheckLogin
     public function handle($request, \Closure $next)
     {
         //免除登录的url
-        $checkWhiteList = ['Login/index','Captcha/index'];//最后一个是验证码的url
+        $checkWhiteList = ['Login/index','Login/login','Captcha/index'];//最后一个是验证码的url
 
         $server = $request->server();
         $pathInfo = $server['PATH_INFO'];
@@ -44,12 +44,18 @@ class CheckLogin
             }
         }
         $loginCode = cookie('login_code');
+
         if (!$loginCode){
             error('检测到您尚未登录或登录状态已过期，即将前往登录页面...',url('/Login/index'));
         }
         $user = Db::name('user')->where(['login_code' => $loginCode])->find();
         if (!$user){
             error('检测到您尚未登录或登录状态已过期，即将前往登录页面...',url('/Login/index'));
+        }
+        $res = Db::name('auth_group_access')->alias('a')->join('auth_group g','g.id = a.group_id')
+            ->where(['a.uid' => $user['id']])->field('g.type')->find();
+        if (!$res){
+            error('您没有权限访问');
         }
         $request->user = [
             'id' => $user['id'],
@@ -59,6 +65,7 @@ class CheckLogin
             'last_login_ip' => $user['last_login_ip'],
             'login_time' => $user['login_time'],
             'login_ip' => $user['login_ip'],
+            'admin_type' => $res['type']
         ];
         return $next($request);
     }

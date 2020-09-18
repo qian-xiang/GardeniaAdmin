@@ -143,15 +143,23 @@ class User extends GardeniaController
             $validate->rule([
                 'id|用户ID' => ValidateRule::isRequire()->isInteger(),
                 'username|用户名' => ValidateRule::isRequire(),
-                'password|密码' => ValidateRule::isRequire(),
-                'confirm|确认密码' => ValidateRule::isRequire()->confirm('password','确认密码和密码不一致'),
                 'user_group_id|用户组' => ValidateRule::isRequire()->isInteger(null,'请选择用户组'),
                 'status|状态' => ValidateRule::isRequire()->isInteger(),
             ]);
             if (!$validate->check($data)){
                 $this->error($validate->getError());
             }
-            $data['password'] = password_encrypt($data['password']);
+            if (isset($data['password']) || isset($data['confirm'])) {
+                $validate = new Validate();
+                $validate->rule([
+                    'password|密码' => ValidateRule::isRequire(),
+                    'confirm|确认密码' => ValidateRule::isRequire()->confirm('password','确认密码和密码不一致'),
+                ]);
+                if (!$validate->check($data)){
+                    $this->error($validate->getError());
+                }
+                $data['password'] = password_encrypt($data['password']);
+            }
 
 
             Db::startTrans();
