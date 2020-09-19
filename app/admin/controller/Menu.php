@@ -35,7 +35,7 @@ class Menu extends GardeniaController
             ->addListHead('type','规则类型')
             ->addListHead('icon','图标')
             ->addListHead('name','规则')
-            ->addListHead('sort','排序')
+            ->addListHead('weigh','权重')
             ->addListHead('status','状态')
 //            ->addListHead('operate','操作','normal','#rightToolbox',$template)
             ->addListHead('operate','操作','normal')

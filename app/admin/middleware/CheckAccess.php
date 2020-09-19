@@ -65,7 +65,6 @@ class CheckAccess
             $accessArr = Db::name('auth_rule')
                 ->where(['status'=> AppConstant::STATUS_FORMAL])->column('name');
         }
-
         if (!$accessArr){
             error('您没有权限访问');
         }

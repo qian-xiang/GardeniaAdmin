@@ -28,10 +28,10 @@ class User extends GardeniaController
             ->addTopOperateButton('gardenia','新增','create',['id'=> 'create',
                 'onclick'=> 'location.href="'.url('/'.request()->controller().'/create')->build().'"'])
             ->addTopOperateButton('gardenia','删除','delete',['id'=> 'delete'])
-            ->addColumnOperateButton('operate','查看','gardenia','read',['name'=> "item_read",'lay-event' => 'read'],['rule-name' => 'item_read'])
+            ->addColumnOperateButton('operate','查看','gardenia','read',['name'=> "item_read",'lay-event' => 'read'],['rule-name' => 'item_read'],'/User/read')
             ->addColumnOperateButton('operate','编辑','gardenia','edit',['name'=> "item_edit",'lay-event' => 'edit'],[
-                'rule-name' => 'item_edit','redirect-url' => url('/'.request()->controller().'/edit')->build()])
-            ->addColumnOperateButton('operate','删除','gardenia','delete',['name' => 'item_delete','lay-event' => 'delete'],['rule-name' => 'item_delete'])
+                'rule-name' => 'item_edit','redirect-url' => url('/'.request()->controller().'/edit')->build()],'/User/edit')
+            ->addColumnOperateButton('operate','删除','gardenia','delete',['name' => 'item_delete','lay-event' => 'delete'],['rule-name' => 'item_delete'],'/User/delete')
             ->display();
     }
     public function create() {
@@ -70,11 +70,21 @@ class User extends GardeniaController
             }
             $data['password'] = password_encrypt($data['password']);
 
+            $userInfo = $request->user;
+
             $saveData = [
                 'last_login_ip'=> get_client_ip(),
                 'last_login_time'=> time(),
                 'create_time'=> time(),
+                'pid' => $userInfo['id'],
             ];
+
+            if ($userInfo['root_id'] === AppConstant::USER_NO_PID){
+                $saveData['root_id'] = $userInfo['id'];
+            } else {
+                $saveData['root_id'] = $userInfo['root_id'];
+            }
+
             $data = array_merge($data,$saveData);
             Db::startTrans();
             $insertID = Db::name('user')->strict(false)->insert($data,true);
@@ -105,12 +115,21 @@ class User extends GardeniaController
         $request = \request();
         if ($request->isGet()){
             $user = Db::name('user')->alias('u')
-                ->join('auth_group_access a','u.id = a.uid')
-                ->where(['u.id' => $id])->field('u.id,u.username,u.login_status,a.group_id')->select()->toArray();
+                ->leftJoin('auth_group_access a','u.id = a.uid')
+                ->where([
+                    'u.id' => $id,
+                    'u.is_delete' => AppConstant::USER_NO_DELETE,
+                ])->field('u.id,u.username,u.p_id,a.group_id')->select()->toArray();
             if (!$user){
-                $this->error('该用户不存在！');
+                $this->error('该用户不存在或尚未为其分配权限！');
             }
             $user = $user[0];
+            if ($request->user['admin_type'] === AppConstant::GROUP_TYPE_ADMIN){
+                if ($user['p_id'] !== $request->user['id'] && $user['create_user_id'] !== AppConstant::USER_NO_PID){
+                    $this->error('该用户不是您创建的，因此您没有操作该用户的权限！');
+                }
+            }
+
             $userGroup = Db::name('auth_group')
                 ->where(['status'=> AppConstant::STATUS_FORMAL])->field('id as value,title as label')->select()->toArray();
             if ($userGroup) {
@@ -185,6 +204,21 @@ class User extends GardeniaController
             Db::commit();
             $this->success('更新用户信息成功！');
         }
+    }
+    public function delete($id) {
+        $request = request();
+        if (!$request->isPost()){
+            $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'请求方式必须是POST');
+        }
+        $user = Db::name('user')->find($id);
+        if (!$user) {
+            $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'该用户信息不存在!');
+        }
+       $res = Db::name('user')->where(['id'=> $id, 'root_id' => $id])->delete();
+       if (!$res) {
+           $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'删除该用户失败，请稍候重试!');
+       }
+        $this->layuiAjaxReturn(AppConstant::CODE_SUCCESS,'删除成功！');
     }
     public function getData() {
         $list = Db::name('user')

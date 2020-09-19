@@ -53,20 +53,14 @@ class CheckLogin
             error('检测到您尚未登录或登录状态已过期，即将前往登录页面...',url('/Login/index'));
         }
         $res = Db::name('auth_group_access')->alias('a')->join('auth_group g','g.id = a.group_id')
-            ->where(['a.uid' => $user['id']])->field('g.type')->find();
+            ->where(['a.uid' => $user['id']])->field('g.type as admin_type')->find();
         if (!$res){
             error('您没有权限访问');
         }
-        $request->user = [
-            'id' => $user['id'],
-            'username' => $user['username'],
-            'login_code' => $loginCode,
-            'last_login_time' => $user['last_login_time'],
-            'last_login_ip' => $user['last_login_ip'],
-            'login_time' => $user['login_time'],
-            'login_ip' => $user['login_ip'],
-            'admin_type' => $res['type']
-        ];
+
+        $result = array_merge($user,$res);
+        $request->user = $result;
+
         return $next($request);
     }
 
