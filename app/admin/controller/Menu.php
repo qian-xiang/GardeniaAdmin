@@ -294,7 +294,7 @@ class Menu extends GardeniaController
                 ->addFormItem('gardenia','text','icon','图标',null,['value' => $currentMenu['icon']])
                 ->addFormItem('gardenia','text','rule','规则',null,['value' => $currentMenu['name']])
                 ->addFormItem('gardenia','text','rule_condition','规则条件',null,['value' => $currentMenu['condition']])
-                ->addFormItem('gardenia','number','sort','排序',null,['value' => $currentMenu['sort']])
+                ->addFormItem('gardenia','number','weigh','权重',null,['value' => $currentMenu['weigh']])
                 ->addFormItem('gardenia','select','status','状态',$statusList)
                 ->addBottomButton('gardenia','submit','submit','提交')
                 ->addBottomButton('gardenia','cancel','cancel','取消')
@@ -309,8 +309,8 @@ class Menu extends GardeniaController
                 'title' => ValidateRule::isRequire(null,'标题必填！'),
                 'icon' => ValidateRule::isRequire(null,'图标必填！'),
                 'rule' => ValidateRule::requireIf('rule_type,'.AppConstant::RULE_TYPE_OTHER,'规则类型为其它时，规则必填！'),
-                'sort' => ValidateRule::isRequire(null,'排序必填！')->isInteger(null,'排序格式必须是整数！'),
-                'status' => ValidateRule::isRequire(null,'状态必填！')->isInteger(null,'排序格式必须是整数！'),
+                'weigh' => ValidateRule::isRequire(null,'权重必填！')->isInteger(null,'权重格式必须是整数！'),
+                'status' => ValidateRule::isRequire(null,'状态必填！')->isInteger(null,'状态格式必须是整数！'),
             ]);
 
             if (!$validate->check($data)) {
@@ -324,7 +324,7 @@ class Menu extends GardeniaController
                 'title' => $data['title'],
                 'icon' => $data['icon'],
                 'name' => $data['rule'],
-                'sort' => $data['sort'],
+                'weigh' => $data['weigh'],
                 'status' => $data['status'],
             ];
 

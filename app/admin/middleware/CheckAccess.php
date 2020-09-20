@@ -75,7 +75,7 @@ class CheckAccess
         }
         $access = '/'.$controller.'/'.$action;
 
-        if (!in_array($access,$accessArr)) {
+        if (!in_array($access,$accessArr) && $request->user['admin_type'] !== AppConstant::GROUP_TYPE_SUPER_ADMIN) {;
             error('您没有权限访问');
         }
         $user = $request->user;
