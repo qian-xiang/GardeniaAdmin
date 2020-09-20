@@ -7,6 +7,7 @@ use app\admin\GardeniaController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\Request;
+use think\View;
 
 class Test extends GardeniaController
 {
@@ -57,9 +58,11 @@ class Test extends GardeniaController
         //
         $form = new GardeniaForm();
         $form->addFormItem('gardenia','text','title','标题',null,[
-            'lay-verify'=> 'required'
+            'lay-verify' => 'title'
         ])
+            ->setInnerJs('text',"form.verify({title: function(value, item){if(!value) {alert('\{\$alert\}');return false;}}})",['alert'=> '你猜'])
             ->addBottomButton('gardenia','submit','submit','提交')
+            ->setFormStatus(false)
             ->display();
     }
 
