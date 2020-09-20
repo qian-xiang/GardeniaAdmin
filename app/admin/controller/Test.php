@@ -7,7 +7,6 @@ use app\admin\GardeniaController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\Request;
-use think\View;
 
 class Test extends GardeniaController
 {

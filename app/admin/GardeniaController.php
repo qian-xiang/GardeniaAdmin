@@ -175,6 +175,13 @@ abstract class GardeniaController
             }
         }
 
+        if (!$currentMenuId) {
+            $currentMenuId = Db::name('auth_rule')->where([
+                'name' => $menuUrl,
+                'type' => AppConstant::RULE_TYPE_OTHER,
+            ])->value('pid');
+
+        }
         $nodeList = [];
         if ($ruleList){
             $nodeList = $this->getIndexTreeMenu($ruleList,0,$currentMenuId,$rootId);

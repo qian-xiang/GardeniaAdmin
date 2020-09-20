@@ -224,7 +224,7 @@ class Menu extends GardeniaController
                 ->addFormItem('gardenia','text','icon','图标',null,['value' => $currentMenu['icon'], 'readonly' => 'readonly'])
                 ->addFormItem('gardenia','text','rule','规则',null,['value' => $currentMenu['name'], 'readonly' => 'readonly'])
                 ->addFormItem('gardenia','text','rule_condition','规则条件',null,['readonly' => 'readonly','value' => $currentMenu['condition']])
-                ->addFormItem('gardenia','number','sort','排序',null,['value' => $currentMenu['sort'], 'readonly' => 'readonly'])
+                ->addFormItem('gardenia','number','weigh','权重',null,['value' => $currentMenu['weigh'], 'readonly' => 'readonly'])
                 ->addFormItem('gardenia','select','status','状态',$statusList,['disabled' => 'disabled'])
                 ->addBottomButton('gardenia','cancel','cancel','取消')
                 ->display();

@@ -119,7 +119,7 @@ class User extends GardeniaController
                 ->where([
                     'u.id' => $id,
                     'u.is_delete' => AppConstant::USER_NO_DELETE,
-                ])->field('u.id,u.username,u.p_id,a.group_id')->select()->toArray();
+                ])->field('u.id,u.username,u.p_id,u.login_status,a.group_id')->select()->toArray();
             if (!$user){
                 $this->error('该用户不存在或尚未为其分配权限！');
             }
