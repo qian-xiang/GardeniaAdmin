@@ -7,7 +7,7 @@ return [
     // 默认日志记录通道
     'default'      => env('log.channel', 'file'),
     // 日志记录级别
-    'level'        => [],
+    'level'        => ['debug', 'info', 'notice', 'warning', 'error','login'],
     // 日志类型记录的通道 ['error'=>'email',...]
     'type_channel' => [],
     // 关闭全局日志写入
@@ -27,7 +27,7 @@ return [
             // 独立日志级别
             'apart_level'    => [],
             // 最大日志文件数量
-            'max_files'      => 0,
+            'max_files'      => 10,
             // 使用JSON格式记录
             'json'           => false,
             // 日志处理
