@@ -29,6 +29,7 @@ class Log extends GardeniaController
             ->addListHead('date_time','请求时间')
             ->addListHead('type','类型')
             ->addListHead('content','内容')
+            ->addListHead('spend_time','耗时')
             ->display();
     }
 
@@ -107,10 +108,15 @@ class Log extends GardeniaController
         //
     }
     public function getData() {
+        $request = \request();
+        $pageNum = config('app.page_num') ? config('app.page_num') : 10;
+        $limit = $request->get('limit') ? $request->get('limit') : $pageNum;
+        $page = $request->get('page') ? $request->get('page') : 1;
+
         $logDir = config('channels.file.path') ? config('channels.file.path') : app()->getRuntimePath().'log';
         $content = $this->getLogContent($logDir);
-        file_put_contents('./uploads/text.txt',$content);
-        $pattern = "/\[(\d+\-\d{1,2}\-\d{1,2}T\d{1,2}\:\d{1,2}\:\d{1,2}\+\d{1,2}\:\d{1,2})\]\[([\s\S]*?)\]\s{1}(\[\d+\][\s\S]*?)\n/";
+
+        $pattern = "/\[(\d+\-\d{1,2}\-\d{1,2}T\d{1,2}\:\d{1,2}\:\d{1,2}\+\d{1,2}\:\d{1,2})\]\[([\s\S]*?)\]\s([\s\S]*?)(\[\s{1}RunTime:(\d+\.\d+\S)\s\])?\n/";
         $res = preg_match_all($pattern,$content,$arr);
         if (!$res) {
             $this->error('获取日志内容时，执行正则表达式失败。');
@@ -121,17 +127,27 @@ class Log extends GardeniaController
         if ($arr){
             foreach ($arr[0] as $key => $item) {
                 $dateTime = new \DateTime($item);
-                $item = $dateTime->format('Y年m月日 H时i分s秒');
+                $item = $dateTime->format('Y年m月d日 H时i分s秒');
                 $array[$key]['date_time'] = $item;
                 $array[$key]['type'] = $arr[1][$key];
                 $array[$key]['content'] = $arr[2][$key];
+                $array[$key]['spend_time'] = (isset($arr[4][$key]) && $arr[4][$key]) ? $arr[4][$key] : '';
             }
         }
-
+        unset($arr);
+        $recordCount = count($array);
+        $pageCount = ceil($recordCount / $limit);
+        if ($page > $pageCount){
+            $page = $pageCount;
+        }
+        $start = ($page - 1) * $limit + 1;
+        //该步骤是为了便于理解
+        $start = $start - 1;
+        $array = array_slice($array,$start, $limit);
         $data = [
             'code' => AppConstant::CODE_SUCCESS,
             'msg' => '获取成功！',
-            'count' => count($array),
+            'count' => $recordCount,
             'data' => $array
         ];
 
