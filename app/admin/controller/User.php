@@ -10,6 +10,7 @@ namespace app\admin\controller;
 use app\admin\extend\diy\extra_class\AppConstant;
 use app\admin\GardeniaController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
+use gardenia_admin\src\core\core_class\GardeniaHelper;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\facade\Db;
 use think\Validate;
@@ -21,10 +22,10 @@ class User extends GardeniaController
         $request = request();
         $gardeniaList = new GardeniaList();
         $gardeniaList->setTableAttr('url',url('/'.$request->controller().'/getData')->build())
-            ->addListHead('username','用户名')
-            ->addListHead('login_status','状态')
-            ->addListHead('last_login_time','最近登录时间')
-            ->addListHead('operate','操作','normal')
+            ->addTableHead('username','用户名')
+            ->addTableHead('login_status','状态')
+            ->addTableHead('last_login_time','最近登录时间')
+            ->addTableHead('operate','操作',['type' => 'normal'])
             ->addTopOperateButton('gardenia','新增','create',['id'=> 'create',
                 'onclick'=> 'location.href="'.url('/'.request()->controller().'/create')->build().'"'])
             ->addTopOperateButton('gardenia','删除','delete',['id'=> 'delete'])
@@ -229,10 +230,12 @@ class User extends GardeniaController
                 return AppConstant::timestampToMinute($value);
             })
             ->order(['id' => 'desc'])->select()->toArray();
+        $recordCount = count($list);
+        $list = GardeniaHelper::layPaginate($list);
         $data = [
             'code' => AppConstant::CODE_SUCCESS,
             'msg' => '获取成功！',
-            'count' => count($list),
+            'count' => $recordCount,
             'data' => $list
         ];
 

@@ -63,11 +63,8 @@ class Login extends GardeniaController
         trace($res ? '登录时更新数据成功！' : '登录时更新数据失败！','log');
         trace('用户：'.$result['username'].' 于'.date('Y-m-d H:i:s').' 登录！','log');
         //登录有效期，7天
-//        setcookie('login_code',$updateData['login_code'],time() + 7*24*60*60,url('/'));
         cookie('login_code',$updateData['login_code'],7*24*60*60);
         $this->success('登录成功！即将跳转到首页...',url('/'));
     }
-    public function test() {
-        return password_encrypt('122333');
-    }
+
 }

@@ -10,6 +10,7 @@ namespace app\admin\controller;
 use app\admin\extend\diy\extra_class\AppConstant;
 use app\admin\GardeniaController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
+use gardenia_admin\src\core\core_class\GardeniaHelper;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\facade\Db;
 use think\Request;
@@ -28,9 +29,9 @@ class UserGroup extends GardeniaController
         $request = \request();
         $gardeniaList = new GardeniaList();
         $gardeniaList->setTableAttr('url',url('/'.$request->controller().'/getData')->build())
-            ->addListHead('title','用户组')
-            ->addListHead('status','状态')
-            ->addListHead('operate','操作','normal')
+            ->addTableHead('title','用户组')
+            ->addTableHead('status','状态')
+            ->addTableHead('operate','操作',['type' => 'normal'])
             ->addTopOperateButton('gardenia','新增','create',['id'=> 'create',
                 'onclick'=> 'location.href="'.url('/'.request()->controller().'/create')->build().'"'])
             ->addTopOperateButton('gardenia','删除','delete',['id'=> 'delete'])
@@ -206,10 +207,12 @@ class UserGroup extends GardeniaController
                 return AppConstant::getStatusAttr($value);
             })
             ->order(['id' => 'desc'])->select()->toArray();
+        $recordCount = count($list);
+        $list = GardeniaHelper::layPaginate($list);
         $data = [
             'code' => AppConstant::CODE_SUCCESS,
             'msg' => '获取成功！',
-            'count' => count($list),
+            'count' => $recordCount,
             'data' => $list
         ];
 

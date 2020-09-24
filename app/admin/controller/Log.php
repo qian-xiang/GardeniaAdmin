@@ -6,6 +6,7 @@ namespace app\admin\controller;
 use app\admin\extend\diy\extra_class\AppConstant;
 use app\admin\GardeniaController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
+use gardenia_admin\src\core\core_class\GardeniaHelper;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\Request;
 
@@ -18,21 +19,17 @@ class Log extends GardeniaController
      */
     public function index()
     {
-
         $request = request();
-//            ,height: 312
-//            ,url: '/admin.php/index/getData' //数据接口
-        $gardeniaList = new GardeniaList('id');
+        $gardeniaList = new GardeniaList();
         $gardeniaList
             ->setTableAttr('url',url('/'.$request->controller().'/getData')->build())
             ->setTableAttr('page',true)
-            ->addListHead('date_time','请求时间')
-            ->addListHead('type','类型')
-            ->addListHead('content','内容')
-            ->addListHead('spend_time','耗时')
+            ->addTableHead('date_time','请求时间')
+            ->addTableHead('type','类型')
+            ->addTableHead('content','内容')
+            ->addTableHead('spend_time','耗时')
             ->display();
     }
-
 
     /**
      * 显示创建资源表单页.
@@ -108,10 +105,6 @@ class Log extends GardeniaController
         //
     }
     public function getData() {
-        $request = \request();
-        $pageNum = config('app.page_num') ? config('app.page_num') : 10;
-        $limit = $request->get('limit') ? $request->get('limit') : $pageNum;
-        $page = $request->get('page') ? $request->get('page') : 1;
 
         $logDir = config('channels.file.path') ? config('channels.file.path') : app()->getRuntimePath().'log';
         $content = $this->getLogContent($logDir);
@@ -136,14 +129,7 @@ class Log extends GardeniaController
         }
         unset($arr);
         $recordCount = count($array);
-        $pageCount = ceil($recordCount / $limit);
-        if ($page > $pageCount){
-            $page = $pageCount;
-        }
-        $start = ($page - 1) * $limit + 1;
-        //该步骤是为了便于理解
-        $start = $start - 1;
-        $array = array_slice($array,$start, $limit);
+        $array = GardeniaHelper::layPaginate($array);
         $data = [
             'code' => AppConstant::CODE_SUCCESS,
             'msg' => '获取成功！',

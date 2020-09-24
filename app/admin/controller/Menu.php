@@ -6,6 +6,7 @@ namespace app\admin\controller;
 use app\admin\extend\diy\extra_class\AppConstant;
 use app\admin\GardeniaController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
+use gardenia_admin\src\core\core_class\GardeniaHelper;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\facade\Db;
 use think\Validate;
@@ -23,22 +24,20 @@ class Menu extends GardeniaController
         $request = request();
 //            ,height: 312
 //            ,url: '/admin.php/index/getData' //数据接口
-        $gardeniaList = new GardeniaList('id');
+        $gardeniaList = new GardeniaList();
         $gardeniaList
 //            ->setHeadToolbox('#toolbarDemo','path','./static/js/gardenia/text_template.js')
             ->setTableAttr('url',url('/'.$request->controller().'/getData')->build())
             ->setTableAttr('page',true)
             ->addExtraLayuiJS('path','./static/js/gardenia/list_extra_layui.js')
-            ->addListHead('choose','选择','checkbox')
-//            ->addListHead('id','ID')
-            ->addListHead('title','标题')
-            ->addListHead('type','规则类型')
-            ->addListHead('icon','图标')
-            ->addListHead('name','规则')
-            ->addListHead('weigh','权重')
-            ->addListHead('status','状态')
-//            ->addListHead('operate','操作','normal','#rightToolbox',$template)
-            ->addListHead('operate','操作','normal')
+            ->addTableHead('choose','选择',['type' => 'checkbox'])
+            ->addTableHead('title','标题')
+            ->addTableHead('type','规则类型')
+            ->addTableHead('icon','图标')
+            ->addTableHead('name','规则')
+            ->addTableHead('weigh','权重')
+            ->addTableHead('status','状态')
+            ->addTableHead('operate','操作',['type' => 'normal'])
             ->addTopOperateButton('gardenia','新增','create',['id'=> 'create',
                 'onclick'=> 'location.href="'.url('/'.request()->controller().'/create')->build().'"'])
             ->addTopOperateButton('gardenia','删除','delete',['id'=> 'delete'])
@@ -389,10 +388,12 @@ class Menu extends GardeniaController
             ->withAttr('type',function ($value) {
                 return AppConstant::getRuleTypeAttr($value);
             })->order(['weigh' => 'desc','id' => 'desc'])->select()->toArray();
+        $recordCount = count($list);
+        $list = GardeniaHelper::layPaginate($list);
         $data = [
             'code' => AppConstant::CODE_SUCCESS,
             'msg' => '获取成功！',
-            'count' => count($list),
+            'count' => $recordCount,
             'data' => $list
         ];
 
