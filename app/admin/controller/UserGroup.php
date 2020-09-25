@@ -69,10 +69,10 @@ class UserGroup extends GardeniaController
             ];
 
             $gardeniaForm = new GardeniaForm();
-            $gardeniaForm->addFormItem('gardenia','text','title','用户组名',null,null,true)
-                ->addFormItem('gardenia','select','type','类型',$typeList,null,true)
-                ->addFormItem('gardenia','select','status','状态',$statusList,null,true)
-                ->addFormItem('gardenia','tree','rules','规则',$nodeList,null,true)
+            $gardeniaForm->addFormItem('gardenia','text','title','用户组名',null,null)
+                ->addFormItem('gardenia','select','type','类型',$typeList,null)
+                ->addFormItem('gardenia','select','status','状态',$statusList,null)
+                ->addFormItem('gardenia','tree','rules','规则',$nodeList,null)
                 ->addBottomButton('gardenia','submit','submit','提交')
                 ->addBottomButton('gardenia','cancel','cancel','取消')
                 ->addTreeItemJs('rules','path',$js)
@@ -145,9 +145,9 @@ class UserGroup extends GardeniaController
 
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm->addFormItem('gardenia','hidden','id','ID',null,['value'=> $userGroup['id']])
-                ->addFormItem('gardenia','text','title','用户组名',null,['value'=> $userGroup['title']],true)
-                ->addFormItem('gardenia','select','status','状态',$statusList,null,true)
-                ->addFormItem('gardenia','tree','rules','规则',$nodeList,null,true)
+                ->addFormItem('gardenia','text','title','用户组名',null,['value'=> $userGroup['title']])
+                ->addFormItem('gardenia','select','status','状态',$statusList,null)
+                ->addFormItem('gardenia','tree','rules','规则',$nodeList,null)
                 ->addBottomButton('gardenia','submit','submit','提交')
                 ->addBottomButton('gardenia','cancel','cancel','取消')
                 ->addTreeItemJs('rules','path',$js)

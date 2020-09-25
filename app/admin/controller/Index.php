@@ -40,8 +40,4 @@ class Index extends GardeniaController
 
         return response($data,200,[],'json');
     }
-    public function test()
-    {
-        echo '11111';
-    }
 }

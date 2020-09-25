@@ -48,13 +48,14 @@ class User extends GardeniaController
 
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm
-                ->addFormItem('gardenia','text','username','用户名',null,null,true)
-                ->addFormItem('gardenia','password','password','密码',null,null,true)
-                ->addFormItem('gardenia','password','confirm','确认密码',null,null,true)
-                ->addFormItem('gardenia','select','user_group_id','用户组',$userGroup,null,true)
-                ->addFormItem('gardenia','select','status','状态',$statusList,null,true)
+                ->addFormItem('gardenia','text','username','用户名',null,null)
+                ->addFormItem('gardenia','password','password','密码',null,null)
+                ->addFormItem('gardenia','password','confirm','确认密码',null,null)
+                ->addFormItem('gardenia','select','user_group_id','用户组',$userGroup,null)
+                ->addFormItem('gardenia','select','status','状态',$statusList,null)
                 ->addBottomButton('gardenia','submit','submit','提交')
                 ->addBottomButton('gardenia','cancel','cancel','取消')
+                ->setFormWholeStyle(['colon' => true])
                 ->display();
         }elseif ($request->isPost()) {
             $data = $request->post();
@@ -148,12 +149,12 @@ class User extends GardeniaController
 
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm
-                ->addFormItem('gardenia','hidden','id','ID',null,['value' => $id],true)
-                ->addFormItem('gardenia','text','username','用户名',null,['value' => $user['username']],true)
-                ->addFormItem('gardenia','password','password','密码',null,null,true)
-                ->addFormItem('gardenia','password','confirm','确认密码',null,null,true)
-                ->addFormItem('gardenia','select','user_group_id','用户组',$userGroup,null,true)
-                ->addFormItem('gardenia','select','status','状态',$statusList,null,true)
+                ->addFormItem('gardenia','hidden','id','ID',null,['value' => $id])
+                ->addFormItem('gardenia','text','username','用户名',null,['value' => $user['username']])
+                ->addFormItem('gardenia','password','password','密码',null,null)
+                ->addFormItem('gardenia','password','confirm','确认密码',null,null)
+                ->addFormItem('gardenia','select','user_group_id','用户组',$userGroup,null)
+                ->addFormItem('gardenia','select','status','状态',$statusList,null)
                 ->addBottomButton('gardenia','submit','submit','提交')
                 ->addBottomButton('gardenia','cancel','cancel','取消')
                 ->display();
