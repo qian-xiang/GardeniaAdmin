@@ -29,6 +29,7 @@ class UserGroup extends GardeniaController
         $request = \request();
         $gardeniaList = new GardeniaList();
         $gardeniaList->setTableAttr('url',url('/'.$request->controller().'/getData')->build())
+            ->addTableHead('choose','选择',['type' => 'checkbox'])
             ->addTableHead('title','用户组')
             ->addTableHead('status','状态')
             ->addTableHead('operate','操作',['type' => 'normal'])
@@ -51,27 +52,24 @@ class UserGroup extends GardeniaController
     {
         $request = \request();
         if ($request->isGet()){
+            if ($request->user['admin_type'] !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
+                $this->error('不是超级管理员不能创建用户组');
+            }
             $ruleList = Db::name('auth_rule')->field('id,title,pid,name as field')->select()->toArray();
             $nodeList = [];
             if ($ruleList){
                 $nodeList = $this->buildTreeData($ruleList,0);
             }
-            $statusList = [
-                ['label'=> '禁用', 'value' => 0],
-                ['label'=> '正常', 'value' => 1,'selected' => 'selected'],
-            ];
+            $statusList = AppConstant::getStatusList();
 
             $js = "./static/js/gardenia/UserGroupTreeExtraJs.js";
 
-            $typeList = [
-                ['label'=> '超级管理员', 'value' => 0],
-                ['label'=> '管理员', 'value' => 1,'selected' => 'selected'],
-            ];
+            $typeList = AppConstant::getRuleTypeList();
 
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm->addFormItem('gardenia','text','title','用户组名',null,null)
-                ->addFormItem('gardenia','select','type','类型',$typeList,null)
-                ->addFormItem('gardenia','select','status','状态',$statusList,null)
+                ->addFormItem('gardenia','select','type','类型',$typeList,['value' => AppConstant::RULE_TYPE_MENU])
+                ->addFormItem('gardenia','select','status','状态',$statusList,['value' => AppConstant::STATUS_FORMAL])
                 ->addFormItem('gardenia','tree','rules','规则',$nodeList,null)
                 ->addBottomButton('gardenia','submit','submit','提交')
                 ->addBottomButton('gardenia','cancel','cancel','取消')
@@ -99,17 +97,6 @@ class UserGroup extends GardeniaController
     }
 
     /**
-     * 保存新建的资源
-     *
-     * @param  \think\Request  $request
-     * @return \think\Response
-     */
-    public function save(Request $request)
-    {
-        //
-    }
-
-    /**
      * 显示指定的资源
      *
      * @param  int  $id
@@ -117,7 +104,31 @@ class UserGroup extends GardeniaController
      */
     public function read($id)
     {
-        //
+        $request = \request();
+        if ($request->isGet()){
+            $userGroup = Db::name('auth_group')->field('id,title,status,rules')->find($id);
+            $ruleList = Db::name('auth_rule')->field('id,title,pid,name as field')->select()->toArray();
+            $userGroup['rules'] = explode(',',$userGroup['rules']);
+            if ($ruleList){
+                $nodeList = $this->buildTreeData($ruleList,0,$userGroup['rules']);
+            }
+            $statusList = AppConstant::getStatusList();
+
+            $js = "./static/js/gardenia/userGroup_edit.js";
+
+            $gardeniaForm = new GardeniaForm();
+            $gardeniaForm->addFormItem('gardenia','hidden','id','ID',null,['value'=> $userGroup['id']])
+                ->addFormItem('gardenia','text','title','用户组名',null,['value'=> $userGroup['title'], 'readonly' => true])
+                ->addFormItem('gardenia','select','status','状态',$statusList,[
+                        'disabled' => true,
+                        'value' => $userGroup['status']
+                    ])
+                ->addFormItem('gardenia','tree','rules','规则',$nodeList,['disabled' => true])
+                ->addBottomButton('gardenia','cancel','cancel','返回')
+                ->addTreeItemJs('rules','path',$js)
+                ->setFormStatus(false)
+                ->display();
+        }
     }
 
     /**
@@ -130,23 +141,23 @@ class UserGroup extends GardeniaController
     {
         $request = \request();
         if ($request->isGet()){
+            if ($request->user['admin_type'] !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
+                $this->error('超级管理员不能编辑用户组');
+            }
             $userGroup = Db::name('auth_group')->field('id,title,status,rules')->find($id);
             $ruleList = Db::name('auth_rule')->field('id,title,pid,name as field')->select()->toArray();
             $userGroup['rules'] = explode(',',$userGroup['rules']);
             if ($ruleList){
                 $nodeList = $this->buildTreeData($ruleList,0,$userGroup['rules']);
             }
-            $statusList = [
-                ['label'=> '禁用', 'value' => 0,'selected' => $userGroup['status'] === 0],
-                ['label'=> '正常', 'value' => 1,'selected' => $userGroup['status'] === 1],
-            ];
+            $statusList = AppConstant::getStatusList();
 
             $js = "./static/js/gardenia/userGroup_edit.js";
 
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm->addFormItem('gardenia','hidden','id','ID',null,['value'=> $userGroup['id']])
                 ->addFormItem('gardenia','text','title','用户组名',null,['value'=> $userGroup['title']])
-                ->addFormItem('gardenia','select','status','状态',$statusList,null)
+                ->addFormItem('gardenia','select','status','状态',$statusList,['value' => $userGroup['status']])
                 ->addFormItem('gardenia','tree','rules','规则',$nodeList,null)
                 ->addBottomButton('gardenia','submit','submit','提交')
                 ->addBottomButton('gardenia','cancel','cancel','取消')
@@ -174,18 +185,6 @@ class UserGroup extends GardeniaController
     }
 
     /**
-     * 保存更新的资源
-     *
-     * @param  \think\Request  $request
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
      * 删除指定资源
      *
      * @param  int  $id
@@ -195,7 +194,12 @@ class UserGroup extends GardeniaController
     {
         $request = request();
         !isset($id) && $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'id必传');
-        $res = Db::name('auth_group')->where(['id' => $id])->delete();
+        if ($request->user['admin_type'] !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
+            $this->error('超级管理员不能删除用户组');
+        }
+        $res = Db::name('auth_group')->where([
+            ['id','in',$id]
+        ])->delete();
         if (!$res){
             return $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'删除失败');
         }

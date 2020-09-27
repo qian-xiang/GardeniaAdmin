@@ -59,6 +59,7 @@ abstract class GardeniaController
     {
         //
         View::assign('asideMenuList',$this->getRenderMenuList());
+
     }
 
     /**
@@ -186,6 +187,7 @@ abstract class GardeniaController
         if ($ruleList){
             $nodeList = $this->getIndexTreeMenu($ruleList,0,$currentMenuId,$rootId);
         }
+
         return $nodeList;
     }
     protected function buildTreeData($ruleList,$pid,$checkData = [],$currentLevel = 0,$maxLevel = 0) {

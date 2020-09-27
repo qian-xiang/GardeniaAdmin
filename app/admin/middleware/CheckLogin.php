@@ -7,6 +7,7 @@
 namespace app\admin\middleware;
 
 
+use app\admin\extend\diy\extra_class\AppConstant;
 use think\facade\Db;
 
 class CheckLogin
@@ -51,6 +52,9 @@ class CheckLogin
         $user = Db::name('user')->where(['login_code' => $loginCode])->find();
         if (!$user){
             error('检测到您尚未登录或登录状态已过期，即将前往登录页面...',url('/Login/index'));
+        }
+        if ($user['login_status'] === AppConstant::STATUS_FORBID) {
+            error('你已被禁止登录！',url('/Login/index'));
         }
         $res = Db::name('auth_group_access')->alias('a')->join('auth_group g','g.id = a.group_id')
             ->where(['a.uid' => $user['id']])->field('g.type as admin_type')->find();

@@ -21,28 +21,7 @@ class Test extends GardeniaController
 //            ,height: 312
 //            ,url: '/admin.php/index/getData' //数据接口
         $gardeniaList = new GardeniaList();
-        $gardeniaList
-//            ->setHeadToolbox('#toolbarDemo','path','./static/js/gardenia/text_template.js')
-            ->setTableAttr('url',url('/'.$request->controller().'/getData')->build())
-            ->setTableAttr('page',true)
-            ->addExtraLayuiJS('path','./static/js/gardenia/list_extra_layui.js')
-            ->addTableHead('choose','选择',['type' => 'checkbox'])
-            ->addTableHead('title','标题')
-            ->addTableHead('type','规则类型')
-            ->addTableHead('icon','图标')
-            ->addTableHead('name','规则')
-            ->addTableHead('weigh','权重')
-            ->addTableHead('status','状态')
-//            ->addTableHead('operate','操作','normal','#rightToolbox',$template)
-            ->addTableHead('operate','操作',['type' => 'normal'])
-            ->addTopOperateButton('gardenia','新增','create',['id'=> 'create',
-                'onclick'=> 'location.href="'.url('/'.request()->controller().'/create')->build().'"'])
-            ->addTopOperateButton('gardenia','删除','delete',['id'=> 'delete'])
-            ->addColumnOperateButton('operate','查看','gardenia','read',['name'=> "item_read",'lay-event' => 'read'],['rule-name' => 'item_read'])
-            ->addColumnOperateButton('operate','编辑','gardenia','edit',['name'=> "item_edit",'lay-event' => 'edit'],[
-                'rule-name' => 'item_edit','redirect-url' => url('/'.request()->controller().'/edit')->build()])
-            ->addColumnOperateButton('operate','删除','gardenia','delete',['name' => 'item_delete','lay-event' => 'delete'],['rule-name' => 'item_delete'])
-            ->display();
+        $gardeniaList->view('Index/index');
     }
 
 
@@ -64,62 +43,7 @@ class Test extends GardeniaController
             ->display();
     }
 
-    /**
-     * 保存新建的资源
-     *
-     * @param  \think\Request  $request
-     * @return \think\Response
-     */
-    public function save(Request $request)
-    {
-        //
-    }
-
-    /**
-     * 显示指定的资源
-     *
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function read($id)
-    {
-        //
-    }
-
-    /**
-     * 显示编辑资源表单页.
-     *
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * 保存更新的资源
-     *
-     * @param  \think\Request  $request
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * 删除指定资源
-     *
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function delete($id)
-    {
-        //
-    }
     public function getData() {
-
+        return response(['code' => 0, 'data' => []],200,[],'json');
     }
 }

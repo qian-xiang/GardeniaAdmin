@@ -67,4 +67,11 @@ class Login extends GardeniaController
         $this->success('登录成功！即将跳转到首页...',url('/'));
     }
 
+    /**
+     * 注销登录
+     */
+    public function logout() {
+        cookie('login_code',null);
+        $this->success('注销成功！',url('/Login/index'));
+    }
 }

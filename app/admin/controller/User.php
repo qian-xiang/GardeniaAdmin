@@ -39,12 +39,9 @@ class User extends GardeniaController
         $request = \request();
         if ($request->isGet()){
             $userGroup = Db::name('auth_group')
-                ->where(['status'=> AppConstant::STATUS_FORMAL])->field('id as value,title as label')->select()->toArray();
+                ->where(['status'=> AppConstant::STATUS_FORMAL])->column('title','id');
 
-            $statusList = [
-                ['label'=> '禁用', 'value' => 0],
-                ['label'=> '正常', 'value' => 1,'selected' => 'selected'],
-            ];
+            $statusList = AppConstant::getStatusList();
 
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm
@@ -52,7 +49,7 @@ class User extends GardeniaController
                 ->addFormItem('gardenia','password','password','密码',null,null)
                 ->addFormItem('gardenia','password','confirm','确认密码',null,null)
                 ->addFormItem('gardenia','select','user_group_id','用户组',$userGroup,null)
-                ->addFormItem('gardenia','select','status','状态',$statusList,null)
+                ->addFormItem('gardenia','select','status','状态',$statusList,['value' => AppConstant::STATUS_FORMAL])
                 ->addBottomButton('gardenia','submit','submit','提交')
                 ->addBottomButton('gardenia','cancel','cancel','取消')
                 ->setFormWholeStyle(['colon' => true])
@@ -112,6 +109,54 @@ class User extends GardeniaController
             $this->success('新增用户名成功！');
         }
     }
+    public function read($id) {
+        !$id && $this->error('id必传');
+        $request = \request();
+        if ($request->isGet()){
+            $user = Db::name('user')->alias('u')
+                ->leftJoin('auth_group_access a','u.id = a.uid')
+                ->where([
+                    'u.id' => $id,
+                    'u.is_delete' => AppConstant::USER_NO_DELETE,
+                ])->field('u.id,u.username,u.p_id,u.login_status,a.group_id')->select()->toArray();
+            if (!$user){
+                $this->error('该用户不存在或尚未为其分配权限！');
+            }
+            $user = $user[0];
+
+            if ($request->user['admin_type'] === AppConstant::GROUP_TYPE_ADMIN){
+                if ($user['p_id'] !== $request->user['id'] && $user['create_user_id'] !== AppConstant::USER_NO_PID){
+                    $this->error('该用户不是您创建的，因此您没有操作该用户的权限！');
+                }
+            }
+
+            $userGroup = Db::name('auth_group')
+                ->where(['status'=> AppConstant::STATUS_FORMAL])->column('title','id');
+
+            $statusList = AppConstant::getStatusList();
+
+            $gardeniaForm = new GardeniaForm();
+            $gardeniaForm
+                ->addFormItem('gardenia','hidden','id','ID',null,['value' => $id])
+                ->addFormItem('gardenia','text','username','用户名',null,[
+                        'value' => $user['username'],
+                        'readonly' => true
+                    ])
+                ->addFormItem('gardenia','password','password','密码',null,['readonly' => true])
+                ->addFormItem('gardenia','password','confirm','确认密码',null,['readonly' => true])
+                ->addFormItem('gardenia','select','user_group_id','用户组',$userGroup,[
+                    'disabled' => true,
+                    'value' => $user['group_id']
+                    ])
+                ->addFormItem('gardenia','select','status','状态',$statusList,[
+                    'disabled' => true,
+                    'value' => $user['login_status']
+                    ])
+                ->addBottomButton('gardenia','submit','submit','提交')
+                ->addBottomButton('gardenia','cancel','cancel','取消')
+                ->display();
+        }
+    }
     public function edit($id) {
         !$id && $this->error('id必传');
         $request = \request();
@@ -126,6 +171,7 @@ class User extends GardeniaController
                 $this->error('该用户不存在或尚未为其分配权限！');
             }
             $user = $user[0];
+
             if ($request->user['admin_type'] === AppConstant::GROUP_TYPE_ADMIN){
                 if ($user['p_id'] !== $request->user['id'] && $user['create_user_id'] !== AppConstant::USER_NO_PID){
                     $this->error('该用户不是您创建的，因此您没有操作该用户的权限！');
@@ -133,28 +179,24 @@ class User extends GardeniaController
             }
 
             $userGroup = Db::name('auth_group')
-                ->where(['status'=> AppConstant::STATUS_FORMAL])->field('id as value,title as label')->select()->toArray();
-            if ($userGroup) {
-                foreach ($userGroup as &$item) {
-                    if ($item['value'] === $user['group_id']){
-                        $item['selected'] = true;
-                    }
-                }
-            }
+                ->where(['status'=> AppConstant::STATUS_FORMAL])->column('title','id');
 
-            $statusList = [
-                ['label'=> '禁用', 'value' => 0,'selected' => $user['login_status'] === 0],
-                ['label'=> '正常', 'value' => 1,'selected' => $user['login_status'] === 1],
-            ];
+            $statusList = AppConstant::getStatusList();
 
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm
                 ->addFormItem('gardenia','hidden','id','ID',null,['value' => $id])
-                ->addFormItem('gardenia','text','username','用户名',null,['value' => $user['username']])
-                ->addFormItem('gardenia','password','password','密码',null,null)
-                ->addFormItem('gardenia','password','confirm','确认密码',null,null)
-                ->addFormItem('gardenia','select','user_group_id','用户组',$userGroup,null)
-                ->addFormItem('gardenia','select','status','状态',$statusList,null)
+                ->addFormItem('gardenia','text','username','用户名',null,[
+                    'value' => $user['username'],
+                ])
+                ->addFormItem('gardenia','password','password','密码',null,['readonly' => true])
+                ->addFormItem('gardenia','password','confirm','确认密码',null,['readonly' => true])
+                ->addFormItem('gardenia','select','user_group_id','用户组',$userGroup,[
+                    'value' => $user['group_id']
+                ])
+                ->addFormItem('gardenia','select','login_status','状态',$statusList,[
+                    'value' => $user['login_status']
+                ])
                 ->addBottomButton('gardenia','submit','submit','提交')
                 ->addBottomButton('gardenia','cancel','cancel','取消')
                 ->display();
@@ -165,12 +207,17 @@ class User extends GardeniaController
                 'id|用户ID' => ValidateRule::isRequire()->isInteger(),
                 'username|用户名' => ValidateRule::isRequire(),
                 'user_group_id|用户组' => ValidateRule::isRequire()->isInteger(null,'请选择用户组'),
-                'status|状态' => ValidateRule::isRequire()->isInteger(),
+                'login_status|状态' => ValidateRule::isRequire()->isInteger(),
             ]);
             if (!$validate->check($data)){
                 $this->error($validate->getError());
             }
-            if (isset($data['password']) || isset($data['confirm'])) {
+            $updateData = [
+                'id' => $data['id'],
+                'username' => $data['username'],
+                'login_status' => $data['login_status'],
+            ];
+            if ($data['password'] || $data['confirm']) {
                 $validate = new Validate();
                 $validate->rule([
                     'password|密码' => ValidateRule::isRequire(),
@@ -180,15 +227,16 @@ class User extends GardeniaController
                     $this->error($validate->getError());
                 }
                 $data['password'] = password_encrypt($data['password']);
+                $updateData['password'] = $data['password'];
+            } else {
+                unset($data['password']);
+                unset($data['confirm']);
             }
 
 
             Db::startTrans();
-            $res = Db::name('user')->strict(false)->save($data);
-            if (!$res){
-                Db::rollback();
-                $this->error('更新用户信息失败，请稍候重试。');
-            }
+            $res = Db::name('user')->strict(false)->save($updateData);
+
             //查询该用户的所在的用户组
             $group_id = Db::name('auth_group_access')->where(['uid' => $data['id']])->value('group_id');
             if (!$group_id){
@@ -197,7 +245,7 @@ class User extends GardeniaController
             }
             if ($group_id !== (int)$data['user_group_id']){
                 $res = Db::name('auth_group_access')->where(['uid' => $id])->update(['group_id' => $data['user_group_id']]);
-                if (!$res){
+                if (!$res && !$res){
                     Db::rollback();
                     $this->error('将权限关系加入用户组明细表中失败，请稍候重试。');
                 }
