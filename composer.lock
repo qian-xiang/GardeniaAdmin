@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d9f900440f4d8277fb7434031d6e85a3",
+    "content-hash": "f2ff3d8af7c7a42e6457f102884ac37d",
     "packages": [
         {
             "name": "league/flysystem",
@@ -393,6 +393,38 @@
                 "simple-cache"
             ],
             "time": "2017-10-23T01:57:42+00:00"
+        },
+        {
+            "name": "qian-xiang/gardenia_admin",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/qian-xiang/gardenia_admin.git",
+                "reference": "bc83e65c5c639a5bfdb3a6a86aeb1724c7d760f6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/qian-xiang/gardenia_admin/zipball/bc83e65c5c639a5bfdb3a6a86aeb1724c7d760f6",
+                "reference": "bc83e65c5c639a5bfdb3a6a86aeb1724c7d760f6",
+                "shasum": ""
+            },
+            "require": {
+                "topthink/framework": "^6.0",
+                "topthink/think-orm": "^2.0"
+            },
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "qian xiang",
+                    "email": "noemail@bug.com"
+                }
+            ],
+            "description": "栀子后台管理系统GardeniaAdmin的表单和表格构建器",
+            "time": "2020-09-29T16:47:17+00:00"
         },
         {
             "name": "topthink/framework",
@@ -1126,7 +1158,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "qian-xiang/gardenia_admin": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
