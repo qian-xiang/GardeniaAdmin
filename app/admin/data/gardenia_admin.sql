@@ -11,7 +11,7 @@
  Target Server Version : 50730
  File Encoding         : 65001
 
- Date: 08/10/2020 22:03:57
+ Date: 17/10/2020 15:52:16
 */
 
 SET NAMES utf8mb4;
@@ -35,7 +35,7 @@ CREATE TABLE `gardenia_auth_group`  (
 -- ----------------------------
 INSERT INTO `gardenia_auth_group` VALUES (8, '测试', 0, '3,4,6,43,45,8,37,41,40,42,46,2,5,7,36,35,50,51,1', 1);
 INSERT INTO `gardenia_auth_group` VALUES (6, '超级管理', 1, '', 0);
-INSERT INTO `gardenia_auth_group` VALUES (10, '浅香群管', 1, '3,4,6,43,45,8,37,41,40,42,1,52', 0);
+INSERT INTO `gardenia_auth_group` VALUES (10, '浅香hhh', 1, '3,4,6,43,45,8,37,41,40,42,1,52', 0);
 
 -- ----------------------------
 -- Table structure for gardenia_auth_group_access
@@ -75,7 +75,7 @@ CREATE TABLE `gardenia_auth_rule`  (
   `condition` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `name`(`name`) USING BTREE
-) ENGINE = MyISAM AUTO_INCREMENT = 53 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '认证规则表' ROW_FORMAT = Dynamic;
+) ENGINE = MyISAM AUTO_INCREMENT = 54 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '认证规则表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of gardenia_auth_rule
@@ -129,9 +129,9 @@ CREATE TABLE `gardenia_user`  (
   `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '$2y$10$LclTZa3FI4G7b9Vyhxezj.uks8QV09dfhNH4X5.ZgYGQqnEIbnlMG' COMMENT '用户密码，默认123456',
   `login_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '登陆状态',
   `login_code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '排他性登陆标识',
-  `last_login_ip` varchar(11) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '最后登录IP',
+  `last_login_ip` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '最后登录IP',
   `last_login_time` bigint(10) NOT NULL DEFAULT 0 COMMENT '最后登录时间',
-  `login_ip` varchar(11) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '当前登录IP',
+  `login_ip` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '当前登录IP',
   `login_time` bigint(10) NOT NULL DEFAULT 0 COMMENT '当前登录时间',
   `p_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '父级ID',
   `root_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '根ID',
@@ -140,12 +140,12 @@ CREATE TABLE `gardenia_user`  (
   `update_time` bigint(20) NOT NULL DEFAULT 0 COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `username`(`username`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of gardenia_user
 -- ----------------------------
-INSERT INTO `gardenia_user` VALUES (5, '栀子浅香', '$2y$10$LclTZa3FI4G7b9Vyhxezj.uks8QV09dfhNH4X5.ZgYGQqnEIbnlMG', 1, 'aea221af58ecc76b86ce1cbf298699e8', '172.17.0.1', 1601223240, '172.17.0.1', 1601223356, 0, 0, 0, 1598885163, 0);
-INSERT INTO `gardenia_user` VALUES (6, 'xiaomo', '$2y$10$LclTZa3FI4G7b9Vyhxezj.uks8QV09dfhNH4X5.ZgYGQqnEIbnlMG', 1, 'bb654faa522b88e0d2d8f1bbf067ebda', '172.17.0.1', 1600962725, '172.17.0.1', 1601205604, 0, 5, 0, 1600527951, 0);
+INSERT INTO `gardenia_user` VALUES (5, 'admin', '$2y$10$LclTZa3FI4G7b9Vyhxezj.uks8QV09dfhNH4X5.ZgYGQqnEIbnlMG', 1, 'c6889b7007d9f72dc506575955cbd68a', '172.17.0.1', 1602912330, '172.17.0.1', 1602912336, 0, 0, 0, 1598885163, 0);
+INSERT INTO `gardenia_user` VALUES (6, 'test', '$2y$10$LclTZa3FI4G7b9Vyhxezj.uks8QV09dfhNH4X5.ZgYGQqnEIbnlMG', 1, 'bb654faa522b88e0d2d8f1bbf067ebda', '172.17.0.1', 1600962725, '172.17.0.1', 1601205604, 0, 5, 0, 1600527951, 0);
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -1,0 +1,7 @@
+.layui-form-label.gardenia-form-required:after{
+    content:"*";
+    color:red;
+    position: absolute;
+    top:5px;
+    left:15px;
+}

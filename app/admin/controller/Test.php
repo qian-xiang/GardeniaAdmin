@@ -18,8 +18,6 @@ class Test extends GardeniaController
     public function index()
     {
         $request = request();
-//            ,height: 312
-//            ,url: '/admin.php/index/getData' //数据接口
         $gardeniaList = new GardeniaList();
         $gardeniaList->view('Index/index');
     }

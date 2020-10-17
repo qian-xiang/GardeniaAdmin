@@ -9,19 +9,18 @@
 namespace app\admin\controller;
 
 use app\admin\extend\diy\extra_class\AppConstant;
-use app\admin\GardeniaController;
 use think\facade\Db;
 use think\Validate;
 use think\validate\ValidateRule;
 
-class Login extends GardeniaController
+class Login
 {
     public function index()
     {
         return view('login');
     }
     public function login() {
-        $data = $this->request->post();
+        $data = request()->post();
         $validate = new Validate();
         $validate->rule([
            'username' => ValidateRule::isRequire(null,'用户名必填')->max(15,'用户名与所需格式不符'),
@@ -33,19 +32,19 @@ class Login extends GardeniaController
             return $validate->getError();
         }
         if (!captcha_check($data['captcha'])) {
-            $this->error('验证码错误！');
+            error('验证码错误！');
         }
         $result = Db::name(AppConstant::TABLE_USER)->where([
             'username'=> $data['username'],
         ])->find();
         if (!$result || $result['is_delete']) {
-            $this->error('该用户不存在或已被删除！');
+            error('该用户不存在或已被删除！');
         }
         if (!$result['login_status']){
-            $this->error('您已被禁止登录！');
+            error('您已被禁止登录！');
         }
         if (!password_verify($data['password'],$result['password'])) {
-            $this->error('用户名或密码错误，请重新输入！');
+            error('用户名或密码错误，请重新输入！');
         }
 
         //生成登录token存入数据库
@@ -64,7 +63,7 @@ class Login extends GardeniaController
         trace('用户：'.$result['username'].' 于'.date('Y-m-d H:i:s').' 登录！','log');
         //登录有效期，7天
         cookie('login_code',$updateData['login_code'],7*24*60*60);
-        $this->success('登录成功！即将跳转到首页...',url('/'));
+        success('登录成功！即将跳转到首页...',url('/'));
     }
 
     /**
@@ -72,6 +71,6 @@ class Login extends GardeniaController
      */
     public function logout() {
         cookie('login_code',null);
-        $this->success('注销成功！',url('/Login/index'));
+        success('注销成功！',url('/Login/index'));
     }
 }
