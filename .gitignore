@@ -1,5 +1,7 @@
 /.idea
 /.vscode
 /vendor
+/gardenia_admin
+/public/uploads/*
 *.log
 .env

@@ -7,14 +7,16 @@ declare (strict_types = 1);
 
 namespace app\admin;
 
-use app\admin\extend\diy\extra_class\AppConstant;
+use constant\AppConstant;
+use app\admin\model\AuthGroupAccess;
 use think\App;
 use think\exception\ValidateException;
 use think\facade\View;
 use think\Validate;
 use think\facade\Db;
+use gardenia_admin\src\core\core_class\GardeniaConstant;
 
-abstract class GardeniaController
+abstract class AdminController
 {
     /**
      * Request实例
@@ -40,6 +42,12 @@ abstract class GardeniaController
      */
     protected $middleware = [];
 
+    //不需要校验是否已登录的action
+    protected $noNeedLogin = [];
+    //不需要校验是否拥有访问权限的action
+    protected $noCheckAccess = [];
+    //不需要校验防止重放攻击的接口token
+//    protected $noCheckReqToken = [];
     /**
      * 构造方法
      * @access public
@@ -57,7 +65,21 @@ abstract class GardeniaController
     // 初始化
     protected function initialize()
     {
-        //
+        $this->checkLogin();
+        $this->checkAccess();
+        $gardeniaLayout = [
+            'left' => [
+                'type' => GardeniaConstant::TEMPLATE_TYPE_CONTENT,
+                'content' => null,
+                'vars' => [],
+            ],
+            'right' => [
+                'type' => GardeniaConstant::TEMPLATE_TYPE_CONTENT,
+                'content' => null,
+                'vars' => [],
+            ],
+        ];
+        View::assign(GardeniaConstant::GARDENIA_PREFIX.'Layout',$gardeniaLayout);
         View::assign('asideMenuList',$this->getRenderMenuList());
 
     }
@@ -131,7 +153,10 @@ abstract class GardeniaController
         ])->send();
     }
     protected function getRenderMenuList() {
-        $request = request();
+        $request = $this->request;
+        if (!$request->admin_info) {
+            return [];
+        }
         $controller = $request->controller();
         $action = $request->action();
         if ($controller === config('route.default_controller') &&
@@ -141,8 +166,7 @@ abstract class GardeniaController
         } else {
             $menuUrl = '/'.$controller.'/'.$action;
         }
-
-        if ($request->user['admin_type'] === AppConstant::GROUP_TYPE_SUPER_ADMIN) {
+        if ($request->admin_info->authGroup->type === AppConstant::GROUP_TYPE_SUPER_ADMIN) {
             $ruleList = Db::name('auth_rule')
                 ->where([
                     'status'=> AppConstant::STATUS_FORMAL,
@@ -150,21 +174,21 @@ abstract class GardeniaController
                 ])
                 ->field('id,title,pid,name as field,root_id')->order('weigh','desc')->select()->toArray();
         } else {
-            $ruleList = Db::name('auth_group_access')->alias('a')->join('auth_group g','g.id = a.group_id')
-                ->where(['a.uid' => $this->request->user['id'],'g.status'=> AppConstant::STATUS_FORMAL])
-                ->value('g.rules');
-            $ruleList = Db::name('auth_rule')->where('id','in',$ruleList)
+//            $ruleList = Db::name('auth_group_access')->alias('a')->join('auth_group g','g.id = a.group_id')
+//                ->where(['a.admin_id' => $this->request->admin_info->admin->id,'g.status'=> AppConstant::STATUS_FORMAL])
+//                ->value('g.rules');
+            $ruleList = Db::name('auth_rule')->where('id','in',$this->request->admin_info->authGroup->rules)
                 ->where([
                     'status'=> AppConstant::STATUS_FORMAL,
                     'type' => AppConstant::RULE_TYPE_MENU,
                 ])
                 ->field('id,title,pid,name as field,root_id')->order('weigh','desc')->select()->toArray();
         }
-
         if (!$ruleList){
-            if (isset($this->request->accessWhiteList) && $this->request->accessWhiteList){
-                in_array($this->request->controller().'/'.$this->request->action(),$this->request->accessWhiteList) ? redirect($this->request->url()) : error('您没有权限访问');
-            }
+            error('您没有权限访问');
+//            if (isset($this->request->accessWhiteList) && $this->request->accessWhiteList){
+//                in_array($this->request->controller().'/'.$this->request->action(),$this->request->accessWhiteList) ? redirect($this->request->url()) : error('您没有权限访问');
+//            }
         }
         $currentMenuId = 0;
         $rootId = 0;
@@ -229,5 +253,81 @@ abstract class GardeniaController
         }
         return $treeData;
     }
+    protected function checkLogin() {
+        $this->noNeedLogin = empty($this->noNeedLogin) ? [] : $this->noNeedLogin;
 
+        if (in_array($this->request->action(true),$this->noNeedLogin) === false) {
+            $loginCode = cookie('login_code');
+            if (!$loginCode) {
+                $this->error(lang('login.not'),url('/Login/index'));
+            }
+            $admin = AuthGroupAccess::hasWhere('admin',[
+                'login_code' => $loginCode
+            ])->cache(true)->find();
+            if (!$admin) {
+                $this->error(lang('login.not'),url('/Login/index'));
+            }
+
+            if ($admin->admin->login_code !== $loginCode) {
+                $this->error(lang('login.not'),url('/Login/index'));
+            }
+            $this->request->admin_info = $admin;
+
+        }
+    }
+    protected function checkAccess() {
+        if (in_array($this->request->action(),$this->noNeedLogin) !== false) {
+            return ;
+        }
+        $request = $this->request;
+        $server = $request->server();
+        $pathInfo = $server['PATH_INFO'];
+
+        if (strpos($pathInfo,'.'.config('view.view_suffix')) !== false){
+            $pathInfo = explode('.',$pathInfo);
+            $pathInfo = $pathInfo[0];
+        }
+        $controller = '';
+        $action = '';
+        if (!$pathInfo) {
+            $pathInfo = ['',config('route.default_controller'),config('route.default_action')];
+            $controller = config('route.default_controller');
+            $action = config('route.default_action');
+        } else {
+            if ($pathInfo !== '/'){
+                $pathInfo = explode('/',$pathInfo);
+                $controller = isset($pathInfo[1]) ? $pathInfo[1] : config('route.default_controller');
+                $action = isset($pathInfo[2]) ? $pathInfo[2] : config('route.default_action');
+            } else {
+                $pathInfo = ['',config('route.default_controller'),config('route.default_action')];
+                $controller = config('route.default_controller');
+                $action = config('route.default_action');
+            }
+        }
+        $map = [];
+        if ($request->admin_info->authGroup->type === AppConstant::GROUP_TYPE_ADMIN){
+            $query = $request->admin_info->authGroup->rules;
+            $map = [
+                ['id','in',$query]
+            ];
+        }
+        $accessArr = Db::name('auth_rule')->where($map)
+            ->where(['status'=> AppConstant::STATUS_FORMAL])->column('name');
+        if (!$accessArr){
+            error('您没有权限访问，因为尚未有任何权限');
+        }
+        foreach ($accessArr as &$item) {
+            if ($item === '/'){
+                $item = '/'.config('route.default_controller').'/'.config('route.default_action');
+            }
+        }
+        $access = '/'.$controller.'/'.$action;
+
+        if (!in_array($access,$accessArr) && $request->admin_info->authGroup->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN) {;
+            error('您没有权限访问');
+        }
+        $adminInfo = $request->admin_info;
+        $adminInfo->access_list = $accessArr;
+        $request->admin_info = $adminInfo;
+    }
 }

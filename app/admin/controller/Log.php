@@ -3,14 +3,14 @@ declare (strict_types = 1);
 
 namespace app\admin\controller;
 
-use app\admin\extend\diy\extra_class\AppConstant;
-use app\admin\GardeniaController;
+use constant\AppConstant;
+use app\admin\AdminController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaHelper;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\Request;
 
-class Log extends GardeniaController
+class Log extends AdminController
 {
     /**
      * 显示资源列表

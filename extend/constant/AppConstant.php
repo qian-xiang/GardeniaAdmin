@@ -1,17 +1,19 @@
 <?php
-/**
 
- * [Gardenia Admin] Copyright (c) 2020 https://github.com/qian-xiang/GardeniaAdmin
 
- * Gardenia Admin is a free software, it under the MIT license, visited https://github.com/qian-xiang/GardeniaAdmin for more details.
-
- */
-namespace app\admin\extend\diy\extra_class;
+namespace constant;
 
 
 class AppConstant
 {
-    const TABLE_USER = 'user';
+    const LOGIN_TYPE_COOKIE = 'cookie';
+    const LOGIN_TYPE_TOKEN = 'token';
+
+    //用户是否已删除：是
+    const IS_DELETE_YES = 1;
+    //用户是否已删除：否
+    const IS_DELETE_NO = 0;
+
     //状态：正常（启用）
     const STATUS_FORMAL = 1;
     //状态：禁用
@@ -49,8 +51,15 @@ class AppConstant
     public static function getStatusList() {
         return [self::STATUS_FORBID=> '禁用', self::STATUS_FORMAL=> '正常'];
     }
+    public static function getAdminTypeList() {
+        return [self::GROUP_TYPE_SUPER_ADMIN=> '超级管理', self::GROUP_TYPE_ADMIN=> '普通管理'];
+    }
     public static function getStatusAttr($value) {
         $list = self::getStatusList();
+        return $list[$value];
+    }
+    public static function getAdminTypeAttr($value) {
+        $list = self::getAdminTypeList();
         return $list[$value];
     }
     public static function getRuleTypeList() {
@@ -63,7 +72,4 @@ class AppConstant
     public static function timestampToMinute($value) {
         return date('Y-m-d H:i',$value);
     }
-//    public function getGroupAdminTypeList() {
-//
-//    }
 }

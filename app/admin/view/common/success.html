@@ -43,8 +43,9 @@
         let second = {$second};
         let count = 1;
         let eleSecond = document.getElementById('second');
-        setInterval(function () {
+        var intervalHandle = setInterval(function () {
             if (count >= second){
+                clearInterval(intervalHandle);
                 location.href = '{$redirectUrl}';
             }
             eleSecond.innerText = second - count;

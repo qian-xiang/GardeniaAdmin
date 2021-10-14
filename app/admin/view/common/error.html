@@ -40,11 +40,12 @@
 </body>
 <script>
     (function () {
-        let second = {$second};
-        let count = 1;
-        let eleSecond = document.getElementById('second');
-        setInterval(function () {
+        var second = {$second};
+        var count = 1;
+        var eleSecond = document.getElementById('second');
+        var intervalHandle = setInterval(function () {
             if (count >= second){
+                clearInterval(intervalHandle);
                 location.href = '{$redirectUrl}';
             }
             eleSecond.innerText = second - count;

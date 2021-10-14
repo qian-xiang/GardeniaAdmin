@@ -3,12 +3,12 @@ declare (strict_types = 1);
 
 namespace app\admin\controller;
 
-use app\admin\GardeniaController;
+use app\admin\AdminController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\Request;
 
-class Test extends GardeniaController
+class Test extends AdminController
 {
     /**
      * 显示资源列表
@@ -18,6 +18,8 @@ class Test extends GardeniaController
     public function index()
     {
         $request = request();
+//            ,height: 312
+//            ,url: '/admin.php/index/getData' //数据接口
         $gardeniaList = new GardeniaList();
         $gardeniaList->view('Index/index');
     }

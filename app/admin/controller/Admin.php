@@ -7,32 +7,36 @@
 namespace app\admin\controller;
 
 
-use app\admin\extend\diy\extra_class\AppConstant;
-use app\admin\GardeniaController;
+use constant\AppConstant;
+use app\admin\AdminController;
+use app\admin\model\AuthGroupAccess;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaHelper;
 use gardenia_admin\src\core\core_class\GardeniaList;
 use think\facade\Db;
 use think\Validate;
 use think\validate\ValidateRule;
+use app\admin\model\Admin as AdminModel;
 
-class User extends GardeniaController
+class Admin extends AdminController
 {
     public function index() {
         $request = request();
         $gardeniaList = new GardeniaList();
         $gardeniaList->setTableAttr('url',url('/'.$request->controller().'/getData')->build())
+            ->addTableHead('choose','选择',['type' => 'checkbox'])
             ->addTableHead('username','用户名')
             ->addTableHead('login_status','状态')
-            ->addTableHead('last_login_time','最近登录时间')
+            ->addTableHead('last_login_time','上次登录时间')
+            ->addTableHead('login_time','登录时间')
             ->addTableHead('operate','操作',['type' => 'normal'])
             ->addTopOperateButton('gardenia','新增','create',['id'=> 'create',
                 'onclick'=> 'location.href="'.url('/'.request()->controller().'/create')->build().'"'])
             ->addTopOperateButton('gardenia','删除','delete',['id'=> 'delete'])
-            ->addColumnOperateButton('operate','查看','gardenia','read',['name'=> "item_read",'lay-event' => 'read'],['rule-name' => 'item_read'],'/User/read')
-            ->addColumnOperateButton('operate','编辑','gardenia','edit',['name'=> "item_edit",'lay-event' => 'edit'],[
-                'rule-name' => 'item_edit','redirect-url' => url('/'.request()->controller().'/edit')->build()],'/User/edit')
-            ->addColumnOperateButton('operate','删除','gardenia','delete',['name' => 'item_delete','lay-event' => 'delete'],['rule-name' => 'item_delete'],'/User/delete')
+            ->addColumnOperateButton('operate','查看','gardenia','read','/Admin/read',['name'=> "item_read",'lay-event' => 'read'])
+            ->addColumnOperateButton('operate','编辑','gardenia','edit','/Admin/edit',['name'=> "item_edit",'lay-event' => 'edit'],[
+                'redirect-url' => url('/'.request()->controller().'/edit')->build()])
+            ->addColumnOperateButton('operate','删除','gardenia','delete','/Admin/delete',['name' => 'item_delete','lay-event' => 'delete'])
             ->display();
     }
     public function create() {
@@ -67,15 +71,25 @@ class User extends GardeniaController
             if (!$validate->check($data)){
                 $this->error($validate->getError());
             }
-            $data['password'] = password_encrypt($data['password']);
+            if ($request->admin_info->authGroup->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN) {
+                $this->error('只有超级用户才能创建用户');
+            }
+            $salt = create_salt();
+            $encryptPwd = create_password($data['password'],$salt);
+            $data['password'] = $encryptPwd;
 
-            $userInfo = $request->user;
+
+            $userInfo = $request->admin_info->admin;
 
             $saveData = [
                 'last_login_ip'=> get_client_ip(),
                 'last_login_time'=> time(),
                 'create_time'=> time(),
                 'pid' => $userInfo['id'],
+                'password' => $data['password'],
+                'salt' => $salt,
+                'username' => $data['username'],
+                'status' => $data['status'],
             ];
 
             if ($userInfo['root_id'] === AppConstant::USER_NO_PID){
@@ -86,21 +100,14 @@ class User extends GardeniaController
 
             $data = array_merge($data,$saveData);
             Db::startTrans();
-            $insertID = Db::name('user')->strict(false)->insert($data,true);
+            $insertID = AdminModel::insert($saveData,true);
             if (!$insertID){
                 Db::rollback();
                 $this->error('新增用户名失败，请稍候重试。');
             }
-            //新增用户成功，更新login_code
-            //生成登录token存入数据库
-            $token = login_token_generate($insertID);
-            $res = Db::name('user')->strict(false)->save(['id'=> $insertID,'login_code' => $token]);
-            if (!$res){
-                Db::rollback();
-                $this->error('更新login_code失败，请稍候重试。');
-            }
+
             //将该用户与对应的组加入group_access中
-            $res = Db::name('auth_group_access')->save(['uid' => $insertID,'group_id' => $data['user_group_id']]);
+            $res = Db::name('auth_group_access')->save(['admin_id' => $insertID,'group_id' => $data['user_group_id']]);
             if (!$res){
                 Db::rollback();
                 $this->error('将权限关系加入用户组明细表中失败，请稍候重试。');
@@ -113,8 +120,8 @@ class User extends GardeniaController
         !$id && $this->error('id必传');
         $request = \request();
         if ($request->isGet()){
-            $user = Db::name('user')->alias('u')
-                ->leftJoin('auth_group_access a','u.id = a.uid')
+            $user = Db::name('admin')->alias('u')
+                ->leftJoin('auth_group_access a','u.id = a.admin_id')
                 ->where([
                     'u.id' => $id,
                     'u.is_delete' => AppConstant::USER_NO_DELETE,
@@ -124,8 +131,8 @@ class User extends GardeniaController
             }
             $user = $user[0];
 
-            if ($request->user['admin_type'] === AppConstant::GROUP_TYPE_ADMIN){
-                if ($user['p_id'] !== $request->user['id'] && $user['create_user_id'] !== AppConstant::USER_NO_PID){
+            if ($request->admin_info->authGroup->type === AppConstant::GROUP_TYPE_ADMIN){
+                if ($user['p_id'] !== $request->admin_info->id && $user['create_user_id'] !== AppConstant::USER_NO_PID){
                     $this->error('该用户不是您创建的，因此您没有操作该用户的权限！');
                 }
             }
@@ -160,20 +167,21 @@ class User extends GardeniaController
     public function edit($id) {
         !$id && $this->error('id必传');
         $request = \request();
+//        $adminModel = new AdminModel();
         if ($request->isGet()){
-            $user = Db::name('user')->alias('u')
-                ->leftJoin('auth_group_access a','u.id = a.uid')
+            $user = Db::name('admin')->alias('u')
+                ->leftJoin('auth_group_access a','u.id = a.admin_id')
                 ->where([
                     'u.id' => $id,
                     'u.is_delete' => AppConstant::USER_NO_DELETE,
-                ])->field('u.id,u.username,u.p_id,u.login_status,a.group_id')->select()->toArray();
+                ])->field('u.id,u.username,u.pid,u.login_status,a.group_id')->select()->toArray();
             if (!$user){
                 $this->error('该用户不存在或尚未为其分配权限！');
             }
             $user = $user[0];
 
-            if ($request->user['admin_type'] === AppConstant::GROUP_TYPE_ADMIN){
-                if ($user['p_id'] !== $request->user['id'] && $user['create_user_id'] !== AppConstant::USER_NO_PID){
+            if ($request->admin_info->authGroup->type === AppConstant::GROUP_TYPE_ADMIN){
+                if ($user['p_id'] !== $request->admin_info['id'] && $user['create_user_id'] !== AppConstant::USER_NO_PID){
                     $this->error('该用户不是您创建的，因此您没有操作该用户的权限！');
                 }
             }
@@ -189,8 +197,8 @@ class User extends GardeniaController
                 ->addFormItem('gardenia','text','username','用户名',null,[
                     'value' => $user['username'],
                 ])
-                ->addFormItem('gardenia','password','password','密码',null,['readonly' => true])
-                ->addFormItem('gardenia','password','confirm','确认密码',null,['readonly' => true])
+                ->addFormItem('gardenia','password','password','密码',null)
+                ->addFormItem('gardenia','password','confirm','确认密码',null)
                 ->addFormItem('gardenia','select','user_group_id','用户组',$userGroup,[
                     'value' => $user['group_id']
                 ])
@@ -213,70 +221,83 @@ class User extends GardeniaController
                 $this->error($validate->getError());
             }
             $updateData = [
-                'id' => $data['id'],
                 'username' => $data['username'],
                 'login_status' => $data['login_status'],
             ];
-            if ($data['password'] || $data['confirm']) {
-                $validate = new Validate();
-                $validate->rule([
-                    'password|密码' => ValidateRule::isRequire(),
-                    'confirm|确认密码' => ValidateRule::isRequire()->confirm('password','确认密码和密码不一致'),
-                ]);
-                if (!$validate->check($data)){
-                    $this->error($validate->getError());
+            if (!empty($data['password']) && !empty($data['confirm'])) {
+                if ($data['password'] !== $data['confirm']) {
+                    $this->error('密码和确认密码不一致');
                 }
-                $data['password'] = password_encrypt($data['password']);
-                $updateData['password'] = $data['password'];
-            } else {
-                unset($data['password']);
-                unset($data['confirm']);
+                $salt = create_salt();
+                $password = create_password($data['password'],$salt);
+                $updateData['password'] = $password;
+                $updateData['salt'] = $salt;
             }
 
-
-            Db::startTrans();
-            $res = Db::name('user')->strict(false)->save($updateData);
-
-            //查询该用户的所在的用户组
-            $group_id = Db::name('auth_group_access')->where(['uid' => $data['id']])->value('group_id');
-            if (!$group_id){
-                Db::rollback();
+            $info = AuthGroupAccess::hasWhere('admin',[
+                'id' => $data['id'],
+            ])->find();
+            if (!$info->id) {
+                $this->error('该用户不存在');
+            }
+            if ($request->admin_info->authGroup->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN && $info->authGroup->type === AppConstant::GROUP_TYPE_SUPER_ADMIN) {
+                $this->error('你不是超级管理员，无法修改超级管理员的信息');
+            } elseif ($request->admin_info->authGroup->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN &&
+                $info->authGroup->type === AppConstant::GROUP_TYPE_ADMIN &&
+                in_array($request->admin_info->admin->id,[$info->admin->parent_id,$info->admin->root_id]) === false) {
+                $this->error('你不是TA的上级，无法修改信息');
+            }
+            if (!$info->group_id){
                 $this->error('查询不到该用户所在的用户组信息');
             }
-            if ($group_id !== (int)$data['user_group_id']){
-                $res = Db::name('auth_group_access')->where(['uid' => $id])->update(['group_id' => $data['user_group_id']]);
-                if (!$res && !$res){
+            Db::startTrans();
+            $resAdmin = $info->admin()->save($updateData);
+
+            $res = true;
+            if ($info->group_id !== (int)$data['user_group_id']){
+                $res = $info->update(['group_id' => $data['user_group_id']]);
+                if (!$res && !$resAdmin){
                     Db::rollback();
-                    $this->error('将权限关系加入用户组明细表中失败，请稍候重试。');
+                    $this->error('将权限关系更新入用户组明细表中失败，请稍候重试。');
                 }
             }
-
-            Db::commit();
-            $this->success('更新用户信息成功！');
+            if ($res && $resAdmin) {
+                Db::commit();
+                $this->success('更新用户信息成功！');
+            }
+            Db::rollback();
+            $this->success('更新用户信息失败，请重试！');
         }
     }
-    public function delete($id) {
-        $request = request();
-        if (!$request->isPost()){
-            $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'请求方式必须是POST');
+    public function delete() {
+        $request = $this->request;
+        $id = $request->post('id');
+        if (!$id) {
+            $this->error('未传递记录ID');
         }
-        $user = Db::name('user')->find($id);
+        if ($request->admin_info->authGroup->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN) {
+            $this->error('只有超级用户才能删除管理员');
+        }
+        $user = Db::name('admin')->find($id);
         if (!$user) {
             $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'该用户信息不存在!');
         }
-       $res = Db::name('user')->where(['id'=> $id, 'root_id' => $id])->delete();
+       $res = Db::name('admin')->where('id','in',$id)->whereOr(['root_id' => $id])->delete();
        if (!$res) {
            $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'删除该用户失败，请稍候重试!');
        }
         $this->layuiAjaxReturn(AppConstant::CODE_SUCCESS,'删除成功！');
     }
     public function getData() {
-        $list = Db::name('user')
-            ->withAttr('login_status',function ($value) {
+        $list = AdminModel::
+            withAttr('login_status',function ($value) {
                 return AppConstant::getStatusAttr($value);
             })
             ->withAttr('last_login_time',function ($value) {
-                return AppConstant::timestampToMinute($value);
+                return $value ? AppConstant::timestampToMinute($value) : '无';
+            })
+            ->withAttr('login_time',function ($value) {
+                return $value ? AppConstant::timestampToMinute($value) : '无';
             })
             ->order(['id' => 'desc'])->select()->toArray();
         $recordCount = count($list);

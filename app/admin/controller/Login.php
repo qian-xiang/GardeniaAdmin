@@ -9,18 +9,22 @@
 namespace app\admin\controller;
 
 use app\admin\extend\diy\extra_class\AppConstant;
-use think\facade\Db;
+use app\admin\AdminController;
+use app\admin\model\Admin;
+use Firebase\JWT\JWT;
 use think\Validate;
 use think\validate\ValidateRule;
+use \constant\AppConstant as AppConstants;
 
-class Login
+class Login extends AdminController
 {
+    protected $noNeedLogin = ['index','login'];
     public function index()
     {
         return view('login');
     }
     public function login() {
-        $data = request()->post();
+        $data = $this->request->post();
         $validate = new Validate();
         $validate->rule([
            'username' => ValidateRule::isRequire(null,'用户名必填')->max(15,'用户名与所需格式不符'),
@@ -32,38 +36,53 @@ class Login
             return $validate->getError();
         }
         if (!captcha_check($data['captcha'])) {
-            error('验证码错误！');
+            $this->error(lang('login.faultCaptcha'));
         }
-        $result = Db::name(AppConstant::TABLE_USER)->where([
+        $admin = Admin::where([
             'username'=> $data['username'],
+            'is_delete' => AppConstants::IS_DELETE_NO
         ])->find();
-        if (!$result || $result['is_delete']) {
-            error('该用户不存在或已被删除！');
+        if (!$admin) {
+            $this->error('该用户不存在或已被删除！');
         }
-        if (!$result['login_status']){
-            error('您已被禁止登录！');
+        if (!$admin['login_status']){
+            $this->error('您已被禁止登录！');
         }
-        if (!password_verify($data['password'],$result['password'])) {
-            error('用户名或密码错误，请重新输入！');
+        if (create_password($data['password'],$admin['salt']) !== $admin['password']) {
+            $this->error(lang('login.faultAccountPwd'));
         }
-
+        $loginTime = time();
         //生成登录token存入数据库
-        $token = login_token_generate($result['id']);
+        if (env('admin_login.login_type',AppConstants::LOGIN_TYPE_COOKIE) === AppConstants::LOGIN_TYPE_COOKIE) {
+            $token = login_token_generate($admin['id']);
+        } else {
+            $secret = env('admin_login.jwt_secret','gardenia_1234567');
+            $payload = array(
+                "id" => $admin['id'],
+                "username" => $admin['username'],
+                'login_time' => $loginTime,
+            );
+            $token = JWT::encode($payload, $secret);
+        }
 
         $updateData = [
-            'id'=> $result['id'],
-            'login_code'=> $token,
-            'login_ip'=> get_client_ip(),
-            'login_time'=> time(),
-            'last_login_ip'=> $result['login_ip'] ? $result['login_ip'] : '',
-            'last_login_time'=> $result['login_time'] ? $result['login_time'] : '',
+            'login_ip'=> $this->request->ip(),
+            'login_time'=> $loginTime,
+            'last_login_ip'=> $admin['login_ip'] ? $admin['login_ip'] : '',
+            'last_login_time'=> $admin['login_time'] ? $admin['login_time'] : '',
         ];
-        $res = Db::name(AppConstant::TABLE_USER)->save($updateData);
-        trace($res ? '登录时更新数据成功！' : '登录时更新数据失败！','log');
-        trace('用户：'.$result['username'].' 于'.date('Y-m-d H:i:s').' 登录！','log');
-        //登录有效期，7天
-        cookie('login_code',$updateData['login_code'],7*24*60*60);
-        success('登录成功！即将跳转到首页...',url('/'));
+        if (env('admin_login.login_type',AppConstants::LOGIN_TYPE_COOKIE) === AppConstants::LOGIN_TYPE_COOKIE) {
+            $updateData['login_code'] = $token;
+            $res = Admin::update($updateData,['id' => $admin['id']]);
+            if (!$res) {
+                $this->error(lang('login.updateLoginStatusFail'));
+            }
+            cookie('login_code',$token,7*24*60*60);
+        }
+
+//        trace($res ? '登录时更新数据成功！' : '登录时更新数据失败！','log');
+//        trace('用户：'.$admin['username'].' 于'.date('Y-m-d H:i:s').' 登录！','log');
+        $this->success(lang('login.succ'),url('/')->build());
     }
 
     /**
@@ -71,6 +90,6 @@ class Login
      */
     public function logout() {
         cookie('login_code',null);
-        success('注销成功！',url('/Login/index'));
+        $this->success('注销成功！',url('/Login/index'));
     }
 }

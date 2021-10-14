@@ -27,7 +27,9 @@
         "topthink/think-view": "^1.0",
         "topthink/think-migration": "^3.0",
         "topthink/think-captcha": "^3.0",
-        "qian-xiang/gardenia_admin": "^1.0.5"
+        "qian-xiang/gardenia_admin": "dev-master",
+        "firebase/php-jwt": "^5.4",
+      "ext-json": "*"
     },
     "require-dev": {
         "symfony/var-dumper": "^4.2",

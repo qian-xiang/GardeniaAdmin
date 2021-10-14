@@ -3,7 +3,8 @@
 return [
     // Session初始化
      \think\middleware\SessionInit::class,
+    \think\middleware\LoadLangPack::class,
     //校验权限中间件
-    \app\admin\middleware\CheckLogin::class,
-    \app\admin\middleware\CheckAccess::class,
+//    \app\admin\middleware\CheckLogin::class,
+//    \app\admin\middleware\CheckAccess::class,
 ];

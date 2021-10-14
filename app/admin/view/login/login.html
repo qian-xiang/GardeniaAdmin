@@ -4,9 +4,19 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
     <title>{:config('app.app_name')}-登录</title>
-    <link rel="stylesheet" href="/static/layui-v2.5.6/layui/css/layui.css">
-    <script src="/static/layui-v2.5.6/layui/layui.js"></script>
+    <link rel="stylesheet" href="/static/js/layui-v2.5.6/layui/css/layui.css">
+    <script src="/static/js/layui-v2.5.6/layui/layui.js"></script>
     <style>
+        @font-face {
+            font-family: 'webfont';
+            font-display: swap;
+            src: url('//at.alicdn.com/t/webfont_cnxcd83tde.eot'); /* IE9*/
+            src: url('//at.alicdn.com/t/webfont_cnxcd83tde.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+            url('//at.alicdn.com/t/webfont_cnxcd83tde.woff2') format('woff2'),
+            url('//at.alicdn.com/t/webfont_cnxcd83tde.woff') format('woff'), /* chrome、firefox */
+            url('//at.alicdn.com/t/webfont_cnxcd83tde.ttf') format('truetype'), /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+            url('//at.alicdn.com/t/webfont_cnxcd83tde.svg#Alibaba-PuHuiTi-Regular') format('svg'); /* iOS 4.1- */
+        }
 
         body {
             /*background-color: wheat;*/
@@ -42,9 +52,9 @@
             margin-bottom: 2rem;
         }
         .copyright-info > img {
-            width: 3.5rem;
-            height: 3.5rem;
-            margin-bottom: 1rem;
+            width: 5rem;
+            height: 5rem;
+            margin-bottom: 2rem;
         }
         .brand-title {
             font-size: 1.5rem;
@@ -58,19 +68,19 @@
     <div class="root-container">
         <form class="login-form layui-form" method="post" action="{:url('/Login/login')}">
             <div class="copyright-info">
-                <img src="__STATIC__/image/gardenia/logo.png" alt="logo">
+                <img src="/static/image/admin/logo.jpg" alt="">
                 <div class="brand-title">{:config('app.app_name')}</div>
             </div>
             <div class="layui-form-item">
                 <label class="layui-form-label">用户名</label>
                 <div class="layui-input-block">
-                    <input type="text" name="username" required  lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input" value="admin">
+                    <input type="text" name="username" required  lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
                 </div>
             </div>
             <div class="layui-form-item">
                 <label class="layui-form-label">密码</label>
                 <div class="layui-input-block">
-                    <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input" value="123456">
+                    <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
                 </div>
             </div>
 

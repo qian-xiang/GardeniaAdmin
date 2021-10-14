@@ -3,8 +3,8 @@ declare (strict_types = 1);
 
 namespace app\admin\controller;
 
-use app\admin\extend\diy\extra_class\AppConstant;
-use app\admin\GardeniaController;
+use constant\AppConstant;
+use app\admin\AdminController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaHelper;
 use gardenia_admin\src\core\core_class\GardeniaList;
@@ -12,7 +12,7 @@ use think\facade\Db;
 use think\Validate;
 use think\validate\ValidateRule;
 
-class Menu extends GardeniaController
+class Menu extends AdminController
 {
     /**
      * 显示资源列表
@@ -29,7 +29,8 @@ class Menu extends GardeniaController
 //            ->setHeadToolbox('#toolbarDemo','path','./static/js/gardenia/text_template.js')
             ->setTableAttr('url',url('/'.$request->controller().'/getData')->build())
             ->setTableAttr('page',true)
-            ->addExtraLayuiJS('path','./static/js/gardenia/list_extra_layui.js')
+            ->setTableAttr('height','fit-content')
+//            ->addExtraLayuiJS('path','./static/js/gardenia/list_extra_layui.js')
             ->addTableHead('choose','选择',['type' => 'checkbox'])
             ->addTableHead('title','标题')
             ->addTableHead('type','规则类型')
@@ -41,10 +42,10 @@ class Menu extends GardeniaController
             ->addTopOperateButton('gardenia','新增','create',['id'=> 'create',
                 'onclick'=> 'location.href="'.url('/'.request()->controller().'/create')->build().'"'])
             ->addTopOperateButton('gardenia','删除','delete',['id'=> 'delete'])
-            ->addColumnOperateButton('operate','查看','gardenia','read',['name'=> "item_read",'lay-event' => 'read'],['rule-name' => 'item_read'])
+            ->addColumnOperateButton('operate','查看','gardenia','read',['name'=> "item_read",'lay-event' => 'read'])
             ->addColumnOperateButton('operate','编辑','gardenia','edit',['name'=> "item_edit",'lay-event' => 'edit'],[
-                'rule-name' => 'item_edit','redirect-url' => url('/'.request()->controller().'/edit')->build()])
-            ->addColumnOperateButton('operate','删除','gardenia','delete',['name' => 'item_delete','lay-event' => 'delete'],['rule-name' => 'item_delete'])
+                'redirect-url' => url('/'.request()->controller().'/edit')->build()])
+            ->addColumnOperateButton('operate','删除','gardenia','delete',['name' => 'item_delete','lay-event' => 'delete'])
             ->display();
     }
     
@@ -290,12 +291,12 @@ class Menu extends GardeniaController
     /**
      * 删除指定资源
      *
-     * @param  int  $id
      * @return \think\Response
      */
-    public function delete($id)
+    public function delete()
     {
-        $request = request();
+        $request = $this->request;
+        $id = $request->post('id',0);
         !isset($id) && $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'id必传');
         $primaryKey = Db::name('auth_rule')->getPk();
         $res = Db::name('auth_rule')->where([

@@ -1,0 +1,3 @@
+[submodule "gardenia_admin"]
+	path = gardenia_admin
+	url = https://gitee.com/qianxiang/gardenia_admin

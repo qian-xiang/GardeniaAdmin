@@ -9,25 +9,30 @@
 namespace app\admin\controller;
 
 
-use app\admin\extend\diy\extra_class\AppConstant;
-use app\admin\GardeniaController;
+use constant\AppConstant;
+use app\admin\AdminController;
 use gardenia_admin\src\core\core_class\GardeniaList;
-use \think\facade\Db;
+use \app\admin\model\Admin;
 
-class Index extends GardeniaController
+class Index extends AdminController
 {
     public function index()
     {
-        $loginCode = cookie('login_code');
-        if (!$loginCode){
-            $this->error('检测到您尚未登录或登录状态已过期，即将前往登录页面...',url('/Login/index'));
-        }
+//        View::assign('gardeniaLayout',[
+//            'left' => [
+//                'type' => 'content',
+//                'content' => '<dl class="layui-nav-child">
+//                                    <dd><a href="">基本资料</a></dd>
+//                                    <dd><a href="">安全设置</a></dd>
+//                                </dl>',
+//                'vars' => [],
+//            ],
+//        ]);
         $gardeniaList = new GardeniaList();
         $gardeniaList->view();
     }
     public function getData() {
-        $list = Db::name(AppConstant::TABLE_USER)
-            ->withAttr('login_status',function ($value){
+        $list = Admin::withAttr('login_status',function ($value){
                 return AppConstant::getStatusAttr($value);
             })->select()->toArray();
 

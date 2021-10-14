@@ -7,8 +7,9 @@ declare (strict_types = 1);
 
 namespace app\admin\controller;
 
-use app\admin\extend\diy\extra_class\AppConstant;
-use app\admin\GardeniaController;
+use app\admin\model\AuthGroup;
+use constant\AppConstant;
+use app\admin\AdminController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaHelper;
 use gardenia_admin\src\core\core_class\GardeniaList;
@@ -17,7 +18,7 @@ use think\Request;
 use think\Validate;
 use think\validate\ValidateRule;
 
-class UserGroup extends GardeniaController
+class UserGroup extends AdminController
 {
     /**
      * 显示资源列表
@@ -30,7 +31,9 @@ class UserGroup extends GardeniaController
         $gardeniaList = new GardeniaList();
         $gardeniaList->setTableAttr('url',url('/'.$request->controller().'/getData')->build())
             ->addTableHead('choose','选择',['type' => 'checkbox'])
+            ->addTableHead('id','ID')
             ->addTableHead('title','用户组')
+            ->addTableHead('type','类型')
             ->addTableHead('status','状态')
             ->addTableHead('operate','操作',['type' => 'normal'])
             ->addTopOperateButton('gardenia','新增','create',['id'=> 'create',
@@ -114,7 +117,6 @@ class UserGroup extends GardeniaController
             }
             $statusList = AppConstant::getStatusList();
 
-            $js = "./static/js/gardenia/userGroup_edit.js";
 
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm->addFormItem('gardenia','hidden','id','ID',null,['value'=> $userGroup['id']])
@@ -125,8 +127,7 @@ class UserGroup extends GardeniaController
                     ])
                 ->addFormItem('gardenia','tree','rules','规则',$nodeList,['disabled' => true])
                 ->addBottomButton('gardenia','cancel','cancel','返回')
-                ->addTreeItemJs('rules','path',$js)
-                ->setFormStatus(false)
+                ->setFormStatus(true)
                 ->display();
         }
     }
@@ -141,18 +142,19 @@ class UserGroup extends GardeniaController
     {
         $request = \request();
         if ($request->isGet()){
-            if ($request->user['admin_type'] !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
-                $this->error('超级管理员不能编辑用户组');
+            if ($request->admin_info->authGroup->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
+                $this->error('非超级管理员不能编辑用户组');
             }
             $userGroup = Db::name('auth_group')->field('id,title,status,rules')->find($id);
             $ruleList = Db::name('auth_rule')->field('id,title,pid,name as field')->select()->toArray();
             $userGroup['rules'] = explode(',',$userGroup['rules']);
+            $nodeList = [];
             if ($ruleList){
                 $nodeList = $this->buildTreeData($ruleList,0,$userGroup['rules']);
             }
             $statusList = AppConstant::getStatusList();
 
-            $js = "./static/js/gardenia/userGroup_edit.js";
+//            $js = "./static/js/gardenia/userGroup_edit.js";
 
             $gardeniaForm = new GardeniaForm();
             $gardeniaForm->addFormItem('gardenia','hidden','id','ID',null,['value'=> $userGroup['id']])
@@ -161,8 +163,8 @@ class UserGroup extends GardeniaController
                 ->addFormItem('gardenia','tree','rules','规则',$nodeList,null)
                 ->addBottomButton('gardenia','submit','submit','提交')
                 ->addBottomButton('gardenia','cancel','cancel','取消')
-                ->addTreeItemJs('rules','path',$js)
-                ->setFormStatus(false)
+//                ->addTreeItemJs('rules','path',$js)
+                ->setFormStatus(true)
                 ->display();
         }elseif ($request->isPost()) {
             $data = $request->post();
@@ -174,25 +176,36 @@ class UserGroup extends GardeniaController
                 'id|ID' => ValidateRule::isRequire(),
             ]);
             if (!$validate->check($data)){
-                $this->layuiAjaxReturn(AppConstant::CODE_ERROR,$validate->getError());
+                $this->error($validate->getError());
             }
-            $res = Db::name('auth_group')->strict(false)->save($data);
+            $data['rules'] = json_decode($data['rules'],true);
+            $rules = $this->getMenuIds($data['rules']);
+
+            $rules = $rules ? implode(',',$rules) : '';
+            $updateData = [
+                'title' => $data['title'],
+                'status' => $data['status'],
+                'rules' => $rules,
+            ];
+            $res = AuthGroup::update($updateData,[
+                'id' => $data['id'],
+            ]);
             if (!$res){
-                $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'更新用户组名失败，请稍候重试。');
+                $this->error('更新用户组名失败，请稍候重试。');
             }
-            $this->layuiAjaxReturn(AppConstant::CODE_SUCCESS,'更新用户组成功！','',url('/'.$request->controller())->build());
+            $this->success('更新用户组成功！',url('/'.$request->controller())->build());
         }
     }
 
     /**
      * 删除指定资源
      *
-     * @param  int  $id
      * @return \think\Response
      */
-    public function delete($id)
+    public function delete()
     {
-        $request = request();
+        $request = $this->request;
+        $id = $request->post('id',0);
         !isset($id) && $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'id必传');
         if ($request->user['admin_type'] !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
             $this->error('超级管理员不能删除用户组');
@@ -210,6 +223,9 @@ class UserGroup extends GardeniaController
             ->withAttr('status',function ($value) {
                 return AppConstant::getStatusAttr($value);
             })
+            ->withAttr('type',function ($value) {
+                return AppConstant::getAdminTypeAttr($value);
+            })
             ->order(['id' => 'desc'])->select()->toArray();
         $recordCount = count($list);
         $list = GardeniaHelper::layPaginate($list);
@@ -222,4 +238,19 @@ class UserGroup extends GardeniaController
 
         return response($data,200,[],'json');
     }
+    protected function getMenuIds($data = []) {
+        $list = [];
+        $_list = [];
+        foreach ($data as $item) {
+            if (!empty($item['children'])) {
+                $_list = $this->getMenuIds($item['children']);
+            }
+            $item['checked'] && $list[] = $item['id'];
+        }
+        unset($item);
+        $list = array_merge_recursive($list,$_list);
+
+        return $list;
+    }
+
 }
