@@ -1,17 +1,19 @@
 <?php
 namespace app\index\controller;
 
-use app\BaseController;
 
-class Index
+
+use app\BaseController;
+use think\facade\View;
+
+class Index extends BaseController
 {
     public function index()
     {
         return "<div>欢迎来到GardeniaAdmin &nbsp;栀子后台管理系统</div>";
     }
     public function test() {
-        $salt = create_salt();
-        $password = create_password('123456',$salt);
-        dump($salt,$password);
+        View::assign('demo_time',time());
+        return view();
     }
 }
