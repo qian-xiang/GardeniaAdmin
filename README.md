@@ -1,4 +1,7 @@
 # GardeniaAdmin
+
+## 未完结，待续
+
 栀子后台管理系统
 
 基于thinkphp6和layui开发的一套后台管理系统

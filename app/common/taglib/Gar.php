@@ -6,7 +6,6 @@ namespace app\common\taglib;
 
 use think\Exception;
 use think\template\TagLib;
-use app\common\model\core\ArticleType;
 
 class Gar extends TagLib
 {
@@ -29,14 +28,10 @@ class Gar extends TagLib
             throw new Exception('使用arttypelist标签时频道ID：channel_id必填');
         }
         $id = $tag['id'] ?? 'item';
-//        $list = ArticleType::where([
-//            'channel_id' => $tag['channel_id'],
-//            'delete_time' => 0,
-//        ])->select();
-//        $list[1] = $list[0];
         $parse = '<?php ';
         $parse .= 'use app\\common\\model\\core\\ArticleType;';
-        $parse .= '$___garArtTypeList___ = ArticleType::where([\'channel_id\' => '.$tag['channel_id'].',\'delete_time\' => 0,])->select();';
+        $parse .= '$___garArtTypeList___ = ArticleType::where([\'delete_time\' => 0,])
+        ->where("channel_id","in",'.$tag['channel_id'].')->select();';
         $parse .= ' ?>';
 
         $parse .= '{volist name="___garArtTypeList___" id="' . $id . '"}';

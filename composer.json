@@ -29,7 +29,8 @@
         "topthink/think-captcha": "^3.0",
         "qian-xiang/gardenia_admin": "dev-master",
         "firebase/php-jwt": "^5.4",
-      "ext-json": "*"
+      "ext-json": "*",
+      "ext-zip": "*"
     },
     "require-dev": {
         "symfony/var-dumper": "^4.2",
