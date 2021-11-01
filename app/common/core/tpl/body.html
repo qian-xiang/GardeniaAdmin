@@ -1,0 +1,43 @@
+<!--<div class="table-above">-->
+<!--    <button class="btn-primary">测试</button>-->
+<!--    <button class="btn-warning">测试2</button>-->
+<!--</div>-->
+<div id="toolbar">
+    <button id="remove" class="btn btn-danger" disabled>
+        <i class="fa fa-trash"></i> Delete
+    </button>
+</div>
+<table id="table"
+       data-toolbar="#toolbar"
+       data-search="true"
+       data-show-refresh="true"
+       data-show-toggle="true"
+       data-show-fullscreen="true"
+       data-show-columns="true"
+       data-show-columns-toggle-all="true"
+       data-detail-view="true"
+       data-show-export="true"
+       data-click-to-select="true"
+       data-detail-formatter="detailFormatter"
+       data-minimum-count-columns="2"
+       data-id-field="id"
+       data-show-footer="true"
+>
+<!--       data-show-pagination-switch="true"-->
+    <!--       data-response-handler="responseHandler"-->
+
+
+</table>
+
+
+<script>
+    $(document).ready(function () {
+        var tableOptions = {:json_encode($tableOptions,JSON_UNESCAPED_UNICODE)};
+        var obj = {
+            columns: {:json_encode($tableHead,JSON_UNESCAPED_UNICODE)},
+        };
+        obj = Object.assign(obj,tableOptions)
+        console.log(obj)
+        $('#table').bootstrapTable('destroy').bootstrapTable(obj)
+    })
+</script>

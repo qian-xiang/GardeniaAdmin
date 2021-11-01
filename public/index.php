@@ -16,8 +16,8 @@ require __DIR__ . '/../vendor/autoload.php';
 
 // 执行HTTP应用并响应
 $http = (new App())->http;
-
-$response = $http->name('index')->run();
+//->name('index')
+$response = $http->run();
 
 $response->send();
 
