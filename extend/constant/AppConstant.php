@@ -47,7 +47,12 @@ class AppConstant
 
     //user表中的root_id的值为0，即表示该用户的根ID是自己
     const USER_NO_ROOT_ID = 0;
-
+    public static function getApiCodeList() {
+        return [
+            'success' => self::CODE_SUCCESS,
+            'error' => self::CODE_ERROR,
+        ];
+    }
     public static function getStatusList() {
         return [self::STATUS_FORBID=> '禁用', self::STATUS_FORMAL=> '正常'];
     }

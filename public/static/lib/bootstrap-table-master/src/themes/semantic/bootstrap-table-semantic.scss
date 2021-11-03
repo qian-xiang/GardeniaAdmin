@@ -4,8 +4,8 @@
  * theme: https://github.com/Semantic-Org/Semantic-UI
  */
 
- @import './variables.scss';
- @import '../theme.scss';
+ @import 'variables';
+ @import '../theme';
 
 .bootstrap-table {
   .fixed-table-container.fixed-height:not(.has-footer),

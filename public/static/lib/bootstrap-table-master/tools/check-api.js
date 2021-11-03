@@ -2,7 +2,7 @@
 require = require('esm')(module)
 const fs = require('fs')
 const chalk = require('chalk')
-const Constants = require('../src/constants/index.js').default
+const Constants = require('../src/constants').default
 let errorSum = 0
 const exampleFilesFolder = './bootstrap-table-examples/'
 const exampleFilesFound = fs.existsSync(exampleFilesFolder)

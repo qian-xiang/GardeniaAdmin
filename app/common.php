@@ -1,4 +1,5 @@
 <?php
+use \constant\AppConstant;
 // 应用公共文件
 if (!function_exists('create_salt')) {
     /**
@@ -103,5 +104,83 @@ if (!function_exists('check_module_info')) {
         } else {
             return $errMsg;
         }
+    }
+}
+if (!function_exists('reply_json')) {
+    /**
+     * 返回json信息
+     * @param string $msg
+     * @param array $data
+     * @param string $redirectUrl 跳转的url
+     * @param int $code
+     */
+    function reply_json($msg = '', $data = [], $redirectUrl = '', $code = AppConstant::CODE_SUCCESS) {
+        json([
+            'msg' => $msg,
+            'data' => $data,
+            'code' => $code,
+            'redirectUrl' => $redirectUrl,
+        ])->send();
+    }
+}
+if (!function_exists('success_json')) {
+    /**
+     * 以json形式返回成功信息
+     * @param string $msg
+     * @param array $data
+     * @param string $redirectUrl 跳转的url
+     */
+    function success_json($msg = '',$data = [], $redirectUrl = '') {
+        reply_json($msg,$data, $redirectUrl,AppConstant::CODE_SUCCESS);
+    }
+}
+if (!function_exists('error_json')) {
+    /**
+     * 以json形式返回错误信息
+     * @param string $msg
+     * @param array $data
+     * @param string $redirectUrl 跳转的url
+     */
+    function error_json($msg = '',$data = [], $redirectUrl = '') {
+        reply_json($msg,$data, $redirectUrl,AppConstant::CODE_ERROR);
+    }
+}
+if (!function_exists('build_toolbar_btn')) {
+    function build_toolbar_btn($btns = '') {
+        if (!$btns) {
+            return '';
+        }
+        $btnList = [
+            'add',
+            'del'
+        ];
+        $arr = explode(',',$btns);
+        $arrIntersect = array_intersect($arr,$btnList);
+        if ($arrIntersect !== $arr) {
+            throw new \think\Exception('toolbar的按钮类型仅支持：'.implode(',',$btnList));
+        }
+        // 按钮类型合法 开始构建html模板
+        $html = '';
+        foreach ($arr as $item) {
+            $tmp = '';
+            switch ($item) {
+                case 'add':
+                    $tmp = '<a class="btn btn-primary btn-operate-'.$item.'" href="'.url('add')->build().'">
+                            <i class="fa fa-plus-square"></i> '.lang('btn-operate-'.$item).'
+                        </a> ';
+                    break;
+                case 'del':
+                    $tmp = '<a class="btn btn-danger btn-operate-'.$item.'" href="javascript: void(0)">
+                            <i class="fa fa-trash"></i> '.lang('btn-operate-'.$item).'
+                        </a> ';
+                    break;
+                default:
+                    break;
+            }
+            $html .= $tmp;
+        }
+        unset($item);
+
+        return $html;
     }
 }

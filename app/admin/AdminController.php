@@ -11,10 +11,12 @@ use constant\AppConstant;
 use app\admin\model\AuthGroupAccess;
 use think\App;
 use think\exception\ValidateException;
+use think\facade\Lang;
 use think\facade\View;
 use think\Validate;
 use think\facade\Db;
 use gardenia_admin\src\core\core_class\GardeniaConstant;
+use think\facade\Config;
 
 abstract class AdminController
 {
@@ -48,6 +50,8 @@ abstract class AdminController
     protected $noCheckAccess = [];
     //不需要校验防止重放攻击的接口token
 //    protected $noCheckReqToken = [];
+    protected $loadControllerLang = true;
+    protected $langList = [];
     /**
      * 构造方法
      * @access public
@@ -65,8 +69,34 @@ abstract class AdminController
     // 初始化
     protected function initialize()
     {
-        $this->checkLogin();
-        $this->checkAccess();
+//        $this->checkLogin();
+//        $this->checkAccess();
+
+        //加载控制器对应的多语言文件，请勿随意去除
+        if ($this->loadControllerLang) {
+            $lang = Lang::getLangSet();
+            $controllerLangPath = app_path().'lang/'.$lang.'/'.$this->request->controller(true).'.php';
+            $controllerLangList = [];
+            if (file_exists($controllerLangPath)) {
+                $zhCns = [$controllerLangPath];
+                $controllerLangList = include $controllerLangPath;
+            } else {
+                $zhCns = [];
+            }
+            $config = config('lang.extend_list');
+            $config[$lang] = $zhCns;
+            Config::set(['extend_list' => $config],'lang');
+            $this->app->LoadLangPack($lang);
+
+            //读取指定多语言文件返回给前端
+            $defaultLangSetPath = app_path().'lang/'.$lang.'.php';
+            $langList = [];
+            if (file_exists($defaultLangSetPath)) {
+                $langList = include $defaultLangSetPath;
+            }
+            $langList = array_merge($langList,$controllerLangList);
+            $this->langList = $langList;
+        }
         $gardeniaLayout = [
             'left' => [
                 'type' => GardeniaConstant::TEMPLATE_TYPE_CONTENT,
@@ -293,16 +323,14 @@ abstract class AdminController
             $pathInfo = ['',config('route.default_controller'),config('route.default_action')];
             $controller = config('route.default_controller');
             $action = config('route.default_action');
+        } else if ($pathInfo !== '/'){
+            $pathInfo = explode('/',$pathInfo);
+            $controller = isset($pathInfo[1]) ? $pathInfo[1] : config('route.default_controller');
+            $action = isset($pathInfo[2]) ? $pathInfo[2] : config('route.default_action');
         } else {
-            if ($pathInfo !== '/'){
-                $pathInfo = explode('/',$pathInfo);
-                $controller = isset($pathInfo[1]) ? $pathInfo[1] : config('route.default_controller');
-                $action = isset($pathInfo[2]) ? $pathInfo[2] : config('route.default_action');
-            } else {
-                $pathInfo = ['',config('route.default_controller'),config('route.default_action')];
-                $controller = config('route.default_controller');
-                $action = config('route.default_action');
-            }
+            $pathInfo = ['',config('route.default_controller'),config('route.default_action')];
+            $controller = config('route.default_controller');
+            $action = config('route.default_action');
         }
         $map = [];
         if ($request->admin_info->authGroup->type === AppConstant::GROUP_TYPE_ADMIN){
@@ -329,5 +357,19 @@ abstract class AdminController
         $adminInfo = $request->admin_info;
         $adminInfo->access_list = $accessArr;
         $request->admin_info = $adminInfo;
+    }
+    protected function view($template = '',$var = [],$code = 200,$filter =null, $isUseLayout = true) {
+        if ($isUseLayout) {
+            View::engine()->layout('../../common/core/tpl/layout');
+        }
+        $arr = [
+            'runtimeInfo' => [
+                'url' => url()->build(),
+                'apiCode' => AppConstant::getApiCodeList(),
+            ],
+            'langList' => $this->langList,
+        ];
+        $var = array_merge($arr,$var);
+        return \view($template,$var,$code,$filter);
     }
 }

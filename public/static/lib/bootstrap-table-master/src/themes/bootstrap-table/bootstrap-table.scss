@@ -3,8 +3,8 @@
  * https://github.com/wenzhixin/bootstrap-table/
  */
 @import 'variables';
-@import '../theme.scss';
-@import './font.scss';
+@import '../theme';
+@import 'font';
 
 .bootstrap-table {
   * {

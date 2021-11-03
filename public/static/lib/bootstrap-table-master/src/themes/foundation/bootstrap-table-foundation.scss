@@ -4,8 +4,8 @@
  * theme: https://github.com/jgthms/bulma/
  */
 
- @import './variables.scss';
- @import '../theme.scss';
+ @import 'variables';
+ @import '../theme';
 
 .bootstrap-table {
   .float-left {

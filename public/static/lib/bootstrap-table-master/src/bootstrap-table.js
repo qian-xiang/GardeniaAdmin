@@ -4,9 +4,9 @@
  * https://github.com/wenzhixin/bootstrap-table/
  */
 
-import Constants from './constants/index.js'
-import Utils from './utils/index.js'
-import VirtualScroll from './virtual-scroll/index.js'
+import Constants from './constants'
+import Utils from './utils'
+import VirtualScroll from './virtual-scroll'
 
 class BootstrapTable {
   constructor (el, options) {

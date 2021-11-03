@@ -33,13 +33,17 @@ class Index extends BaseController
             return json($data);
         }
         $gar = new GardeniaList();
-        $gar->addTableHead('id','ID')
+        $gar->addTableHead('checked','',[
+            'checkbox' => true
+        ])
+            ->addTableHead('id','ID')
             ->addTableHead('name','名称')
             ->addTableHead('title','标题')
             ->addTableHead('createtime','时间')
             ->setTableOptions('url','/index/index/test2')
             ->setTableOptions('pagination',false)
-            ->setTableOptions('height','200px')
+            ->setTableOptions('height',500)
+//            ->setTableOptions('checkboxHeader',true)
             ->display();
     }
     public function install() {

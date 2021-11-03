@@ -1,11 +1,10 @@
-<!--<div class="table-above">-->
-<!--    <button class="btn-primary">测试</button>-->
-<!--    <button class="btn-warning">测试2</button>-->
-<!--</div>-->
 <div id="toolbar">
-    <button id="remove" class="btn btn-danger" disabled>
-        <i class="fa fa-trash"></i> Delete
-    </button>
+    <a class="btn btn-primary btn-operate-add" href="{:url('add')}">
+        <i class="fa fa-plus-square"></i> 新增
+    </a>
+    <a class="btn btn-danger btn-operate-del" href="javascript: void(0)">
+        <i class="fa fa-trash"></i> 删除
+    </a>
 </div>
 <table id="table"
        data-toolbar="#toolbar"
@@ -15,29 +14,77 @@
        data-show-fullscreen="true"
        data-show-columns="true"
        data-show-columns-toggle-all="true"
-       data-detail-view="true"
        data-show-export="true"
        data-click-to-select="true"
-       data-detail-formatter="detailFormatter"
        data-minimum-count-columns="2"
        data-id-field="id"
-       data-show-footer="true"
 >
 <!--       data-show-pagination-switch="true"-->
     <!--       data-response-handler="responseHandler"-->
+    <!--       data-detail-formatter="detailFormatter"-->
+    <!--       data-detail-view="true"-->
+<!--    data-show-footer="true"-->
+
 
 
 </table>
 
+<!--<form action="">-->
 
+<!--</form>-->
 <script>
-    $(document).ready(function () {
-        var tableOptions = {:json_encode($tableOptions,JSON_UNESCAPED_UNICODE)};
-        var obj = {
-            columns: {:json_encode($tableHead,JSON_UNESCAPED_UNICODE)},
+    require(['jquery','layui','bootstrap-table','form-validate'],function ($,layui,bootstrapTable,formValidate) {
+        console.log('formValidate',formValidate);
+        var data = {
+            name: '张三',
+            id: 3,
+            age: 52.3,
+            sex: true,
         };
-        obj = Object.assign(obj,tableOptions)
-        console.log(obj)
-        $('#table').bootstrapTable('destroy').bootstrapTable(obj)
+        var Validate = formValidate.Validate;
+        var vali = new Validate;
+
+        vali.setRule({
+            'name|姓名': 'number',
+            'id|ID': 'decimal',
+            'age|年龄': 'integer',
+        });
+        if (!vali.check(data)) {
+            alert(vali.getError())
+        }
+
+        $(document).ready(function () {
+            var tableOptions = {:json_encode($tableOptions,JSON_UNESCAPED_UNICODE)};
+            var obj = {
+                columns: {:json_encode($tableHead,JSON_UNESCAPED_UNICODE)},
+        };
+            obj = Object.assign(obj,tableOptions)
+            console.log(obj)
+            $('#table').bootstrapTable('destroy').bootstrapTable(obj)
+            layui.use(['layer'],function (layer) {
+                console.log('layer',layer);
+                $('.btn-operate-del').click(function () {
+                    layer.confirm('您确定要删除么？',function () {
+                        $.ajax({
+                            url: '{:url("del")}',
+                            method: 'POST',
+                            data: {
+                                id: 1,
+                            },
+                            dataType: 'json',
+                            success: function (res) {
+                                console.log(res)
+                            },
+                            error: function (e) {
+                                console.log(e)
+                            }
+                        })
+                    },function () {
+                        layer.msg('您取消了本次操作')
+                    })
+                })
+            })
+        })
     })
+
 </script>
