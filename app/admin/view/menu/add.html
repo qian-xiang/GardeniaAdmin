@@ -1,7 +1,7 @@
 <form id="form-add" onsubmit="return false;">
     <div class="form-group row">
-        <label class="col-form-label col-sm-2 text-center" for="rule_type">规则类型</label>
-        <select class="form-control col-sm-5" name="rule_type" id="rule_type">
+        <label id="test" class="col-form-label col-sm-2 text-center" for="rule_type">规则类型</label>
+        <select class="form-control col-sm-5" data-rule="required" name="rule_type" id="rule_type">
             {foreach $ruleTypeList as $key => $vo}
                 <option value="{$key}" {eq name="key" value="$ruleTypeVal"}selected{/eq}>{$vo}</option>
             {/foreach}
@@ -9,7 +9,7 @@
     </div>
     <div class="form-group row">
         <label class="col-form-label col-sm-2 text-center" for="pid">父级</label>
-        <select class="form-control col-sm-5" id="pid" name="pid">
+        <select class="form-control col-sm-5" data-rule="required" id="pid" name="pid">
             {foreach $parentList as $key => $vo}
             <option value="{$key}" {eq name="key" value="$parent"}selected{/eq}>{$vo}</option>
             {/foreach}
@@ -17,28 +17,28 @@
     </div>
     <div class="form-group row">
         <label class="col-form-label col-sm-2 text-center" for="title">标题</label>
-        <input type="text" class="form-control col-sm-5" id="title" name="title" placeholder="请输入标题">
+        <input type="text" class="form-control col-sm-5" data-rule="required;length(~255)" id="title" name="title" placeholder="请输入标题">
     </div>
     <div class="form-group row">
         <label class="col-form-label col-sm-2 text-center" for="icon">图标</label>
-        <input type="text" class="form-control col-sm-5" id="icon" name="icon" placeholder="请输入图标">
+        <input type="text" class="form-control col-sm-5" data-rule="required;length(~255)" id="icon" name="icon" placeholder="请输入图标" value="fa fa-align-justify">
     </div>
     <div class="form-group row">
         <label class="col-form-label col-sm-2 text-center" for="rule">规则</label>
-        <input type="text" class="form-control col-sm-5" id="rule" name="rule" placeholder="根目录/控制器名/行为名称，如/Menu/index，其中/不可省略">
+        <input type="text" class="form-control col-sm-5" id="rule" name="name" data-rule="required;length(~255)" placeholder="根目录/控制器名/行为名称，如/Menu/index，其中/不可省略">
     </div>
     <div class="form-group row">
         <label class="col-form-label col-sm-2 text-center" for="rule_condition">规则条件</label>
-        <input type="text" class="form-control col-sm-5" id="rule_condition" name="rule_condition" placeholder="请输入规则条件">
+        <input type="text" class="form-control col-sm-5" id="rule_condition" data-rule="length(~255)" name="condition" placeholder="请输入规则条件">
     </div>
 
     <div class="form-group row">
         <label class="col-form-label col-sm-2 text-center" for="weigh">权重</label>
-        <input type="number" class="form-control col-sm-5" id="weigh" name="weigh" value="{$defaultWeigh}" placeholder="请输入权重">
+        <input type="number" class="form-control col-sm-5" id="weigh" data-rule="required;integer" name="weigh" value="{$defaultWeigh}" placeholder="请输入权重">
     </div>
     <div class="form-group row">
         <label class="col-form-label col-sm-2 text-center" for="status">状态</label>
-        <select class="form-control col-sm-5" id="status" name="status">
+        <select class="form-control col-sm-5" id="status" data-rule="required;" name="status">
             {foreach $statusList as $key => $vo}
             <option value="{$key}" {eq name="key" value="$defaultStatus"}selected{/eq}>{$vo}</option>
             {/foreach}

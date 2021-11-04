@@ -364,7 +364,12 @@ abstract class AdminController
         }
         $arr = [
             'runtimeInfo' => [
-                'url' => url()->build(),
+                'page' => [
+                    'app' => 'admin',
+                    'controller' => $this->request->controller(true),
+                    'action' => $this->request->action(true),
+                    'url' => url()->build(),
+                ],
                 'apiCode' => AppConstant::getApiCodeList(),
             ],
             'langList' => $this->langList,

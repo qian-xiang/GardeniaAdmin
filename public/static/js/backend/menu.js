@@ -1,7 +1,7 @@
-require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable'],function ($,bootstrapTable,sweetalert,BsTable) {
+require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','garForm','layui'],
+    function ($,bootstrapTable,sweetalert,BsTable,Validator,GarForm,layui) {
 var page = {
     index: function () {
-        console.log(garLang('btn-operate-add'))
         $(document).ready(function () {
             const table = '#table';
             var tableOptions = {
@@ -63,19 +63,22 @@ var page = {
                     {
                         field: 'create_time',
                         title: '时间',
+                        formatter: BsTable.formatter.image,
                     },
                     {
                         field: 'operate',
                         title: '操作',
-
+                        formatter: function (value, row, index) {
+                            return BsTable.formatter.garOperate('del,edit',{id: row.id})
+                        },
                     }
                 ]
             };
             obj = Object.assign(obj,tableOptions)
 
             $(table).bootstrapTable('destroy').bootstrapTable(obj)
-
-            $('.btn-operate-del').click(function () {
+            const eleDel = '.btn-operate-del'
+            $(document).off('click',eleDel).on('click',eleDel,function () {
                 swal({
                     title: '提示',
                     text: '您确定要删除么？',
@@ -134,45 +137,60 @@ var page = {
                 })
 
             })
+            BsTable.event.image.bind()
         })
     },
     add: function () {
-        $('#form-add').submit(function () {
-            var arr = $(this).serializeArray()
-            var formData = {}
-            $.each(arr,function () {
-                formData[this.name] = this.value
-            })
-           $.ajax({
-               url: garBackend.url,
-               method: 'POST',
-               data: formData,
-               dataType: 'json',
-               success: function (res) {
-                   console.log(res)
-                   if (res.msg) {
-                       console.log(res.msg)
-                       if (res.code === garBackend.apiCode.success) {
-                           setTimeout(function () {
-                               !res.data.redirectUrl && history.back()
-                               location.href =  res.data.redirectUrl
-                           },2000)
-                       } else if (res.data.redirectUrl) {
-                           setTimeout(function () {
-                               location.href = res.data.redirectUrl
-                           },2000)
-                       }
-
-                   }
-               },
-               error: function (e) {
-                   console.log('出错啦',e)
-               }
-           })
-        })
+        this.api.addEdit('#form-add')
     },
     edit: function () {
+        this.api.addEdit('#form-edit')
+    },
+    api: {
+        addEdit: function (ele) {
+            ele = ele || '#form-add'
+            $(ele).validator({
+                // 验证通过
+                valid: function(form) {
+                    var arr = $(form).serializeArray()
+                    var formData = {}
+                    $.each(arr,function () {
+                        formData[this.name] = this.value
+                    })
+                    $.ajax({
+                        url: '',
+                        method: 'POST',
+                        data: formData,
+                        dataType: 'json',
+                        success: function (res) {
+                            if (res.msg) {
+                                swal({
+                                    title: '提示',
+                                    text: res.msg,
+                                    timer: 2000,
+                                })
+                                console.log(res.redirectUrl)
+                                if (res.code === garBackend.apiCode.success) {
+                                    setTimeout(function () {
+                                        !res.redirectUrl && history.back()
+                                        location.href =  res.redirectUrl
+                                    },2000)
+                                } else if (res.redirectUrl) {
+                                    setTimeout(function () {
+                                        location.href = res.redirectUrl
+                                    },2000)
+                                }
 
+                            }
+                        },
+                        error: function (e) {
+                            console.log('出错啦',e)
+                        }
+                    })
+                }
+            });
+
+        }
     }
 }
 var action = $('#___controller-js___').data('action');
