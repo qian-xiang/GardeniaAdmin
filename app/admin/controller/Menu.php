@@ -20,7 +20,6 @@ class Menu extends AdminController
      */
     public function index()
     {
-
         $request = $this->request;
         if ($request->isAjax() && $request->isGet()) {
             $paginate = AuthRule::order(['weigh' => 'desc','id' => 'desc'])->paginate(10);

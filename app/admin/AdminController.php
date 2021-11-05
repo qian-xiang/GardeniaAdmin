@@ -74,21 +74,6 @@ abstract class AdminController
         $this->checkAccess();
         $this->loadLangFiles();
 
-        $gardeniaLayout = [
-            'left' => [
-                'type' => GardeniaConstant::TEMPLATE_TYPE_CONTENT,
-                'content' => null,
-                'vars' => [],
-            ],
-            'right' => [
-                'type' => GardeniaConstant::TEMPLATE_TYPE_CONTENT,
-                'content' => null,
-                'vars' => [],
-            ],
-        ];
-        View::assign(GardeniaConstant::GARDENIA_PREFIX.'Layout',$gardeniaLayout);
-        View::assign('asideMenuList',$this->getRenderMenuList());
-
     }
 
     /**
@@ -164,8 +149,8 @@ abstract class AdminController
         if (!$request->admin_info) {
             return [];
         }
-        $controller = $request->controller();
-        $action = $request->action();
+        $controller = $request->controller(true);
+        $action = $request->action(true);
         $appName = $this->app->http->getName();
         if ($controller === config('route.default_controller') &&
             $action === config('route.default_action')){
@@ -174,46 +159,32 @@ abstract class AdminController
             $menuUrl = '/'.$appName.'/'.$controller.'/'.$action;
         }
 
-        $ruleList = $request->access_list;
+        $ruleList = $request->admin_info->access_list->toArray();
         $currentMenuId = 0;
         $rootId = 0;
         $pid = 0;
         $ruleType = AppConstant::RULE_TYPE_MENU;
         //通过权限校验才会开始获取用于渲染的菜单列表 因此此处不用校验 当前规则ID的合法性
-        foreach ($ruleList as $item) {
+        foreach ($ruleList as $key => $item) {
             if ($item['name'] === $menuUrl) {
                 $currentMenuId = $item['id'];
                 $rootId = $item['root_id'] === 0 ? $item['id'] : $item['root_id'];
                 $ruleType = $item['type'];
                 $pid = $item['pid'];
-                break;
+            }
+            // 删除非菜单规则 供前端渲染使用
+            if ($item['type'] !== AppConstant::RULE_TYPE_MENU) {
+                unset($ruleList[$key]);
             }
         }
 
         if ($ruleType === AppConstant::RULE_TYPE_OTHER) {
             $currentMenuId = $pid;
         }
+
         return $this->getIndexTreeMenu($ruleList,0,$currentMenuId,$rootId);
     }
-    protected function buildTreeData($ruleList,$pid,$checkData = [],$currentLevel = 0,$maxLevel = 0) {
-        $treeData = [];
-        foreach ($ruleList as $key => $item){
-            if ($maxLevel && $currentLevel === $maxLevel){
-                return $treeData;
-            }
-            if ($item['pid'] === $pid) {
-                unset($ruleList[$key]);
-                $result = $this->buildTreeData($ruleList,$item['id'],$checkData,$currentLevel,$maxLevel);
-                if ($result){
-                    $item['children'] = $result;
-                }
-                $item['spread'] = true;
-                $item['checked'] = in_array($item['id'],$checkData);
-                $treeData[] = $item;
-            }
-        }
-        return $treeData;
-    }
+
     protected function getIndexTreeMenu($ruleList,$pid,$currentMenuId,$rootId,$currentLevel = 0,$maxLevel = 0) {
         $treeData = [];
         foreach ($ruleList as $key => $item){
@@ -222,8 +193,8 @@ abstract class AdminController
             }
 
             if ($item['pid'] === $pid) {
-                unset($ruleList[$key]);
                 $result = $this->getIndexTreeMenu($ruleList,$item['id'],$currentMenuId,$rootId,$currentLevel,$maxLevel);
+                // 以下就是处理子元素没有子节点后返回的逻辑
                 if ($result){
                     $item['children'] = $result;
                 }
@@ -275,7 +246,7 @@ abstract class AdminController
         $accessArr = AuthRule::where($map)
             ->where(['status'=> AppConstant::STATUS_FORMAL])
             ->withAttr('name',function ($value) use ($appName) {
-                return '/'.$appName.'/'.$value;
+                return strtolower('/'.$appName.'/'.$value);
             })->order('weigh','desc')->select();
         if (!$accessArr){
             error('您没有权限访问，因为尚未有任何权限');
@@ -284,32 +255,14 @@ abstract class AdminController
         $action = $request->action(true);
         $access = '/'.$appName.'/'.$controller.'/'.$action;
 
-        $accessNameList = array_column($accessArr,'name');
-        if (!in_array($access,$accessNameList)) {;
+        $accessNameList = array_column($accessArr->toArray(),'name');
+
+        if (in_array($access,$accessNameList) === false) {;
             error('根据您已有的权限，您没有权限访问');
         }
         $adminInfo = $request->admin_info;
         $adminInfo->access_list = $accessArr;
         $this->request->admin_info = $adminInfo;
-    }
-    protected function view($template = '',$var = [],$code = 200,$filter =null, $isUseLayout = true) {
-        if ($isUseLayout) {
-            View::engine('Think')->layout('../../common/core/tpl/layout');
-        }
-        $arr = [
-            'runtimeInfo' => [
-                'page' => [
-                    'app' => 'admin',
-                    'controller' => $this->request->controller(true),
-                    'action' => $this->request->action(true),
-                    'url' => url()->build(),
-                ],
-                'apiCode' => AppConstant::getApiCodeList(),
-            ],
-            'langList' => $this->langList,
-        ];
-        $var = array_merge($arr,$var);
-        return \view($template,$var,$code,$filter);
     }
     protected function loadLangFiles() {
         //加载控制器对应的多语言文件，请勿随意去除
@@ -337,5 +290,40 @@ abstract class AdminController
             $langList = array_merge($langList,$controllerLangList);
             $this->langList = $langList;
         }
+    }
+
+    protected function view($template = '',$var = [],$code = 200,$filter =null, $isUseLayout = true) {
+        if ($isUseLayout) {
+            View::engine('Think')->layout('../../common/core/tpl/layout');
+        }
+        $gardeniaLayout = [
+            'left' => [
+                'type' => GardeniaConstant::TEMPLATE_TYPE_CONTENT,
+                'content' => null,
+                'vars' => [],
+            ],
+            'right' => [
+                'type' => GardeniaConstant::TEMPLATE_TYPE_CONTENT,
+                'content' => null,
+                'vars' => [],
+            ],
+        ];
+        View::assign(GardeniaConstant::GARDENIA_PREFIX.'Layout',$gardeniaLayout);
+
+        $arr = [
+            'runtimeInfo' => [
+                'page' => [
+                    'app' => 'admin',
+                    'controller' => $this->request->controller(true),
+                    'action' => $this->request->action(true),
+                    'url' => url()->build(),
+                ],
+                'apiCode' => AppConstant::getApiCodeList(),
+                'asideMenuList' => $this->getRenderMenuList(),
+            ],
+            'langList' => $this->langList,
+        ];
+        $var = array_merge($arr,$var);
+        return \view($template,$var,$code,$filter);
     }
 }
