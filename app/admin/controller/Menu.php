@@ -6,10 +6,8 @@ namespace app\admin\controller;
 use constant\AppConstant;
 use app\admin\AdminController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
-use gardenia_admin\src\core\core_class\GardeniaHelper;
 use \app\admin\model\AuthRule;
 use think\facade\Db;
-use think\facade\Lang;
 use think\Validate;
 use think\validate\ValidateRule;
 
@@ -22,6 +20,7 @@ class Menu extends AdminController
      */
     public function index()
     {
+
         $request = $this->request;
         if ($request->isAjax() && $request->isGet()) {
             $paginate = AuthRule::order(['weigh' => 'desc','id' => 'desc'])->paginate(10);
@@ -57,12 +56,8 @@ class Menu extends AdminController
             if (!$validate->check($data)) {
                 error_json($validate->getError());
             }
-//
-//            if ($data['rule_type'] === AppConstant::RULE_TYPE_OTHER){
-//                !isset($data['rule']) && $this->error('规则类型为其它时，规则必填！');
-//            }
 
-            $res = Db::name('auth_rule')->where([
+            $res = AuthRule::where([
                 'title' => $data['title'],
                 'name' => $data['rule'],
             ])->find();
@@ -70,27 +65,26 @@ class Menu extends AdminController
                 error_json('该规则名称和标题已存在！');
             }
             $insertData = [
-                'type' => $data['rule_type'],
+                'type' => $data['type'],
                 'pid' => $data['pid'],
                 'title' => $data['title'],
                 'icon' => $data['icon'],
-                'name' => $data['rule'],
+                'name' => $data['name'],
                 'weigh' => $data['weigh'],
                 'status' => $data['status'],
             ];
 
-            isset($data['rule_condition']) && $insertData['condition'] = $data['rule_condition'];
             if ((int)$data['pid'] === 0){
                 $insertData['root_id'] = 0;
             } else {
-                $res = Db::name('auth_rule')->where(['id' => $data['pid']])->field('root_id')->find();
+                $res = AuthRule::where(['id' => $data['pid']])->field('root_id')->find();
                 if (!$res){
                     error_json('该父级规则不存在，或已被删除！');
                 }
                 $insertData['root_id'] = $res['root_id'] === 0 ? $data['pid'] : $res['root_id'];
             }
-
-            $res = Db::name('auth_rule')->save($insertData);
+            $authRuleModel = new AuthRule();
+            $res = $authRuleModel->save($insertData);
             if (!$res){
                 error_json('添加规则失败，请稍候重试。');
             }

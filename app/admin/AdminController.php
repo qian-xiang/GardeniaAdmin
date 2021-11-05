@@ -7,6 +7,7 @@ declare (strict_types = 1);
 
 namespace app\admin;
 
+use app\admin\model\AuthRule;
 use constant\AppConstant;
 use app\admin\model\AuthGroupAccess;
 use think\App;
@@ -69,34 +70,10 @@ abstract class AdminController
     // 初始化
     protected function initialize()
     {
-//        $this->checkLogin();
-//        $this->checkAccess();
+        $this->checkLogin();
+        $this->checkAccess();
+        $this->loadLangFiles();
 
-        //加载控制器对应的多语言文件，请勿随意去除
-        if ($this->loadControllerLang) {
-            $lang = Lang::getLangSet();
-            $controllerLangPath = app_path().'lang/'.$lang.'/'.$this->request->controller(true).'.php';
-            $controllerLangList = [];
-            if (file_exists($controllerLangPath)) {
-                $zhCns = [$controllerLangPath];
-                $controllerLangList = include $controllerLangPath;
-            } else {
-                $zhCns = [];
-            }
-            $config = config('lang.extend_list');
-            $config[$lang] = $zhCns;
-            Config::set(['extend_list' => $config],'lang');
-            $this->app->LoadLangPack($lang);
-
-            //读取指定多语言文件返回给前端
-            $defaultLangSetPath = app_path().'lang/'.$lang.'.php';
-            $langList = [];
-            if (file_exists($defaultLangSetPath)) {
-                $langList = include $defaultLangSetPath;
-            }
-            $langList = array_merge($langList,$controllerLangList);
-            $this->langList = $langList;
-        }
         $gardeniaLayout = [
             'left' => [
                 'type' => GardeniaConstant::TEMPLATE_TYPE_CONTENT,
@@ -189,60 +166,34 @@ abstract class AdminController
         }
         $controller = $request->controller();
         $action = $request->action();
+        $appName = $this->app->http->getName();
         if ($controller === config('route.default_controller') &&
             $action === config('route.default_action')){
+            $menuUrl = '/'.$appName;
+        } else {
+            $menuUrl = '/'.$appName.'/'.$controller.'/'.$action;
+        }
 
-            $menuUrl = '/';
-        } else {
-            $menuUrl = '/'.$controller.'/'.$action;
-        }
-        if ($request->admin_info->authGroup->type === AppConstant::GROUP_TYPE_SUPER_ADMIN) {
-            $ruleList = Db::name('auth_rule')
-                ->where([
-                    'status'=> AppConstant::STATUS_FORMAL,
-                    'type' => AppConstant::RULE_TYPE_MENU,
-                ])
-                ->field('id,title,pid,name as field,root_id')->order('weigh','desc')->select()->toArray();
-        } else {
-//            $ruleList = Db::name('auth_group_access')->alias('a')->join('auth_group g','g.id = a.group_id')
-//                ->where(['a.admin_id' => $this->request->admin_info->admin->id,'g.status'=> AppConstant::STATUS_FORMAL])
-//                ->value('g.rules');
-            $ruleList = Db::name('auth_rule')->where('id','in',$this->request->admin_info->authGroup->rules)
-                ->where([
-                    'status'=> AppConstant::STATUS_FORMAL,
-                    'type' => AppConstant::RULE_TYPE_MENU,
-                ])
-                ->field('id,title,pid,name as field,root_id')->order('weigh','desc')->select()->toArray();
-        }
-        if (!$ruleList){
-            error('您没有权限访问');
-//            if (isset($this->request->accessWhiteList) && $this->request->accessWhiteList){
-//                in_array($this->request->controller().'/'.$this->request->action(),$this->request->accessWhiteList) ? redirect($this->request->url()) : error('您没有权限访问');
-//            }
-        }
+        $ruleList = $request->access_list;
         $currentMenuId = 0;
         $rootId = 0;
+        $pid = 0;
+        $ruleType = AppConstant::RULE_TYPE_MENU;
+        //通过权限校验才会开始获取用于渲染的菜单列表 因此此处不用校验 当前规则ID的合法性
         foreach ($ruleList as $item) {
-            if ($item['field'] === $menuUrl){
+            if ($item['name'] === $menuUrl) {
                 $currentMenuId = $item['id'];
                 $rootId = $item['root_id'] === 0 ? $item['id'] : $item['root_id'];
+                $ruleType = $item['type'];
+                $pid = $item['pid'];
                 break;
             }
         }
 
-        if (!$currentMenuId) {
-            $currentMenuId = Db::name('auth_rule')->where([
-                'name' => $menuUrl,
-                'type' => AppConstant::RULE_TYPE_OTHER,
-            ])->value('pid');
-
+        if ($ruleType === AppConstant::RULE_TYPE_OTHER) {
+            $currentMenuId = $pid;
         }
-        $nodeList = [];
-        if ($ruleList){
-            $nodeList = $this->getIndexTreeMenu($ruleList,0,$currentMenuId,$rootId);
-        }
-
-        return $nodeList;
+        return $this->getIndexTreeMenu($ruleList,0,$currentMenuId,$rootId);
     }
     protected function buildTreeData($ruleList,$pid,$checkData = [],$currentLevel = 0,$maxLevel = 0) {
         $treeData = [];
@@ -285,82 +236,65 @@ abstract class AdminController
     }
     protected function checkLogin() {
         $this->noNeedLogin = empty($this->noNeedLogin) ? [] : $this->noNeedLogin;
-
         if (in_array($this->request->action(true),$this->noNeedLogin) === false) {
             $loginCode = cookie('login_code');
             if (!$loginCode) {
-                $this->error(lang('login.not'),url('/Login/index'));
+                $this->error(lang('login.not'),url('Login/index'));
             }
             $admin = AuthGroupAccess::hasWhere('admin',[
                 'login_code' => $loginCode
-            ])->cache(true)->find();
+            ])->find();
             if (!$admin) {
-                $this->error(lang('login.not'),url('/Login/index'));
+                $this->error(lang('login.not'),url('Login/index'));
             }
 
             if ($admin->admin->login_code !== $loginCode) {
-                $this->error(lang('login.not'),url('/Login/index'));
+                $this->error(lang('login.not'),url('Login/index'));
             }
             $this->request->admin_info = $admin;
 
         }
     }
     protected function checkAccess() {
-        if (in_array($this->request->action(),$this->noNeedLogin) !== false) {
+        $request = $this->request;
+
+        if (in_array($this->request->action(true),$this->noNeedLogin) !== false) {
             return ;
         }
-        $request = $this->request;
-        $server = $request->server();
-        $pathInfo = $server['PATH_INFO'];
 
-        if (strpos($pathInfo,'.'.config('view.view_suffix')) !== false){
-            $pathInfo = explode('.',$pathInfo);
-            $pathInfo = $pathInfo[0];
-        }
-        $controller = '';
-        $action = '';
-        if (!$pathInfo) {
-            $pathInfo = ['',config('route.default_controller'),config('route.default_action')];
-            $controller = config('route.default_controller');
-            $action = config('route.default_action');
-        } else if ($pathInfo !== '/'){
-            $pathInfo = explode('/',$pathInfo);
-            $controller = isset($pathInfo[1]) ? $pathInfo[1] : config('route.default_controller');
-            $action = isset($pathInfo[2]) ? $pathInfo[2] : config('route.default_action');
-        } else {
-            $pathInfo = ['',config('route.default_controller'),config('route.default_action')];
-            $controller = config('route.default_controller');
-            $action = config('route.default_action');
-        }
         $map = [];
+        $appName = $this->app->http->getName();
+
         if ($request->admin_info->authGroup->type === AppConstant::GROUP_TYPE_ADMIN){
-            $query = $request->admin_info->authGroup->rules;
-            $map = [
-                ['id','in',$query]
-            ];
+            $rules = $request->admin_info->authGroup->rules;
+            $map = function ($query) use ($rules,$appName) {
+                $query->whereRaw('concat("/'.$appName.'/",`name`) in :rules',['rules' => $rules]);
+            };
         }
-        $accessArr = Db::name('auth_rule')->where($map)
-            ->where(['status'=> AppConstant::STATUS_FORMAL])->column('name');
+
+        $accessArr = AuthRule::where($map)
+            ->where(['status'=> AppConstant::STATUS_FORMAL])
+            ->withAttr('name',function ($value) use ($appName) {
+                return '/'.$appName.'/'.$value;
+            })->order('weigh','desc')->select();
         if (!$accessArr){
             error('您没有权限访问，因为尚未有任何权限');
         }
-        foreach ($accessArr as &$item) {
-            if ($item === '/'){
-                $item = '/'.config('route.default_controller').'/'.config('route.default_action');
-            }
-        }
-        $access = '/'.$controller.'/'.$action;
+        $controller = $request->controller(true);
+        $action = $request->action(true);
+        $access = '/'.$appName.'/'.$controller.'/'.$action;
 
-        if (!in_array($access,$accessArr) && $request->admin_info->authGroup->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN) {;
-            error('您没有权限访问');
+        $accessNameList = array_column($accessArr,'name');
+        if (!in_array($access,$accessNameList)) {;
+            error('根据您已有的权限，您没有权限访问');
         }
         $adminInfo = $request->admin_info;
         $adminInfo->access_list = $accessArr;
-        $request->admin_info = $adminInfo;
+        $this->request->admin_info = $adminInfo;
     }
     protected function view($template = '',$var = [],$code = 200,$filter =null, $isUseLayout = true) {
         if ($isUseLayout) {
-            View::engine()->layout('../../common/core/tpl/layout');
+            View::engine('Think')->layout('../../common/core/tpl/layout');
         }
         $arr = [
             'runtimeInfo' => [
@@ -376,5 +310,32 @@ abstract class AdminController
         ];
         $var = array_merge($arr,$var);
         return \view($template,$var,$code,$filter);
+    }
+    protected function loadLangFiles() {
+        //加载控制器对应的多语言文件，请勿随意去除
+        if ($this->loadControllerLang) {
+            $lang = Lang::getLangSet();
+            $controllerLangPath = app_path().'lang/'.$lang.'/'.$this->request->controller(true).'.php';
+            $controllerLangList = [];
+            if (file_exists($controllerLangPath)) {
+                $zhCns = [$controllerLangPath];
+                $controllerLangList = include $controllerLangPath;
+            } else {
+                $zhCns = [];
+            }
+            $config = config('lang.extend_list');
+            $config[$lang] = $zhCns;
+            Config::set(['extend_list' => $config],'lang');
+            $this->app->LoadLangPack($lang);
+
+            //读取指定多语言文件返回给前端
+            $defaultLangSetPath = app_path().'lang/'.$lang.'.php';
+            $langList = [];
+            if (file_exists($defaultLangSetPath)) {
+                $langList = include $defaultLangSetPath;
+            }
+            $langList = array_merge($langList,$controllerLangList);
+            $this->langList = $langList;
+        }
     }
 }
