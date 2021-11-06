@@ -13,7 +13,7 @@ use think\helper\Str;
 use think\Exception;
 
 Route::post('login', 'login/login')->token();
-///:addon/:controller/:action $addon,$controller,$action
+
 Route::any('addon', function (\think\Request $request) {
     $url = $request->url();
     if (strpos($url,'-') !== false) {
@@ -29,7 +29,7 @@ Route::any('addon', function (\think\Request $request) {
     $addonApp = $arr[2];
     //转换插件名称
     if (!file_exists(\think\ADDON_DOR.DIRECTORY_SEPARATOR.$arr[2])) {
-        $arr[2] = Str::snake($arr[2],'-');
+        $arr[2] = Str::snake($arr[2]);
     }
     //控制器
     if (empty($arr[3])) {
@@ -47,12 +47,11 @@ Route::any('addon', function (\think\Request $request) {
         $_actionList = explode('?',$arr[4]);
         $arr[4] = $_actionList[0];
     }
-
-    $addonControllerPath = \think\ADDON_DOR.DIRECTORY_SEPARATOR.$arr[2].DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'controller'.DIRECTORY_SEPARATOR.$arr[3].'.php';
+    $appName = 'admin';
+    $addonControllerPath = \think\ADDON_DOR.DIRECTORY_SEPARATOR.$arr[2].DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$appName.DIRECTORY_SEPARATOR.'controller'.DIRECTORY_SEPARATOR.$arr[3].'.php';
     if (!file_exists($addonControllerPath)) {
         throw new Exception('插件的控制器文件不存在');
     }
-//    include \think\ADDON_DOR.DIRECTORY_SEPARATOR.'fast-dev'.DIRECTORY_SEPARATOR.'public/index.php';
     include $addonControllerPath;
     $queryStr = $request->query();
     $queryStr = $queryStr ? '?'.$queryStr : '';
@@ -61,8 +60,13 @@ Route::any('addon', function (\think\Request $request) {
     $controList = explode('/',$addonController);
     $request->setController($controList[count($controList) -1]);
     $request->setAction($arr[4]);
-    $addonController = '\\app\\controller\\'.$addonController;
+    $addonController = '\\'.$arr[2].'\\app\\'.$appName.'\\controller\\'.$addonController;
     $instance = new $addonController();
     $action = $arr[4];
-    $instance->$action();
+    $res = $instance->$action();
+    if ($res && (is_string($res) || is_int($res) || is_float($res))) {
+        echo $res;
+    } else {
+        throw new Exception('只能输入字符串和数值类型的数据');
+    }
 })->token();

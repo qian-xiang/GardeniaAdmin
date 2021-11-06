@@ -1,14 +1,11 @@
 <?php
-namespace app\controller;
-
-
-use think\App;
+namespace fast_dev\app\admin\controller;
 
 class Index
 {
     public function __construct()
     {
-//        require __DIR__ . '/../vendor/autoload.php';
+        require \think\ADDON_DOR . '/fast_dev/vendor/autoload.php';
     }
 
     public function index()
@@ -18,6 +15,6 @@ class Index
 
     public function hello($name = 'fast-dev')
     {
-        halt(111);
+        return 2222;
     }
 }

@@ -5,7 +5,7 @@ var page = {
         $(document).ready(function () {
             const table = '#table';
             var tableOptions = {
-                url: '/admin/menu/index',
+                url: 'index',
                 pagination: true,
                 sidePagination: "server",
                 pageList: [10,20,'all'],
@@ -38,6 +38,9 @@ var page = {
                     {
                         field: 'type',
                         title: '类型',
+                        formatter: function (value) {
+                            return value ? '其它' : '菜单';
+                        }
                     },
                     {
                         field: 'title',
@@ -157,6 +160,7 @@ var page = {
                     $.each(arr,function () {
                         formData[this.name] = this.value
                     })
+                    $(ele).find('button[type="submit"]').attr('disabled',true);
                     $.ajax({
                         url: '',
                         method: 'POST',
@@ -185,6 +189,9 @@ var page = {
                         },
                         error: function (e) {
                             console.log('出错啦',e)
+                        },
+                        complete: function () {
+                            $(ele).find('button[type="submit"]').attr('disabled',true);
                         }
                     })
                 }

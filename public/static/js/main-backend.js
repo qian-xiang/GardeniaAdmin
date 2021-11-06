@@ -122,14 +122,14 @@ require(['jquery','layui','helper'],function ($, layui,helper) {
 
                 //如果检测有子节点，则进行遍历
                 if (data[i].children && data[i].children.length > 0) {
-                    // json[i].active && dd.addClass('layui-nav-itemed');
-                    $(dd).append('<a href="javascript: void(0);" data-href="'+ menuUrl +'">'+data[i].title+'<i class="layui-icon layui-icon-down layui-nav-more"></i></a>');
+
+                    $(dd).append('<a href="javascript: void(0);" data-href="'+ menuUrl +'"><i class="fa fa-bars"></i>&nbsp;&nbsp;'+data[i].title+'<i class="layui-icon layui-icon-down layui-nav-more"></i></a>');
                     $(dd).append('<dl class="layui-nav-child sideNav"></dl>').appendTo(parent);
 
                     renderNavTree(data[i].children, $(dd).children().eq(1));
 
                 } else {
-                    $(dd).append('<a href="javascript: void(0);" data-href="'+ menuUrl +'">'+data[i].title+'</a>').appendTo(parent);
+                    $(dd).append('<a href="javascript: void(0);" data-href="'+ menuUrl +'"><i class="fa fa-bars"></i>&nbsp;&nbsp;'+data[i].title+'</a>').appendTo(parent);
                 }
             }
         }
