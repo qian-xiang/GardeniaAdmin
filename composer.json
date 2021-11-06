@@ -30,7 +30,8 @@
         "qian-xiang/gardenia_admin": "dev-master",
         "firebase/php-jwt": "^5.4",
       "ext-json": "*",
-      "ext-zip": "*"
+      "ext-zip": "*",
+      "ext-ctype": "*"
     },
     "require-dev": {
         "symfony/var-dumper": "^4.2",
