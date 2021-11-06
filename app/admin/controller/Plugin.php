@@ -15,11 +15,46 @@ use \app\admin\model\AuthRule;
 use constant\AppConstant;
 use think\facade\Db;
 use const think\ADDON_DOR;
+use const think\ADDON_FRONT_DOR;
 
 class Plugin extends AdminController
 {
+    private $pluginList = [
+        [
+            'name' => 'gardenia_addon',
+            'title' => '栀子测试插件',
+            'intro' => '这是一个测试插件',
+            'versionCode' => '1.0.0',
+            'versionNum' => 1,
+            'versionDesc' => '修复了一些已知问题',
+            'author' => '栀子浅香',
+            'email' => '1111111@qq.com',
+            'website' => 'https://www.baidu.com',
+            'href' => './static/core/addon/test-addon.zip',
+        ],
+    ];
     public function index() {
-        return 1111;
+        $request = $this->request;
+        //先写死数据  后面再改
+        $list = $this->pluginList;
+
+        // 先暂定是这样获取插件列表的
+        foreach ($list as &$item) {
+            if (!file_exists(ADDON_DOR.$item['name'])) {
+                $item['status'] = AppConstant::ADDON_STATUS_UNINSTALLED;
+            } else {
+                $pluginInfo = parse_ini_file(ADDON_DOR.$item['name'].'/info.ini');
+                if (check_plugin_info($pluginInfo)) {
+                    $item['status'] = $pluginInfo['status'];
+                }
+            }
+        }
+
+        if ($request->isAjax() && $request->isGet()) {
+            return json($list);
+        }
+
+        return $this->view();
     }
     public function getData() {
         // 获取在线插件列表
@@ -27,21 +62,29 @@ class Plugin extends AdminController
         // 获取本地已安装的插件列表
     }
     public function install() {
+        $data = $this->request->post();
+        $valiErr = $this->validate($data,[
+            'name|插件名称' => 'require',
+        ]);
+        if ($valiErr !== true) {
+            error_json($valiErr);
+        }
         $runTimePath = runtime_path().'addon'.DIRECTORY_SEPARATOR.time();
         if (!file_exists($runTimePath)) {
             mkdir($runTimePath,0755,true);
         }
-        $path = './static/core/addon/test-addon.zip';
+        $pluginName = $data['name'];
+        $path = ADDON_FRONT_DOR.$pluginName.'.zip';
         $zipHandle = zip_open($path);
         if (!is_resource($zipHandle)) {
-            return $zipHandle;
+            error_json('打开插件包失败，请稍候重试');
         }
         $checkFileList = [
             'app/' => [
                 'is_dir' => true,
                 'must' => true,
             ],
-            'asset/' => [
+            'assets/' => [
                 'is_dir' => true,
                 'must' => false,
             ],//可选
@@ -81,7 +124,7 @@ class Plugin extends AdminController
                 zip_close($zipHandle);
                 //删除临时目录
                 remove_dir($runTimePath);
-                return '模块文件不合法，请勿上传无关的文件或目录';
+                error_json('插件文件不合法，请勿上传无关的文件或目录');
             }
             zip_entry_close($fileEntry);
         }
@@ -92,7 +135,7 @@ class Plugin extends AdminController
         sort($mustKeys);
 
         if ($intersect !== $mustKeys) {
-            return '模块文件不合法，'.implode(',',$mustKeys).'必传';
+            error_json('插件文件不合法，'.implode(',',$mustKeys).'必传');
         }
         // 检测结束
         // 开始将压缩文件中写入到磁盘中
@@ -110,7 +153,7 @@ class Plugin extends AdminController
                 zip_entry_close($fileEntry);
                 zip_close($zipHandle);
                 remove_dir($runTimePath);
-                return '打开模块文件项失败';
+                error_json('打开插件文件项失败');
             }
             $str = '';
             while ($itemStr = zip_entry_read($fileEntry)) {
@@ -131,7 +174,7 @@ class Plugin extends AdminController
                 zip_entry_close($fileEntry);
                 zip_close($zipHandle);
                 remove_dir($runTimePath);
-                return '写出模块内文件项失败';
+                error_json('写出插件内文件项失败');
             }
             zip_entry_close($fileEntry);
         }
@@ -148,10 +191,10 @@ class Plugin extends AdminController
         if (file_exists(ADDON_DOR.$moduleName)) {
             //逻辑处理完成  删除对应的目录
             remove_dir($runTimePath);
-            return '插件已存在';
+            error_json('插件已存在');
         }
         if (!file_exists(ADDON_DOR.$moduleName)) {
-            mkdir(ADDON_DOR.$moduleName,0777);
+            mkdir(ADDON_DOR.$moduleName,0755);
         }
         //将模块内目录移动到相应目录
         $oldModulePath = $runTimePath.DIRECTORY_SEPARATOR.'app';
@@ -159,9 +202,13 @@ class Plugin extends AdminController
 
         rename($runTimePath.DIRECTORY_SEPARATOR.'info.ini',ADDON_DOR.$moduleName.DIRECTORY_SEPARATOR.'info.ini');
 
-        $publicPath = $runTimePath.DIRECTORY_SEPARATOR.'asset';
+        $publicPath = $runTimePath.DIRECTORY_SEPARATOR.'assets';
         if (file_exists($publicPath)) {
-            $newPath = public_path().DIRECTORY_SEPARATOR.'static'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'addon'.DIRECTORY_SEPARATOR.$moduleName;
+            $newPath = public_path().DIRECTORY_SEPARATOR.'static'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'addon'.DIRECTORY_SEPARATOR.$moduleName.DIRECTORY_SEPARATOR;
+            if (!file_exists($newPath)) {
+                mkdir($newPath,0777);
+            }
+            $newPath .= 'assets';
             rename($publicPath,$newPath);
         }
         // 将插件的菜单url加入到菜单规则表中
@@ -177,7 +224,7 @@ class Plugin extends AdminController
         ]);
         if ($res !== true) {
             Db::rollback();
-            return '添加插件菜单失败';
+            error_json('添加插件菜单失败');
         }
         Db::startTrans();
         //暂时先不校验插件请求
@@ -185,8 +232,48 @@ class Plugin extends AdminController
         //逻辑处理完成  删除对应的目录
         $res = remove_dir($runTimePath);
         if (!$res) {
-            return '删除临时存放目录失败';
+            error_json('删除临时存放目录失败');
         }
-        return '安装'.$info['title'].' 模块成功';
+        success_json('安装'.$info['title'].' 模块成功');
+    }
+    public function uninstall() {
+        $data = $this->request->post();
+        $valiErr = $this->validate($data,[
+            'name|插件名称' => 'require',
+        ]);
+        if ($valiErr !== true) {
+            error_json($valiErr);
+        }
+        //删除模块应用目录和静态文件目录
+        $moduleName = $data['name'];
+        $moduleAppPath = ADDON_DOR.$moduleName;
+        $info = parse_ini_file($moduleAppPath.DIRECTORY_SEPARATOR.'info.ini');
+        // 删除菜单表中的插件规则
+        $authRule = AuthRule::where([
+            'name' => 'addon/'.$info['name'].'/admin/index',
+            'title' => $info['title'],
+        ])->find();
+        if (!$authRule) {
+            error_json('未查询到该插件的信息');
+        }
+        Db::startTrans();
+        if (!$authRule->delete()) {
+            Db::rollback();
+        }
+        Db::commit();
+
+        if (file_exists($moduleAppPath)) {
+            remove_dir($moduleAppPath);
+        }
+        $moduleStaticPath = public_path().'static'.DIRECTORY_SEPARATOR.'core'.DIRECTORY_SEPARATOR.'addon'.DIRECTORY_SEPARATOR.$moduleName;
+        if (file_exists($moduleStaticPath)) {
+            remove_dir($moduleStaticPath);
+        }
+
+        if (!file_exists($moduleStaticPath) && !file_exists($moduleAppPath)) {
+            success_json('卸载模块：'.$moduleName.' 成功');
+        } else {
+            error_json('卸载'.$moduleName.' 失败');
+        }
     }
 }

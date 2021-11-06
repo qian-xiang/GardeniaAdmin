@@ -106,6 +106,16 @@ if (!function_exists('check_module_info')) {
         }
     }
 }
+if (!function_exists('check_plugin_info')) {
+    /**
+     * 检测插件文件的信息是否合法
+     * @param $info
+     * @return bool|string
+     */
+    function check_plugin_info($info) {
+        return check_module_info($info);
+    }
+}
 if (!function_exists('reply_json')) {
     /**
      * 返回json信息

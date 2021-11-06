@@ -14,6 +14,10 @@ namespace think;
 
 require __DIR__ . '/../vendor/autoload.php';
 const ADDON_DOR = '../addon/';
+// 前台插件目录
+const ADDON_FRONT_DOR = './static/core/addon/';
+// 前台模块目录
+const MODULE_FRONT_DOR = './static/core/module/';
 
 // 执行HTTP应用并响应
 $http = (new App())->http;

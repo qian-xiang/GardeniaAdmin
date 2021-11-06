@@ -8,4 +8,7 @@ return [
         'updateLoginStatusFail' => '更新登录态失败，请稍候重试',
         'succ' => '登录成功！即将跳转到首页...',
     ],
+    'btn-operate-add'  => '新增',
+    'btn-operate-del'  => '删除',
+    'btn-operate-edit'  => '编辑',
 ];

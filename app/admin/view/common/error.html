@@ -46,7 +46,12 @@
         var intervalHandle = setInterval(function () {
             if (count >= second){
                 clearInterval(intervalHandle);
-                location.href = '{$redirectUrl}';
+                {if $redirectUrl}
+                    location.href = '{$redirectUrl}';
+                {else /}
+                    history.back();
+                {/if}
+
             }
             eleSecond.innerText = second - count;
             count -= -1;

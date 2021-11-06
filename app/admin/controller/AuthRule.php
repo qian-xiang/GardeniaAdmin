@@ -7,6 +7,7 @@ use constant\AppConstant;
 use app\admin\AdminController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use \app\admin\model\AuthRule as AuthRuleModel;
+use think\Exception;
 use think\facade\Db;
 use think\Validate;
 use think\validate\ValidateRule;
@@ -22,14 +23,32 @@ class AuthRule extends AdminController
     {
         $request = $this->request;
         if ($request->isAjax() && $request->isGet()) {
-            $paginate = AuthRuleModel::order(['weigh' => 'desc','id' => 'desc'])->paginate(10);
-            $list = $paginate->getCollection()->toArray();
+            $data = $request->get();
+            $vali = $this->validate($data,[
+                'offset|偏移量' => 'require|integer',
+                'limit|记录数' => 'require|integer',
+            ]);
+            if ($vali !== true) {
+                throw new Exception($vali);
+            }
+            $data['limit'] = (int)$data['limit'];
+            $data['offset'] = (int)$data['offset'];
+            $map = [];
+            if (!empty($data['search'])) {
+                $map[] = [
+                    'title','like','%'.$data['search'].'%'
+                ];
+            }
+
+            $list = AuthRuleModel::where($map)->limit($data['offset'],$data['limit'])
+                ->order(['weigh' => 'desc','id' => 'desc'])->select()->toArray();
+            $total = AuthRuleModel::where($map)->count('id');
             foreach ($list as &$item) {
                 $item['create_time'] = 'https://interactive-examples.mdn.mozilla.net/media/examples/plumeria.jpg';
             }
             return json([
                 'rows' => $list,
-                'total' => $paginate->total(),
+                'total' => $total,
             ]);
         }
 
@@ -91,12 +110,11 @@ class AuthRule extends AdminController
             success_json('添加成功！');
         }
         $ruleTypeList = AppConstant::getRuleTypeList();
-        $initParent = [0 => '无'];
+
         $statusList = AppConstant::getStatusList();
 
         $parent = Db::name('auth_rule')->where(['type' => AppConstant::RULE_TYPE_MENU])->column('title','id');
-        $parent = array_merge($initParent,$parent);
-
+        $parent[0] = '无';
         $max = Db::name('auth_rule')->max('weigh');
         $max++;
         return $this->view('',[

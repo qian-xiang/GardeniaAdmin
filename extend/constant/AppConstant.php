@@ -47,6 +47,12 @@ class AppConstant
 
     //user表中的root_id的值为0，即表示该用户的根ID是自己
     const USER_NO_ROOT_ID = 0;
+
+    //插件状态：已安装
+    const ADDON_STATUS_INSTALLED = 1;
+    //插件状态：未安装
+    const ADDON_STATUS_UNINSTALLED = 0;
+
     public static function getApiCodeList() {
         return [
             'success' => self::CODE_SUCCESS,

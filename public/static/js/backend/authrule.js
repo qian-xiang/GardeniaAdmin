@@ -176,8 +176,10 @@ var page = {
                                 console.log(res.redirectUrl)
                                 if (res.code === garBackend.apiCode.success) {
                                     setTimeout(function () {
-                                        !res.redirectUrl && history.back()
-                                        location.href =  res.redirectUrl
+                                        if (res.redirectUrl) {
+                                            location.href =  res.redirectUrl
+                                        }
+                                        history.back()
                                     },2000)
                                 } else if (res.redirectUrl) {
                                     setTimeout(function () {

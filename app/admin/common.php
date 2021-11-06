@@ -43,7 +43,6 @@ if (!function_exists('success')) {
 }
 if (!function_exists('error')) {
     function error($content = '',$redirectUrl = null,$second = 3) {
-        $redirectUrl = $redirectUrl === null ? request()->header('referer') : $redirectUrl;
         view('common/error',[
             'content' => $content,
             'redirectUrl' => $redirectUrl,
@@ -51,5 +50,6 @@ if (!function_exists('error')) {
         ])->send();
     }
 }
+
 
 
