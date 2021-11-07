@@ -11,7 +11,7 @@ use think\facade\Db;
 use think\Validate;
 use think\validate\ValidateRule;
 
-class Menu extends AdminController
+class MenuDestroy extends AdminController
 {
     /**
      * 显示资源列表

@@ -13,6 +13,14 @@ define(function () {
                 }
             }
             return false;
+        },
+        /**
+         * 将小于0的数字加前导零
+         * @param value
+         * @returns {*}
+         */
+        numberToAddZero: function (value) {
+            return value < 10 ? '0' + value : value
         }
     }
 })

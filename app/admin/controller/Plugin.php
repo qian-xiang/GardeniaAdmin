@@ -226,7 +226,7 @@ class Plugin extends AdminController
             Db::rollback();
             error_json('添加插件菜单失败');
         }
-        Db::startTrans();
+        Db::commit();
         //暂时先不校验插件请求
 
         //逻辑处理完成  删除对应的目录
@@ -234,7 +234,7 @@ class Plugin extends AdminController
         if (!$res) {
             error_json('删除临时存放目录失败');
         }
-        success_json('安装'.$info['title'].' 模块成功');
+        success_json('安装'.$info['title'].' 插件成功');
     }
     public function uninstall() {
         $data = $this->request->post();
@@ -271,7 +271,7 @@ class Plugin extends AdminController
         }
 
         if (!file_exists($moduleStaticPath) && !file_exists($moduleAppPath)) {
-            success_json('卸载模块：'.$moduleName.' 成功');
+            success_json('卸载插件：'.$moduleName.' 成功');
         } else {
             error_json('卸载'.$moduleName.' 失败');
         }

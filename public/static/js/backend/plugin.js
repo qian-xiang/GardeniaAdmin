@@ -73,6 +73,15 @@ require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','ga
                     obj = Object.assign(obj,tableOptions)
 
                     $(table).bootstrapTable('destroy').bootstrapTable(obj)
+                    $('#plugin-online').click(function () {
+                        swal({
+                            // title: '提示',
+                            text: '该功能尚未开放，敬请期待',
+                            timer: 2000,
+                            buttons: false,
+                            icon: 'info',
+                        })
+                    })
                     $(document).on('click','a.plugin-operate',function () {
                         var url
                         var typeText = $(this).text()

@@ -66,7 +66,7 @@ var page = {
                     {
                         field: 'create_time',
                         title: '时间',
-                        formatter: BsTable.formatter.image,
+                        formatter: BsTable.formatter.dateTime,
                     },
                     {
                         field: 'operate',
@@ -140,7 +140,7 @@ var page = {
                 })
 
             })
-            BsTable.event.image.bind()
+            // BsTable.event.image.bind()
         })
     },
     add: function () {
@@ -161,6 +161,10 @@ var page = {
                         formData[this.name] = this.value
                     })
                     $(ele).find('button[type="submit"]').attr('disabled',true);
+                    swal({
+                        text: '正在执行中...',
+                        buttons: false,
+                    })
                     $.ajax({
                         url: '',
                         method: 'POST',
@@ -169,9 +173,10 @@ var page = {
                         success: function (res) {
                             if (res.msg) {
                                 swal({
-                                    title: '提示',
                                     text: res.msg,
+                                    buttons: false,
                                     timer: 2000,
+                                    icon: res.code === garBackend.apiCode.success ? 'success' : 'error'
                                 })
                                 console.log(res.redirectUrl)
                                 if (res.code === garBackend.apiCode.success) {
@@ -191,6 +196,13 @@ var page = {
                         },
                         error: function (e) {
                             console.log('出错啦',e)
+                            swal({
+                                title: '提示',
+                                text: '出错啦，请稍候重试',
+                                icon: 'error',
+                                buttons: false,
+                                timer: 2000,
+                            })
                         },
                         complete: function () {
                             $(ele).find('button[type="submit"]').attr('disabled',true);

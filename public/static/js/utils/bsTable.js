@@ -1,4 +1,4 @@
-define(['viewer'],function (Viewer) {
+define(['helper'],function (Helper) {
     return {
         formatter: {
             status: {
@@ -74,6 +74,15 @@ define(['viewer'],function (Viewer) {
                 }
 
                 return html;
+            },
+            dateTime: function (value,row,index) {
+                var d = new Date()
+                var month = Helper.numberToAddZero(d.getMonth() + 1)
+                var date = Helper.numberToAddZero(d.getDate())
+                var seconds = Helper.numberToAddZero(d.getSeconds())
+                var minutes = Helper.numberToAddZero(d.getMinutes())
+                var hours = Helper.numberToAddZero(d.getHours())
+                return d.getFullYear() + '-' + month + '-' + date + ' '+ hours + ':' + minutes + ':' + seconds
             }
         },
         event: {
