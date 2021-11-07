@@ -12,6 +12,7 @@ use think\facade\Route;
 use think\helper\Str;
 use think\Exception;
 
+
 Route::post('login', 'login/login')->token();
 
 Route::any('addon', function (\think\Request $request) {
@@ -60,8 +61,9 @@ Route::any('addon', function (\think\Request $request) {
     $controList = explode('/',$addonController);
     $request->setController($controList[count($controList) -1]);
     $request->setAction($arr[4]);
-    $addonController = '\\'.$arr[2].'\\app\\'.$appName.'\\controller\\'.$addonController;
-    $instance = new $addonController();
+    $addonController = '\\addon\\'.$arr[2].'\\app\\'.$appName.'\\controller\\'.$addonController;
+//    $addonController = '\\addon\\'.$arr[2].'\\app\\'.$appName.'\\controller\\'.$addonController;
+    $instance = new $addonController(new \think\App());
     $action = $arr[4];
     $res = $instance->$action();
     if ($res && (is_string($res) || is_int($res) || is_float($res))) {

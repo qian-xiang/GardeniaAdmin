@@ -15,7 +15,6 @@ use think\exception\ValidateException;
 use think\facade\Lang;
 use think\facade\View;
 use think\Validate;
-use think\facade\Db;
 use gardenia_admin\src\core\core_class\GardeniaConstant;
 use think\facade\Config;
 
