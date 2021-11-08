@@ -12,6 +12,6 @@
 
 use think\facade\Route;
 
-Route::get('/', function () {
-    return 'hello,Index!';
-});
+//Route::get('/', function () {
+//    return 'hello,Index!';
+//});

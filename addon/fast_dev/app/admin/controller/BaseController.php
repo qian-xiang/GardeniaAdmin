@@ -10,7 +10,6 @@ namespace addon\fast_dev\app\admin\controller;
 
 
 use app\admin\AdminController;
-use think\App;
 
 class BaseController extends AdminController
 {

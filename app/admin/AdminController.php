@@ -293,7 +293,7 @@ abstract class AdminController
 
     protected function view($template = '',$var = [],$code = 200,$filter =null, $isUseLayout = true) {
         if ($isUseLayout) {
-            View::engine('Think')->layout('../../common/core/tpl/layout');
+            View::engine('Think')->layout(base_path().'common/core/tpl/layout');
         }
         $gardeniaLayout = [
             'left' => [

@@ -194,3 +194,71 @@ if (!function_exists('build_toolbar_btn')) {
         return $html;
     }
 }
+if (!function_exists('load_addon_lib')) {
+    function load_addon_lib($addonName = '') {
+        $appName = app('http')->getName();
+
+        //加载插件config.php和插件应用config.php
+        $addonCommon = \think\ADDON_DOR.$addonName.'app/config.php';
+        if (file_exists($addonCommon)) {
+            include $addonCommon;
+        }
+        $addonCommon = \think\ADDON_DOR.$addonName.'app/'.$appName.'/config.php';
+        if (file_exists($addonCommon)) {
+            include $addonCommon;
+        }
+
+        //加载插件common.php和插件应用common.php
+        $addonCommon = \think\ADDON_DOR.$addonName.'app/common.php';
+        if (file_exists($addonCommon)) {
+            include $addonCommon;
+        }
+        $addonCommon = \think\ADDON_DOR.$addonName.'app/'.$appName.'/common.php';
+        if (file_exists($addonCommon)) {
+            include $addonCommon;
+        }
+        //加载插件控制器
+        $appList = get_addon_app($addonName);
+        if (in_array($appName,$appList) !== false) {
+            load_addon_controller(\think\ADDON_DOR.$addonName.'app/'.$appName.'/controller');
+        }
+        $_appList = array_diff($appList,[$appName]);
+        foreach ($_appList as $item) {
+            load_addon_controller(\think\ADDON_DOR.$addonName.'app/'.$item.'/controller');
+        }
+        unset($item);
+
+    }
+}
+if (!function_exists('load_addon_controller')) {
+    /**
+     * 加载插件控制器文件
+     * @param string $dir
+     */
+    function load_addon_controller($dir = '') {
+        //先加载插件
+        $list = glob($dir.'/*.php');
+        foreach ($list as $item) {
+            if (is_dir($item)) {
+                load_addon_controller($item);
+            } else {
+                require $item;
+            }
+        }
+        unset($item);
+    }
+}
+if (!function_exists('get_addon_app')) {
+    /**
+     * 获取插件的应用列表
+     * @param string $addonName
+     * @return array|string[]
+     */
+    function get_addon_app($addonName = '') {
+        $list = glob(\think\ADDON_DOR.$addonName.'/app/*/');
+        $list = array_map(function ($value) {
+            return basename($value);
+        },$list);
+        return $list;
+    }
+}

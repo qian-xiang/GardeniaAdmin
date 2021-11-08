@@ -11,6 +11,7 @@
 use think\facade\Route;
 use think\helper\Str;
 use think\Exception;
+use \think\facade\Config;
 
 
 Route::post('login', 'login/login')->token();
@@ -57,6 +58,8 @@ Route::any('addon', function (\think\Request $request) {
     $queryStr = $request->query();
     $queryStr = $queryStr ? '?'.$queryStr : '';
 
+    //加载插件控制器、配置文件、common.php
+    load_addon_lib($addonApp);
     $request->setUrl('/'.$originController.'/'.$arr[4].$queryStr);
     $controList = explode('/',$addonController);
     $request->setController($controList[count($controList) -1]);
