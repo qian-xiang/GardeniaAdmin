@@ -14,9 +14,11 @@ use think\App;
 use think\exception\ValidateException;
 use think\facade\Lang;
 use think\facade\View;
+use think\Request;
 use think\Validate;
 use gardenia_admin\src\core\core_class\GardeniaConstant;
 use think\facade\Config;
+use const think\ADDON_DOR;
 
 abstract class AdminController
 {
@@ -129,15 +131,22 @@ abstract class AdminController
     }
     protected function success($content = '',$redirectUrl = null,$second = 3) {
         $redirectUrl = $redirectUrl === null ? url('/'.request()->controller()) : $redirectUrl;
-        view('common/success',[
+        $suffix = \config('view.view_suffix');
+        $suffix = $suffix ? '.'.$suffix : '';
+        view(app_path().'view/common/success'.$suffix,[
             'content' => $content,
             'redirectUrl' => $redirectUrl,
             'second' => $second
         ])->send();
     }
     protected function error($content = '',$redirectUrl = null,$second = 3) {
+//        $suffix = \config('view.view_suffix');
+//        $suffix = $suffix ? '.'.$suffix : '';
+        $path = 'view/common/error';
+
+        $path = is_addon_request() ? app_path().ADDON_APP.'/'.$path.'.html' : $path;
         $redirectUrl = $redirectUrl === null ? $this->request->header('referer') : $redirectUrl;
-        view('common/error',[
+        view($path,[
             'content' => $content,
             'redirectUrl' => $redirectUrl,
             'second' => $second
@@ -294,6 +303,14 @@ abstract class AdminController
     protected function view($template = '',$var = [],$code = 200,$filter =null, $isUseLayout = true) {
         if ($isUseLayout) {
             View::engine('Think')->layout(base_path().'common/core/tpl/layout');
+        }
+        $request = new Request();
+        // 如果是插件请求，更改视图默认的访问位置
+        if ($request->isAddonRequest && !$template) {
+            $parseList = parse_addon_url();
+            $template = ADDON_DOR.DIRECTORY_SEPARATOR.$parseList['addonName']
+                .DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'admin/view/'
+                .$parseList['controller'].'/'.$parseList['action'];
         }
         $gardeniaLayout = [
             'left' => [

@@ -8,11 +8,15 @@
  */
 namespace addon\fast_dev\app\admin\controller;
 
-include 'BaseController.php';
+use app\admin\AdminController;
+use think\Request;
+//
+//include 'BaseController.php';
 
-class Index extends BaseController
+class Index extends AdminController
 {
-    public function index() {
-        return 2222;
+    public function index(Request $request) {
+        echo 111;
+//        $this->view();
     }
 }

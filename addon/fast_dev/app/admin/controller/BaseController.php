@@ -9,12 +9,8 @@
 namespace addon\fast_dev\app\admin\controller;
 
 
-use app\admin\AdminController;
 
-class BaseController extends AdminController
+class BaseController
 {
 
-    public function index() {
-
-    }
 }

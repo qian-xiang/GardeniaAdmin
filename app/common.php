@@ -1,5 +1,7 @@
 <?php
 use \constant\AppConstant;
+use think\helper\Str;
+
 // 应用公共文件
 if (!function_exists('create_salt')) {
     /**
@@ -199,34 +201,36 @@ if (!function_exists('load_addon_lib')) {
         $appName = app('http')->getName();
 
         //加载插件config.php和插件应用config.php
-        $addonCommon = \think\ADDON_DOR.$addonName.'app/config.php';
+        $addonCommon = \think\ADDON_DOR.$addonName.'app'.DIRECTORY_SEPARATOR.'config.php';
         if (file_exists($addonCommon)) {
             include $addonCommon;
         }
-        $addonCommon = \think\ADDON_DOR.$addonName.'app/'.$appName.'/config.php';
+        $addonCommon = \think\ADDON_DOR.$addonName.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$appName.DIRECTORY_SEPARATOR.'config.php';
         if (file_exists($addonCommon)) {
             include $addonCommon;
         }
 
         //加载插件common.php和插件应用common.php
-        $addonCommon = \think\ADDON_DOR.$addonName.'app/common.php';
+        $addonCommon = \think\ADDON_DOR.DIRECTORY_SEPARATOR.$addonName.DIRECTORY_SEPARATOR.'appcommon.php';
         if (file_exists($addonCommon)) {
             include $addonCommon;
         }
-        $addonCommon = \think\ADDON_DOR.$addonName.'app/'.$appName.'/common.php';
+        $addonCommon = \think\ADDON_DOR.$addonName.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$appName.DIRECTORY_SEPARATOR.'common.php';
         if (file_exists($addonCommon)) {
             include $addonCommon;
         }
         //加载插件控制器
         $appList = get_addon_app($addonName);
+
         if (in_array($appName,$appList) !== false) {
-            load_addon_controller(\think\ADDON_DOR.$addonName.'app/'.$appName.'/controller');
+            load_addon_controller(\think\ADDON_DOR.$addonName.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$appName.DIRECTORY_SEPARATOR.'controller');
         }
-        $_appList = array_diff($appList,[$appName]);
-        foreach ($_appList as $item) {
-            load_addon_controller(\think\ADDON_DOR.$addonName.'app/'.$item.'/controller');
-        }
-        unset($item);
+
+//        $_appList = array_diff($appList,[$appName]);
+//        foreach ($_appList as $item) {
+//            load_addon_controller(\think\ADDON_DOR.$addonName.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$item.DIRECTORY_SEPARATOR.'controller');
+//        }
+//        unset($item);
 
     }
 }
@@ -238,12 +242,14 @@ if (!function_exists('load_addon_controller')) {
     function load_addon_controller($dir = '') {
         //先加载插件
         $list = glob($dir.'/*.php');
+        $list = array_reverse($list);
         foreach ($list as $item) {
             if (is_dir($item)) {
                 load_addon_controller($item);
             } else {
-                require $item;
+                require_once $item;
             }
+
         }
         unset($item);
     }
@@ -262,3 +268,101 @@ if (!function_exists('get_addon_app')) {
         return $list;
     }
 }
+if (!function_exists('parse_addon_url')) {
+    /**
+     * 解析插件url
+     * @return array
+     * @throws Exception
+     */
+    function parse_addon_url() {
+        $request = request();
+        $url = $request->url();
+        if (strpos($url,'-') !== false) {
+            throw new Exception('url中不能含有-');
+        }
+        $depr = config('route.pathinfo_depr');
+        $url = trim($url,$depr);
+        $arr = explode($depr,$url);
+        //插件名称
+        if (empty($arr[2])) {
+            throw new Exception('url中的插件名称必传');
+        }
+        $addonName = $arr[2];
+        //转换插件名称
+        if (!file_exists(\think\ADDON_DOR.DIRECTORY_SEPARATOR.$arr[2])) {
+            $arr[2] = Str::snake($arr[2]);
+        }
+        //控制器
+        if (empty($arr[3])) {
+            $arr[3] = 'Index';
+        } else {
+            $arr[3] = str_replace('.',$depr,$arr[3]);
+        }
+        $addonController = $arr[3];
+        $_controllerList = explode('.',$addonController);
+        $controllerName = $_controllerList[count($_controllerList) - 1];
+        $originController = str_replace($depr,'.',$addonController);
+
+        $originAction = '';
+        // 控制器方法
+        if (empty($arr[4])) {
+            $arr[4] = 'index';
+        } else {
+            $_actionList = explode('?',$arr[4]);
+            $originAction = $arr[4] = $_actionList[0];
+        }
+        return [
+            //插件名称
+            'addonName' => $addonName,
+            'controllerName' => $controllerName,
+            'originController' => $originController,
+            'controller' => $addonController,
+            'action' => $arr[4],
+            'originAction' => $originAction,
+        ];
+    }
+}
+if (!function_exists('get_addon_action_param')) {
+    /**
+     * 获取插件控制方法参数
+     * @param string $name 参数名称
+     * @param string $default 默认值
+     * @return mixed|string
+     * @throws Exception
+     */
+    function get_addon_action_param($name = '',$default = '') {
+        $depr = config('route.pathinfo_depr');
+        $url = request()->url();
+        $parseList = parse_addon_url();
+        $appName = app()->http->getName();
+        $prefix = $depr.$appName.$depr.'addon'.$depr.$parseList['addonName'].$depr.$parseList['originController'].
+            ($parseList['originAction'] ? '/'.$parseList['originAction'] : '');
+
+        $paramStr = substr($url,strpos($url,$prefix) + strlen($prefix));
+
+        $suffix = config('route.url_html_suffix');
+        $suffix = $suffix ? '.'.$suffix : '';
+        $paramStr = trim(trim($paramStr,$suffix),$depr);
+
+        $list = explode($depr,$paramStr);
+        $len = count($list);
+        $param = [];
+        $key = 0;
+        while ($key < $len) {
+            $param[$list[$key]] = $list[$key + 1];
+            $key += 2;
+        }
+        unset($key);
+        return $name ? $param[$name] : $param;
+    }
+}
+if (!function_exists('is_addon_request')) {
+    /**
+     * 是否是插件请求
+     * @return bool
+     */
+    function is_addon_request() {
+        return defined('ADDON_REQUEST');
+    }
+}
+
