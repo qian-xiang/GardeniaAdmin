@@ -18,18 +18,7 @@ class Index extends AdminController
 {
     public function index()
     {
-//        View::assign('gardeniaLayout',[
-//            'left' => [
-//                'type' => 'content',
-//                'content' => '<dl class="layui-nav-child">
-//                                    <dd><a href="">基本资料</a></dd>
-//                                    <dd><a href="">安全设置</a></dd>
-//                                </dl>',
-//                'vars' => [],
-//            ],
-//        ]);
-        $gardeniaList = new GardeniaList();
-        $gardeniaList->view();
+        return $this->view();
     }
     public function getData() {
         $list = Admin::withAttr('login_status',function ($value){

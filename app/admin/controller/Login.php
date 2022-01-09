@@ -12,13 +12,14 @@ use app\admin\extend\diy\extra_class\AppConstant;
 use app\admin\AdminController;
 use app\admin\model\Admin;
 use Firebase\JWT\JWT;
+use think\facade\Session;
 use think\Validate;
 use think\validate\ValidateRule;
 use \constant\AppConstant as AppConstants;
 
 class Login extends AdminController
 {
-    protected $noNeedLogin = ['index','login'];
+    protected $noNeedLogin = ['index','login','test'];
     public function index()
     {
         return view('login');
@@ -92,4 +93,5 @@ class Login extends AdminController
         cookie('login_code',null);
         $this->success('注销成功！',url('/Login/index'));
     }
+
 }

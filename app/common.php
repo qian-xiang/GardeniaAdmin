@@ -196,64 +196,7 @@ if (!function_exists('build_toolbar_btn')) {
         return $html;
     }
 }
-if (!function_exists('load_addon_lib')) {
-    function load_addon_lib($addonName = '') {
-        $appName = app('http')->getName();
 
-        //加载插件config.php和插件应用config.php
-        $addonCommon = \think\ADDON_DOR.$addonName.'app'.DIRECTORY_SEPARATOR.'view.php';
-        if (file_exists($addonCommon)) {
-            include $addonCommon;
-        }
-        $addonCommon = \think\ADDON_DOR.$addonName.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$appName.DIRECTORY_SEPARATOR.'view.php';
-        if (file_exists($addonCommon)) {
-            include $addonCommon;
-        }
-
-        //加载插件common.php和插件应用common.php
-        $addonCommon = \think\ADDON_DOR.DIRECTORY_SEPARATOR.$addonName.DIRECTORY_SEPARATOR.'appcommon.php';
-        if (file_exists($addonCommon)) {
-            include $addonCommon;
-        }
-        $addonCommon = \think\ADDON_DOR.$addonName.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$appName.DIRECTORY_SEPARATOR.'common.php';
-        if (file_exists($addonCommon)) {
-            include $addonCommon;
-        }
-        //加载插件控制器
-        $appList = get_addon_app($addonName);
-
-        if (in_array($appName,$appList) !== false) {
-            load_addon_controller(\think\ADDON_DOR.$addonName.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$appName.DIRECTORY_SEPARATOR.'controller');
-        }
-
-//        $_appList = array_diff($appList,[$appName]);
-//        foreach ($_appList as $item) {
-//            load_addon_controller(\think\ADDON_DOR.$addonName.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$item.DIRECTORY_SEPARATOR.'controller');
-//        }
-//        unset($item);
-
-    }
-}
-if (!function_exists('load_addon_controller')) {
-    /**
-     * 加载插件控制器文件
-     * @param string $dir
-     */
-    function load_addon_controller($dir = '') {
-        //先加载插件
-        $list = glob($dir.'/*.php');
-        $list = array_reverse($list);
-        foreach ($list as $item) {
-            if (is_dir($item)) {
-                load_addon_controller($item);
-            } else {
-                require_once $item;
-            }
-
-        }
-        unset($item);
-    }
-}
 if (!function_exists('get_addon_app')) {
     /**
      * 获取插件的应用列表
@@ -348,7 +291,8 @@ if (!function_exists('get_addon_action_param')) {
         $len = count($list);
         $param = [];
         $key = 0;
-        while ($key < $len) {
+        $list = array_filter($list);
+        while ($key < $len && $list) {
             $param[$list[$key]] = $list[$key + 1];
             $key += 2;
         }
@@ -363,6 +307,16 @@ if (!function_exists('is_addon_request')) {
      */
     function is_addon_request() {
         return defined('ADDON_REQUEST');
+    }
+}
+if (!function_exists('get_addon_view_dir')) {
+    /**
+     * 获取插件视图目录
+     * @param bool $onlyDirName 仅获取目录名称
+     * @return string
+     */
+    function get_addon_view_dir($onlyDirName = false) {
+        return $onlyDirName ? 'view' : ADDON_APP_PATH.'view';
     }
 }
 

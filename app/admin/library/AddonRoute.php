@@ -45,8 +45,9 @@ class AddonRoute
         define('ADDON_APP',$appName);
         define('ADDON_NAME',$addonName);
         //更改应用目录
-//    $addonAppDir = \think\ADDON_DOR.DIRECTORY_SEPARATOR.$parseList['addonName']
-//        .DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$appName;
+    $addonAppDir = \think\ADDON_DOR.DIRECTORY_SEPARATOR.$parseList['addonName']
+        .DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$appName.DIRECTORY_SEPARATOR;
+        define('ADDON_APP_PATH',$addonAppDir);
 
         $construct = $reflect->getConstructor();
         if ($construct) {

@@ -15,6 +15,7 @@ use think\exception\ValidateException;
 use think\facade\Lang;
 use think\facade\View;
 use think\Request;
+use think\Template;
 use think\Validate;
 use gardenia_admin\src\core\core_class\GardeniaConstant;
 use think\facade\Config;
@@ -301,19 +302,28 @@ abstract class AdminController
     }
 
     protected function view($template = '',$var = [],$code = 200,$filter =null, $isUseLayout = true) {
-        if ($isUseLayout) {
-            View::engine('Think')->layout(base_path().'common/core/tpl/layout');
-        }
         // 如果是插件请求，更改视图默认的访问位置
+        $viewCofig = Config::get('view');
+
         if (is_addon_request()) {
-            $viewConfig = require_once root_path().'addon/fast_dev/config/view.php';
-            $thinkView = new \think\view\driver\Think(new App(),$viewConfig);
-//            $parseList = parse_addon_url();
-//            $template = ADDON_DOR.DIRECTORY_SEPARATOR.$parseList['addonName']
-//                .DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'admin/view/'
-//                .$parseList['controller'].'/'.$parseList['action'];
+            $addonInfo = parse_addon_url();
+            $controllerName = $addonInfo['controller'];
+            $actionName = $addonInfo['action'];
+            $viewCofig['view_path'] = get_addon_view_dir().DIRECTORY_SEPARATOR;
+            $layoutPath = base_path().'common/core/tpl/layout';
         } else {
-            $thinkView = new \think\view\driver\Think(new App());
+            $controllerName = $this->request->controller();
+            $actionName = $this->request->action();
+            $viewCofig['view_path'] = app_path().$viewCofig['view_dir_name'].DIRECTORY_SEPARATOR;
+            $layoutPath = '../../common/core/tpl/layout';
+        }
+        if (!$template) {
+            $template = $controllerName.DIRECTORY_SEPARATOR.$actionName;
+        }
+        $viewInstance = new Template($viewCofig);
+
+        if ($isUseLayout) {
+            $viewInstance->layout($layoutPath);
         }
 
         $gardeniaLayout = [
@@ -328,7 +338,9 @@ abstract class AdminController
                 'vars' => [],
             ],
         ];
-        View::assign(GardeniaConstant::GARDENIA_PREFIX.'Layout',$gardeniaLayout);
+        $viewInstance->assign([
+            GardeniaConstant::GARDENIA_PREFIX.'Layout' => $gardeniaLayout
+        ]);
 
         $arr = [
             'runtimeInfo' => [
@@ -344,7 +356,7 @@ abstract class AdminController
             'langList' => $this->langList,
         ];
         $var = array_merge($arr,$var);
-        $thinkView->fetch($template,$var);
-//        return \view($template,$var,$code,$filter);
+
+        $viewInstance->fetch($template,$var);
     }
 }

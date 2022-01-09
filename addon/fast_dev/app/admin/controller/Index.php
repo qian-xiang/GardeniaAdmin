@@ -10,12 +10,10 @@ namespace addon\fast_dev\app\admin\controller;
 
 use app\admin\AdminController;
 use think\Request;
-//
-//include 'BaseController.php';
 
 class Index extends AdminController
 {
     public function index(Request $request) {
-        return 1111;
+        $this->view();
     }
 }
