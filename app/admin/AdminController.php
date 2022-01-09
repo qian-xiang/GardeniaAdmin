@@ -221,7 +221,7 @@ abstract class AdminController
             if (!$loginCode) {
                 error(lang('login.not'),url('/admin/Login/index'));
             }
-            $admin = AuthGroupAccess::hasWhere('admin',[
+            $admin = AuthGroupAccess::with('auth_group')->hasWhere('admin',[
                 'login_code' => $loginCode
             ])->find();
             if (!$admin) {
@@ -251,22 +251,27 @@ abstract class AdminController
                 $query->whereRaw('concat("/'.$appName.'/",`name`) in :rules',['rules' => $rules]);
             };
         }
-
         $accessArr = AuthRule::where($map)
             ->where(['status'=> AppConstant::STATUS_FORMAL])
             ->withAttr('name',function ($value) use ($appName) {
                 return strtolower('/'.$appName.'/'.$value);
             })->order('weigh','desc')->select();
-        if (!$accessArr){
+        if (!$accessArr && $request->admin_info->auth_group->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
             error('您没有权限访问，因为尚未有任何权限');
         }
-        $controller = $request->controller(true);
-        $action = $request->action(true);
+        if (is_addon_request()) {
+            $addonInfo = parse_addon_url();
+            $controller = $addonInfo['controller'];
+            $action = $addonInfo['action'];
+        } else {
+            $controller = $request->controller(true);
+            $action = $request->action(true);
+        }
+        //还需处理appName为空的问题
         $access = '/'.$appName.'/'.$controller.'/'.$action;
-
         $accessNameList = array_column($accessArr->toArray(),'name');
 
-        if (in_array($access,$accessNameList) === false) {;
+        if (in_array($access,$accessNameList) === false && $request->admin_info->auth_group->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN) {;
             error('根据您已有的权限，您没有权限访问');
         }
         $adminInfo = $request->admin_info;

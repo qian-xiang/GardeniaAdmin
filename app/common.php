@@ -224,8 +224,11 @@ if (!function_exists('parse_addon_url')) {
             throw new Exception('url中不能含有-');
         }
         $depr = config('route.pathinfo_depr');
+        $depr = empty($depr) ? '/' : $depr;
         $url = trim($url,$depr);
+
         $arr = explode($depr,$url);
+
         //插件名称
         if (empty($arr[2])) {
             throw new Exception('url中的插件名称必传');
@@ -254,6 +257,7 @@ if (!function_exists('parse_addon_url')) {
             $_actionList = explode('?',$arr[4]);
             $originAction = $arr[4] = $_actionList[0];
         }
+
         return [
             //插件名称
             'addonName' => $addonName,
