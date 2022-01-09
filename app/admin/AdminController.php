@@ -218,17 +218,17 @@ abstract class AdminController
         if (in_array($this->request->action(true),$this->noNeedLogin) === false) {
             $loginCode = cookie('login_code');
             if (!$loginCode) {
-                $this->error(lang('login.not'),url('Login/index'));
+                error(lang('login.not'),url('/admin/Login/index'));
             }
             $admin = AuthGroupAccess::hasWhere('admin',[
                 'login_code' => $loginCode
             ])->find();
             if (!$admin) {
-                $this->error(lang('login.not'),url('Login/index'));
+                error(lang('login.not'),url('/admin/Login/index')->build());
             }
 
             if ($admin->admin->login_code !== $loginCode) {
-                $this->error(lang('login.not'),url('Login/index'));
+                error(lang('login.not'),url('/admin/Login/index')->build());
             }
             $this->request->admin_info = $admin;
 
@@ -304,14 +304,18 @@ abstract class AdminController
         if ($isUseLayout) {
             View::engine('Think')->layout(base_path().'common/core/tpl/layout');
         }
-        $request = new Request();
         // 如果是插件请求，更改视图默认的访问位置
-        if ($request->isAddonRequest && !$template) {
-            $parseList = parse_addon_url();
-            $template = ADDON_DOR.DIRECTORY_SEPARATOR.$parseList['addonName']
-                .DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'admin/view/'
-                .$parseList['controller'].'/'.$parseList['action'];
+        if (is_addon_request()) {
+            $viewConfig = require_once root_path().'addon/fast_dev/config/view.php';
+            $thinkView = new \think\view\driver\Think(new App(),$viewConfig);
+//            $parseList = parse_addon_url();
+//            $template = ADDON_DOR.DIRECTORY_SEPARATOR.$parseList['addonName']
+//                .DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'admin/view/'
+//                .$parseList['controller'].'/'.$parseList['action'];
+        } else {
+            $thinkView = new \think\view\driver\Think(new App());
         }
+
         $gardeniaLayout = [
             'left' => [
                 'type' => GardeniaConstant::TEMPLATE_TYPE_CONTENT,
@@ -340,6 +344,7 @@ abstract class AdminController
             'langList' => $this->langList,
         ];
         $var = array_merge($arr,$var);
-        return \view($template,$var,$code,$filter);
+        $thinkView->fetch($template,$var);
+//        return \view($template,$var,$code,$filter);
     }
 }

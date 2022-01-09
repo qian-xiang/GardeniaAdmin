@@ -16,7 +16,6 @@ use think\Request;
 class Index extends AdminController
 {
     public function index(Request $request) {
-        echo 111;
-//        $this->view();
+        return 1111;
     }
 }

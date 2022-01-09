@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
     <title>{:config('app.app_name')}-登录</title>
-    <link rel="stylesheet" href="/static/js/layui-v2.5.6/layui/css/layui.css">
-    <script src="/static/js/layui-v2.5.6/layui/layui.js"></script>
+    <link rel="stylesheet" href="/static/lib/layui-v2.5.6/layui/css/layui.css">
+    <script src="/static/lib/layui-v2.5.6/layui/layui.js"></script>
     <style>
         @font-face {
             font-family: 'webfont';
@@ -66,7 +66,7 @@
 </head>
 <body class="layui-bg-cyan">
     <div class="root-container">
-        <form class="login-form layui-form" method="post" action="{:url('/Login/login')}">
+        <form class="login-form layui-form" method="post" action="{:url('admin/Login/login')}">
             <div class="copyright-info">
                 <img src="/static/image/admin/logo.jpg" alt="">
                 <div class="brand-title">{:config('app.app_name')}</div>

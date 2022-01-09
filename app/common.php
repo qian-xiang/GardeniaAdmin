@@ -201,11 +201,11 @@ if (!function_exists('load_addon_lib')) {
         $appName = app('http')->getName();
 
         //加载插件config.php和插件应用config.php
-        $addonCommon = \think\ADDON_DOR.$addonName.'app'.DIRECTORY_SEPARATOR.'config.php';
+        $addonCommon = \think\ADDON_DOR.$addonName.'app'.DIRECTORY_SEPARATOR.'view.php';
         if (file_exists($addonCommon)) {
             include $addonCommon;
         }
-        $addonCommon = \think\ADDON_DOR.$addonName.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$appName.DIRECTORY_SEPARATOR.'config.php';
+        $addonCommon = \think\ADDON_DOR.$addonName.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.$appName.DIRECTORY_SEPARATOR.'view.php';
         if (file_exists($addonCommon)) {
             include $addonCommon;
         }
@@ -260,7 +260,7 @@ if (!function_exists('get_addon_app')) {
      * @param string $addonName
      * @return array|string[]
      */
-    function get_addon_app($addonName = '') {
+    function get_addon_apps($addonName = '') {
         $list = glob(\think\ADDON_DOR.$addonName.'/app/*/');
         $list = array_map(function ($value) {
             return basename($value);

@@ -36,20 +36,20 @@ class Login extends AdminController
             return $validate->getError();
         }
         if (!captcha_check($data['captcha'])) {
-            $this->error(lang('login.faultCaptcha'));
+            error(lang('login.faultCaptcha'));
         }
         $admin = Admin::where([
             'username'=> $data['username'],
             'is_delete' => AppConstants::IS_DELETE_NO
         ])->find();
         if (!$admin) {
-            $this->error('该用户不存在或已被删除！');
+            error('该用户不存在或已被删除！');
         }
         if (!$admin['login_status']){
-            $this->error('您已被禁止登录！');
+            error('您已被禁止登录！');
         }
         if (create_password($data['password'],$admin['salt']) !== $admin['password']) {
-            $this->error(lang('login.faultAccountPwd'));
+            error(lang('login.faultAccountPwd'));
         }
         $loginTime = time();
         //生成登录token存入数据库
@@ -75,7 +75,7 @@ class Login extends AdminController
             $updateData['login_code'] = $token;
             $res = Admin::update($updateData,['id' => $admin['id']]);
             if (!$res) {
-                $this->error(lang('login.updateLoginStatusFail'));
+                error(lang('login.updateLoginStatusFail'));
             }
             cookie('login_code',$token,7*24*60*60);
         }

@@ -40,7 +40,8 @@
     "autoload": {
         "psr-4": {
             "app\\": "app",
-            "gardenia_admin\\": "vendor/qian-xiang/gardenia_admin"
+            "gardenia_admin\\": "vendor/qian-xiang/gardenia_admin",
+            "addon\\": "addon"
         },
         "psr-0": {
             "": "extend/"

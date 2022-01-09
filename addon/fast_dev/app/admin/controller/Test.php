@@ -6,11 +6,8 @@ use think\Request;
 
 class Test
 {
-    public function __construct()
-    {
-        dump('ces');
-    }
+
     public function index(Request $request, $b= 1) {
-        echo 3333;
+        echo $request->method();
     }
 }
