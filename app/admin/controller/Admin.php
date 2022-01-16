@@ -9,7 +9,7 @@ namespace app\admin\controller;
 
 use constant\AppConstant;
 use app\admin\AdminController;
-use app\admin\model\AuthGroupAccess;
+use app\admin\model\AdminGroupAccess;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaHelper;
 use gardenia_admin\src\core\core_class\GardeniaList;
@@ -234,7 +234,7 @@ class Admin extends AdminController
                 $updateData['salt'] = $salt;
             }
 
-            $info = AuthGroupAccess::hasWhere('admin',[
+            $info = AdminGroupAccess::hasWhere('admin',[
                 'id' => $data['id'],
             ])->find();
             if (!$info->id) {

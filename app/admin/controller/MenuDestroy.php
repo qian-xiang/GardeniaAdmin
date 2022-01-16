@@ -6,7 +6,7 @@ namespace app\admin\controller;
 use constant\AppConstant;
 use app\admin\AdminController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
-use \app\admin\model\AuthRule;
+use \app\admin\model\MenuRule;
 use think\facade\Db;
 use think\Validate;
 use think\validate\ValidateRule;
@@ -22,7 +22,7 @@ class MenuDestroy extends AdminController
     {
         $request = $this->request;
         if ($request->isAjax() && $request->isGet()) {
-            $paginate = AuthRule::order(['weigh' => 'desc','id' => 'desc'])->paginate(10);
+            $paginate = MenuRule::order(['weigh' => 'desc','id' => 'desc'])->paginate(10);
             $list = $paginate->getCollection()->toArray();
             foreach ($list as &$item) {
                 $item['create_time'] = 'https://interactive-examples.mdn.mozilla.net/media/examples/plumeria.jpg';
@@ -56,7 +56,7 @@ class MenuDestroy extends AdminController
                 error_json($validate->getError());
             }
 
-            $res = AuthRule::where([
+            $res = MenuRule::where([
                 'title' => $data['title'],
                 'name' => $data['rule'],
             ])->find();
@@ -76,13 +76,13 @@ class MenuDestroy extends AdminController
             if ((int)$data['pid'] === 0){
                 $insertData['root_id'] = 0;
             } else {
-                $res = AuthRule::where(['id' => $data['pid']])->field('root_id')->find();
+                $res = MenuRule::where(['id' => $data['pid']])->field('root_id')->find();
                 if (!$res){
                     error_json('该父级规则不存在，或已被删除！');
                 }
                 $insertData['root_id'] = $res['root_id'] === 0 ? $data['pid'] : $res['root_id'];
             }
-            $authRuleModel = new AuthRule();
+            $authRuleModel = new MenuRule();
             $res = $authRuleModel->save($insertData);
             if (!$res){
                 error_json('添加规则失败，请稍候重试。');
@@ -176,12 +176,12 @@ class MenuDestroy extends AdminController
         $request = $this->request;
         if ($request->isGet()){
 
-            $currentMenu = AuthRule::find($id);
+            $currentMenu = MenuRule::find($id);
             if (!$currentMenu){
                 error_json('该条规则信息不存在！');
             }
             //获取菜单列表
-            $menu = AuthRule::whereOr([
+            $menu = MenuRule::whereOr([
                 ['id','>',$id],
                 ['id','<',$id],
             ])->column('title','id');
@@ -232,14 +232,14 @@ class MenuDestroy extends AdminController
             if ((int)$data['pid'] === 0){
                 $updateData['root_id'] = 0;
             } else {
-                $res = AuthRule::where(['id' => $data['pid']])->find();
+                $res = MenuRule::where(['id' => $data['pid']])->find();
                 if (!$res){
                     error_json('该父级规则不存在，或已被删除！');
                 }
                 $updateData['root_id'] = $res['root_id'] === 0 ? $data['pid'] : $res['root_id'];
             }
             Db::startTrans();
-            $res = AuthRule::update($updateData);
+            $res = MenuRule::update($updateData);
             if ($res->getNumRows() !== 1){
                 Db::rollback();
                 error_json('修改规则失败，请稍候重试。');
@@ -265,7 +265,7 @@ class MenuDestroy extends AdminController
         $id = explode(',',$id);
         $primaryKey = Db::name('auth_rule')->getPk();
         Db::startTrans();
-        $res = AuthRule::where([
+        $res = MenuRule::where([
             [$primaryKey,'in',$id],
         ])->whereOr(['root_id' => $id])->whereOr(['pid' => $id])->delete();
         if (!$res){

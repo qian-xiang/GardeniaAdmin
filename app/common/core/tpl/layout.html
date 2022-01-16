@@ -1,9 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <script src="/static/js/require-v2.3.6.js"></script>
-    <script src="/static/js/main-backend.js" data-lang-list='{:json_encode($langList,JSON_UNESCAPED_UNICODE)}' data-runtime-info='{:json_encode($runtimeInfo,JSON_UNESCAPED_UNICODE)}' id="___main-backend___"></script>
-</head>
 {include file="../../common/core/tpl/header" /}
 <body>
 
@@ -20,7 +16,7 @@
         <!-- 内容主体区域 -->
         {__CONTENT__}
         {php}
-            $controllerJs = './static/js/backend/'.request()->controller(true).'.js';
+            $controllerJs = './static/js/backend/'.\think\helper\Str::snake(request()->controller()).'.js';
         {/php}
         {if file_exists($controllerJs)}
             <script src="/{$controllerJs}" data-action="{:request()->action(true)}" id="___controller-js___"></script>

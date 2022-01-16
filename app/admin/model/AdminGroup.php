@@ -8,7 +8,7 @@ use think\Model;
 /**
  * @mixin \think\Model
  */
-class AuthGroup extends Model
+class AdminGroup extends Model
 {
     //
     public function admin() {

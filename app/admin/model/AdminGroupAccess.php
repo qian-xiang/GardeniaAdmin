@@ -8,13 +8,13 @@ use think\Model;
 /**
  * @mixin \think\Model
  */
-class AuthGroupAccess extends Model
+class AdminGroupAccess extends Model
 {
     //
     public function admin() {
         return $this->hasOne(Admin::class,'id','admin_id');
     }
     public function authGroup() {
-        return $this->hasOne(AuthGroup::class,'id','group_id');
+        return $this->hasOne(AdminGroup::class,'id','group_id');
     }
 }

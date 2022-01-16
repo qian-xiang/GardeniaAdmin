@@ -9,7 +9,7 @@ use think\Model;
 /**
  * @mixin \think\Model
  */
-class AuthRule extends Model
+class MenuRule extends Model
 {
     //
 

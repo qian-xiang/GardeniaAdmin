@@ -6,13 +6,13 @@ namespace app\admin\controller;
 use constant\AppConstant;
 use app\admin\AdminController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
-use \app\admin\model\AuthRule as AuthRuleModel;
+use \app\admin\model\MenuRule as AuthRuleModel;
 use think\Exception;
 use think\facade\Db;
 use think\Validate;
 use think\validate\ValidateRule;
 
-class AuthRule extends AdminController
+class MenuRule extends AdminController
 {
     /**
      * 显示资源列表

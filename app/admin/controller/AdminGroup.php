@@ -7,43 +7,50 @@ declare (strict_types = 1);
 
 namespace app\admin\controller;
 
-use app\admin\model\AuthGroup;
+use app\admin\model\AdminGroup as AdminGroupModel;
 use constant\AppConstant;
 use app\admin\AdminController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaHelper;
-use gardenia_admin\src\core\core_class\GardeniaList;
+use think\exception\ValidateException;
 use think\facade\Db;
-use think\Request;
 use think\Validate;
 use think\validate\ValidateRule;
 
-class UserGroup extends AdminController
+class AdminGroup extends AdminController
 {
-    /**
-     * 显示资源列表
-     *
-     * @return \think\Response
-     */
     public function index()
     {
-        $request = \request();
-        $gardeniaList = new GardeniaList();
-        $gardeniaList->setTableAttr('url',url('/'.$request->controller().'/getData')->build())
-            ->addTableHead('choose','选择',['type' => 'checkbox'])
-            ->addTableHead('id','ID')
-            ->addTableHead('title','用户组')
-            ->addTableHead('type','类型')
-            ->addTableHead('status','状态')
-            ->addTableHead('operate','操作',['type' => 'normal'])
-            ->addTopOperateButton('gardenia','新增','create',['id'=> 'create',
-                'onclick'=> 'location.href="'.url('/'.request()->controller().'/create')->build().'"'])
-            ->addTopOperateButton('gardenia','删除','delete',['id'=> 'delete'])
-            ->addColumnOperateButton('operate','查看','gardenia','read',['name'=> "item_read",'lay-event' => 'read'],['rule-name' => 'item_read'])
-            ->addColumnOperateButton('operate','编辑','gardenia','edit',['name'=> "item_edit",'lay-event' => 'edit'],[
-                'rule-name' => 'item_edit','redirect-url' => url('/'.request()->controller().'/edit')->build()])
-            ->addColumnOperateButton('operate','删除','gardenia','delete',['name' => 'item_delete','lay-event' => 'delete'],['rule-name' => 'item_delete'])
-            ->display();
+        $request = $this->request;
+        if ($request->isAjax() && $request->isGet()) {
+            $data = $request->get();
+            try {
+                $this->validate($data,[
+                    'offset|偏移量' => 'require|integer',
+                    'limit|记录数' => 'require|integer',
+                ]);
+            } catch (ValidateException $e) {
+                error($e->getMessage());
+            }
+            $data['limit'] = (int)$data['limit'];
+            $data['offset'] = (int)$data['offset'];
+            $map = [];
+            if (!empty($data['search'])) {
+                $map[] = [
+                    'title','like','%'.$data['search'].'%'
+                ];
+            }
+
+            $list = AdminGroupModel::where($map)->limit($data['offset'],$data['limit'])
+                ->order(['create_time' => 'desc'])->select()->toArray();
+            $total = AdminGroupModel::where($map)->count('id');
+            return json([
+                'rows' => $list,
+                'total' => $total,
+            ]);
+        }
+
+        $this->view();
     }
 
     /**
@@ -51,9 +58,9 @@ class UserGroup extends AdminController
      *
      * @return \think\Response
      */
-    public function create()
+    public function add()
     {
-        $request = \request();
+        $request = $this->request;
         if ($request->isGet()){
             if ($request->user['admin_type'] !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
                 $this->error('不是超级管理员不能创建用户组');
@@ -187,7 +194,7 @@ class UserGroup extends AdminController
                 'status' => $data['status'],
                 'rules' => $rules,
             ];
-            $res = AuthGroup::update($updateData,[
+            $res = AdminGroup::update($updateData,[
                 'id' => $data['id'],
             ]);
             if (!$res){

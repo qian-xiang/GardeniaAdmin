@@ -11,7 +11,7 @@ namespace app\admin\controller;
 
 
 use app\admin\AdminController;
-use \app\admin\model\AuthRule;
+use \app\admin\model\MenuRule;
 use constant\AppConstant;
 use think\facade\Db;
 use const think\ADDON_DOR;

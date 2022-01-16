@@ -1,6 +1,7 @@
 <?php
 namespace app;
 
+use app\common\core\exception\AppException;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\ModelNotFoundException;
 use think\exception\Handle;
@@ -51,7 +52,14 @@ class ExceptionHandle extends Handle
     public function render($request, Throwable $e): Response
     {
         // 添加自定义异常处理机制
-
+        if ($e instanceof AppException) {
+            if ($request->isAjax()) {
+                $response = json_decode($e->getMessage(),true);
+                return json($response);
+            } else {
+                return \response($e->getMessage(),$e->getCode());
+            }
+        }
         // 其他错误交给系统处理
         return parent::render($request, $e);
     }

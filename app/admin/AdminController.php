@@ -7,21 +7,17 @@ declare (strict_types = 1);
 
 namespace app\admin;
 
-use app\admin\model\AuthRule;
+use app\admin\model\MenuRule;
 use constant\AppConstant;
-use app\admin\model\AuthGroupAccess;
+use app\admin\model\AdminGroupAccess;
 use think\App;
-use think\exception\ValidateException;
 use think\facade\Lang;
-use think\facade\View;
-use think\Request;
+use think\helper\Str;
 use think\Template;
-use think\Validate;
 use gardenia_admin\src\core\core_class\GardeniaConstant;
 use think\facade\Config;
-use const think\ADDON_DOR;
 
-abstract class AdminController
+class AdminController extends BaseController
 {
     /**
      * Request实例
@@ -35,18 +31,6 @@ abstract class AdminController
      */
     protected $app;
 
-    /**
-     * 是否批量验证
-     * @var bool
-     */
-    protected $batchValidate = false;
-
-    /**
-     * 控制器中间件
-     * @var array
-     */
-    protected $middleware = [];
-
     //不需要校验是否已登录的action
     protected $noNeedLogin = [];
     //不需要校验是否拥有访问权限的action
@@ -55,19 +39,6 @@ abstract class AdminController
 //    protected $noCheckReqToken = [];
     protected $loadControllerLang = true;
     protected $langList = [];
-    /**
-     * 构造方法
-     * @access public
-     * @param  App  $app  应用对象
-     */
-    public function __construct(App $app)
-    {
-        $this->app     = $app;
-        $this->request = $this->app->request;
-
-        // 控制器初始化
-        $this->initialize();
-    }
 
     // 初始化
     protected function initialize()
@@ -78,42 +49,6 @@ abstract class AdminController
 
     }
 
-    /**
-     * 验证数据
-     * @access protected
-     * @param  array        $data     数据
-     * @param  string|array $validate 验证器名或者验证规则数组
-     * @param  array        $message  提示信息
-     * @param  bool         $batch    是否批量验证
-     * @return array|string|true
-     * @throws ValidateException
-     */
-    protected function validate(array $data, $validate, array $message = [], bool $batch = false)
-    {
-        if (is_array($validate)) {
-            $v = new Validate();
-            $v->rule($validate);
-        } else {
-            if (strpos($validate, '.')) {
-                // 支持场景
-                [$validate, $scene] = explode('.', $validate);
-            }
-            $class = false !== strpos($validate, '\\') ? $validate : $this->app->parseClass('validate', $validate);
-            $v     = new $class();
-            if (!empty($scene)) {
-                $v->scene($scene);
-            }
-        }
-
-        $v->message($message);
-
-        // 是否批量验证
-        if ($batch || $this->batchValidate) {
-            $v->batch(true);
-        }
-
-        return $v->failException(true)->check($data);
-    }
     /**
      * 以layui请求数据返回的格式来返回数据
      * @param $code
@@ -221,7 +156,7 @@ abstract class AdminController
             if (!$loginCode) {
                 error(lang('login.not'),url('/admin/Login/index'));
             }
-            $admin = AuthGroupAccess::with('auth_group')->hasWhere('admin',[
+            $admin = AdminGroupAccess::with('auth_group')->hasWhere('admin',[
                 'login_code' => $loginCode
             ])->find();
             if (!$admin) {
@@ -237,7 +172,9 @@ abstract class AdminController
     }
     protected function checkAccess() {
         $request = $this->request;
-
+        $this->noNeedLogin = array_map(function ($value) {
+            return Str::snake($value);
+        },$this->noNeedLogin);
         if (in_array($this->request->action(true),$this->noNeedLogin) !== false) {
             return ;
         }
@@ -251,7 +188,7 @@ abstract class AdminController
                 $query->whereRaw('concat("/'.$appName.'/",`name`) in :rules',['rules' => $rules]);
             };
         }
-        $accessArr = AuthRule::where($map)
+        $accessArr = MenuRule::where($map)
             ->where(['status'=> AppConstant::STATUS_FORMAL])
             ->withAttr('name',function ($value) use ($appName) {
                 return strtolower('/'.$appName.'/'.$value);
@@ -259,19 +196,14 @@ abstract class AdminController
         if (!$accessArr && $request->admin_info->auth_group->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
             error('您没有权限访问，因为尚未有任何权限');
         }
-        if (is_addon_request()) {
-            $addonInfo = parse_addon_url();
-            $controller = $addonInfo['controller'];
-            $action = $addonInfo['action'];
-        } else {
-            $controller = $request->controller(true);
-            $action = $request->action(true);
-        }
+
+        $controller = $request->controller(true);
+        $action = $request->action(true);
         //还需处理appName为空的问题
         $access = '/'.$appName.'/'.$controller.'/'.$action;
         $accessNameList = array_column($accessArr->toArray(),'name');
-
-        if (in_array($access,$accessNameList) === false && $request->admin_info->auth_group->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN) {;
+        //非插件请求时才鉴权
+        if (!is_addon_request() && in_array($access,$accessNameList) === false && $request->admin_info->auth_group->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN) {;
             error('根据您已有的权限，您没有权限访问');
         }
         $adminInfo = $request->admin_info;
@@ -307,9 +239,8 @@ abstract class AdminController
     }
 
     protected function view($template = '',$var = [],$code = 200,$filter =null, $isUseLayout = true) {
-        // 如果是插件请求，更改视图默认的访问位置
         $viewCofig = Config::get('view');
-
+        // 如果是插件请求，更改视图默认的访问位置
         if (is_addon_request()) {
             $addonInfo = parse_addon_url();
             $controllerName = $addonInfo['controller'];
@@ -323,7 +254,7 @@ abstract class AdminController
             $layoutPath = '../../common/core/tpl/layout';
         }
         if (!$template) {
-            $template = $controllerName.DIRECTORY_SEPARATOR.$actionName;
+            $template = Str::snake($controllerName).DIRECTORY_SEPARATOR.Str::snake($actionName);
         }
         $viewInstance = new Template($viewCofig);
 

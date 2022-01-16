@@ -1,9 +1,9 @@
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>{:config('app.app_name')}</title>
-
+    <script src="/static/js/require-v2.3.6.js"></script>
+    <script src="/static/js/main-backend.js" data-lang-list='{:json_encode($langList,JSON_UNESCAPED_UNICODE)}' data-runtime-info='{:json_encode($runtimeInfo,JSON_UNESCAPED_UNICODE)}' id="___main-backend___"></script>
     <style>
         .layui-body {
             overflow-x: scroll;

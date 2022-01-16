@@ -11,7 +11,7 @@ namespace app\admin\controller;
 
 
 use app\admin\AdminController;
-use \app\admin\model\AuthRule;
+use \app\admin\model\MenuRule;
 use constant\AppConstant;
 use think\facade\Db;
 use const think\ADDON_DOR;
@@ -214,7 +214,7 @@ class Plugin extends AdminController
         // 将插件的菜单url加入到菜单规则表中
         $addonUrl = 'addon/'.$moduleName.'/admin/index';
         Db::startTrans();
-        $authRule = new AuthRule();
+        $authRule = new MenuRule();
         $res = $authRule->save([
             'type' => AppConstant::RULE_TYPE_MENU,
             'name' => $addonUrl,
@@ -249,7 +249,7 @@ class Plugin extends AdminController
         $moduleAppPath = ADDON_DOR.$moduleName;
         $info = parse_ini_file($moduleAppPath.DIRECTORY_SEPARATOR.'info.ini');
         // 删除菜单表中的插件规则
-        $authRule = AuthRule::where([
+        $authRule = MenuRule::where([
             'name' => 'addon/'.$info['name'].'/admin/index',
             'title' => $info['title'],
         ])->find();

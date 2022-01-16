@@ -1,7 +1,7 @@
 <?php
 use \constant\AppConstant;
 use think\helper\Str;
-
+use app\common\core\exception\AppException;
 // 应用公共文件
 if (!function_exists('create_salt')) {
     /**
@@ -120,41 +120,38 @@ if (!function_exists('check_plugin_info')) {
 }
 if (!function_exists('reply_json')) {
     /**
-     * 返回json信息
+     * 返回信息
      * @param string $msg
      * @param array $data
      * @param string $redirectUrl 跳转的url
      * @param int $code
      */
-    function reply_json($msg = '', $data = [], $redirectUrl = '', $code = AppConstant::CODE_SUCCESS) {
-        json([
+    function reply_request($msg = '', $data = [], $code = AppConstant::CODE_SUCCESS) {
+        throw new AppException(json_encode([
             'msg' => $msg,
             'data' => $data,
             'code' => $code,
-            'redirectUrl' => $redirectUrl,
-        ])->send();
+        ],JSON_UNESCAPED_UNICODE));
     }
 }
-if (!function_exists('success_json')) {
+if (!function_exists('success')) {
     /**
-     * 以json形式返回成功信息
+     * 返回成功信息
      * @param string $msg
      * @param array $data
-     * @param string $redirectUrl 跳转的url
      */
-    function success_json($msg = '',$data = [], $redirectUrl = '') {
-        reply_json($msg,$data, $redirectUrl,AppConstant::CODE_SUCCESS);
+    function success($msg = '',$data = []) {
+        reply_request($msg,$data,AppConstant::CODE_SUCCESS);
     }
 }
-if (!function_exists('error_json')) {
+if (!function_exists('error')) {
     /**
-     * 以json形式返回错误信息
+     * 返回错误信息
      * @param string $msg
      * @param array $data
-     * @param string $redirectUrl 跳转的url
      */
-    function error_json($msg = '',$data = [], $redirectUrl = '') {
-        reply_json($msg,$data, $redirectUrl,AppConstant::CODE_ERROR);
+    function error($msg = '',$data = []) {
+        reply_request($msg,$data,AppConstant::CODE_ERROR);
     }
 }
 if (!function_exists('build_toolbar_btn')) {

@@ -4,7 +4,7 @@
  * Gardenia Admin is a free software, it under the MIT license, visited https://github.com/qian-xiang/GardeniaAdmin for more details.
  */
 
-namespace gardenia_admin\src\core\core_class;
+namespace app\common\core\lib;
 
 
 class GardeniaHelper
