@@ -2,18 +2,14 @@
     <div class="form-group row">
         <label id="test" class="col-form-label col-sm-2 text-center" for="rule_type">规则类型</label>
         <select class="form-control col-sm-5" data-rule="required" name="type" id="rule_type">
-            {foreach $ruleTypeList as $key => $vo}
-                <option value="{$key}" {eq name="key" value="$ruleTypeVal"}selected{/eq}>{$vo}</option>
+            {foreach $typeList as $key => $vo}
+                <option value="{$key}" {eq name="key" value="$typeVal"}selected{/eq}>{$vo}</option>
             {/foreach}
         </select>
     </div>
     <div class="form-group row">
         <label class="col-form-label col-sm-2 text-center" for="pid">父级</label>
-        <select class="form-control col-sm-5" data-rule="required" id="pid" name="pid">
-            {foreach $parentList as $key => $vo}
-            <option value="{$key}" {eq name="key" value="$parent"}selected{/eq}>{$vo}</option>
-            {/foreach}
-        </select>
+
     </div>
     <div class="form-group row">
         <label class="col-form-label col-sm-2 text-center" for="title">标题</label>

@@ -16,6 +16,7 @@ use think\exception\ValidateException;
 use think\facade\Db;
 use think\Validate;
 use think\validate\ValidateRule;
+use app\admin\model\MenuRule;
 
 class AdminGroup extends AdminController
 {
@@ -62,30 +63,19 @@ class AdminGroup extends AdminController
     {
         $request = $this->request;
         if ($request->isGet()){
-            if ($request->user['admin_type'] !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
-                $this->error('不是超级管理员不能创建用户组');
+            $groupType = $request->admin_info->admin_group->type;
+            if ($groupType !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
+                error('不是超级管理员不能创建用户组');
             }
-            $ruleList = Db::name('auth_rule')->field('id,title,pid,name as field')->select()->toArray();
-            $nodeList = [];
-            if ($ruleList){
-                $nodeList = $this->buildTreeData($ruleList,0);
-            }
-            $statusList = AppConstant::getStatusList();
-
-            $js = "./static/js/gardenia/UserGroupTreeExtraJs.js";
-
-            $typeList = AppConstant::getRuleTypeList();
-
-            $gardeniaForm = new GardeniaForm();
-            $gardeniaForm->addFormItem('gardenia','text','title','用户组名',null,null)
-                ->addFormItem('gardenia','select','type','类型',$typeList,['value' => AppConstant::RULE_TYPE_MENU])
-                ->addFormItem('gardenia','select','status','状态',$statusList,['value' => AppConstant::STATUS_FORMAL])
-                ->addFormItem('gardenia','tree','rules','规则',$nodeList,null)
-                ->addBottomButton('gardenia','submit','submit','提交')
-                ->addBottomButton('gardenia','cancel','cancel','取消')
-                ->addTreeItemJs('rules','path',$js)
-                ->setFormStatus(false)
-                ->display();
+            $ruleList = MenuRule::field('id,title,pid,name as field')->select()->toArray();
+            return view('',[
+                'ruleList' => $ruleList,
+                'typeList' => AppConstant::getRuleTypeList(),
+                'typeVal' => AppConstant::RULE_TYPE_MENU,
+                'defaultWeigh' => 0,
+                'statusList' => AppConstant::getStatusList(),
+                'defaultStatus' => AppConstant::STATUS_FORMAL,
+            ]);
         }elseif ($request->isPost()) {
             $data = $request->post();
             $validate = new Validate();
@@ -98,7 +88,7 @@ class AdminGroup extends AdminController
             if (!$validate->check($data)){
                 $this->layuiAjaxReturn(AppConstant::CODE_ERROR,$validate->getError());
             }
-            $res = Db::name('auth_group')->strict(false)->save($data);
+            $res = AdminGroupModel::strict(false)->save($data);
             if (!$res){
                 $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'新增用户组名失败，请稍候重试。');
             }

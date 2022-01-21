@@ -35,8 +35,6 @@ class AdminController extends BaseController
     protected $noNeedLogin = [];
     //不需要校验是否拥有访问权限的action
     protected $noCheckAccess = [];
-    //不需要校验防止重放攻击的接口token
-//    protected $noCheckReqToken = [];
     protected $loadControllerLang = true;
     protected $langList = [];
 
@@ -156,7 +154,7 @@ class AdminController extends BaseController
             if (!$loginCode) {
                 error(lang('login.not'),url('/admin/Login/index'));
             }
-            $admin = AdminGroupAccess::with('auth_group')->hasWhere('admin',[
+            $admin = AdminGroupAccess::with('admin_group')->hasWhere('admin',[
                 'login_code' => $loginCode
             ])->find();
             if (!$admin) {
@@ -182,8 +180,8 @@ class AdminController extends BaseController
         $map = [];
         $appName = $this->app->http->getName();
 
-        if ($request->admin_info->authGroup->type === AppConstant::GROUP_TYPE_ADMIN){
-            $rules = $request->admin_info->authGroup->rules;
+        if ($request->admin_info->adminGroup->type === AppConstant::GROUP_TYPE_ADMIN){
+            $rules = $request->admin_info->adminGroup->rules;
             $map = function ($query) use ($rules,$appName) {
                 $query->whereRaw('concat("/'.$appName.'/",`name`) in :rules',['rules' => $rules]);
             };
@@ -203,9 +201,10 @@ class AdminController extends BaseController
         $access = '/'.$appName.'/'.$controller.'/'.$action;
         $accessNameList = array_column($accessArr->toArray(),'name');
         //非插件请求时才鉴权
-        if (!is_addon_request() && in_array($access,$accessNameList) === false && $request->admin_info->auth_group->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN) {;
+        if (!is_addon_request() && in_array($access,$accessNameList) === false && $request->admin_info->admin_group->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN) {;
             error('根据您已有的权限，您没有权限访问');
         }
+
         $adminInfo = $request->admin_info;
         $adminInfo->access_list = $accessArr;
         $this->request->admin_info = $adminInfo;
