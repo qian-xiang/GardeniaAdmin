@@ -250,6 +250,7 @@ class AdminController extends BaseController
             $controllerName = $this->request->controller();
             $actionName = $this->request->action();
             $viewCofig['view_path'] = app_path().$viewCofig['view_dir_name'].DIRECTORY_SEPARATOR;
+            $viewCofig['cache_path'] = runtime_path().'temp';
             $layoutPath = '../../common/core/tpl/layout';
         }
         if (!$template) {

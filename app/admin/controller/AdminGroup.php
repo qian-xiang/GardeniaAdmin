@@ -68,7 +68,7 @@ class AdminGroup extends AdminController
                 error('不是超级管理员不能创建用户组');
             }
             $ruleList = MenuRule::field('id,title,pid,name as field')->select()->toArray();
-            return view('',[
+            $this->view('',[
                 'ruleList' => $ruleList,
                 'typeList' => AppConstant::getRuleTypeList(),
                 'typeVal' => AppConstant::RULE_TYPE_MENU,
