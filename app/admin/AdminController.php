@@ -177,31 +177,31 @@ class AdminController extends BaseController
             return ;
         }
 
-        $map = [];
         $appName = $this->app->http->getName();
 
-        if ($request->admin_info->adminGroup->type === AppConstant::GROUP_TYPE_ADMIN){
-            $rules = $request->admin_info->adminGroup->rules;
-            $map = function ($query) use ($rules,$appName) {
-                $query->whereRaw('concat("/'.$appName.'/",`name`) in :rules',['rules' => $rules]);
-            };
+        $rules = $request->admin_info->adminGroup->rules;
+        if ($rules === '*') {
+            $map = [];
+        } else {
+            $map[] = ['id','in',$rules];
         }
+
         $accessArr = MenuRule::where($map)
             ->where(['status'=> AppConstant::STATUS_FORMAL])
             ->withAttr('name',function ($value) use ($appName) {
                 return strtolower('/'.$appName.'/'.$value);
             })->order('weigh','desc')->select();
-        if (!$accessArr && $request->admin_info->auth_group->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
+        if (!$accessArr){
             error('您没有权限访问，因为尚未有任何权限');
         }
-
         $controller = $request->controller(true);
         $action = $request->action(true);
         //还需处理appName为空的问题
         $access = '/'.$appName.'/'.$controller.'/'.$action;
         $accessNameList = array_column($accessArr->toArray(),'name');
+
         //非插件请求时才鉴权
-        if (!is_addon_request() && in_array($access,$accessNameList) === false && $request->admin_info->admin_group->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN) {;
+        if (!is_addon_request() && in_array($access,$accessNameList) === false) {;
             error('根据您已有的权限，您没有权限访问');
         }
 
@@ -224,7 +224,7 @@ class AdminController extends BaseController
             $config = config('lang.extend_list');
             $config[$lang] = $zhCns;
             Config::set(['extend_list' => $config],'lang');
-            $this->app->LoadLangPack($lang);
+            $this->app->LoadLangPack();
 
             //读取指定多语言文件返回给前端
             $defaultLangSetPath = app_path().'lang/'.$lang.'.php';

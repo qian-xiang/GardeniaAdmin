@@ -130,14 +130,6 @@ var page = {
         })
     },
     add: function () {
-        $('#rules').jstree({ 'core' : {
-                    'data' : $('#rules').data('list'),
-                    'themes': {
-                       'icons': false,
-                    }
-                },
-                'plugins': ['checkbox']
-        })
         this.api.addEdit('#form-add')
     },
     edit: function () {
@@ -206,19 +198,28 @@ var page = {
                         }
                     })
                 }
-            });
+            })
+            const rulesSelector = '#rules'
+            $(rulesSelector).jstree({ 'core' : {
+                    'data' : $(rulesSelector).data('list'),
+                    'themes': {
+                        'icons': false,
+                    }
+                },
+                'plugins': ['checkbox']
+            })
             $('#check-all').change(function () {
                 if ($(this).is(':checked')) {
-                    $('#rules').jstree('check_all')
+                    $(rulesSelector).jstree('check_all')
                 } else {
-                    $('#rules').jstree('uncheck_all')
+                    $(rulesSelector).jstree('uncheck_all')
                 }
             })
             $('#expand-all').change(function () {
                 if ($(this).is(':checked')) {
-                    $('#rules').jstree('open_all')
+                    $(rulesSelector).jstree('open_all')
                 } else {
-                    $('#rules').jstree('close_all')
+                    $(rulesSelector).jstree('close_all')
                 }
             })
         }

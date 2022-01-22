@@ -25,10 +25,20 @@ class AdminGroupValidate extends Validate
     protected $message = [];
     public function setAddAdminGroupRule() {
         $this->rule = [
-            'type|管理员类型' => 'require|in:'.join(',',array_keys(AppConstant::getAdminTypeList())),
+            'pid|父级' => 'require|integer|>:0',
             'status|状态' => 'require|in:'.join(',',array_keys(AppConstant::getStatusList())),
             'title|分组标题' => 'require|max:255',
             'rules|规则' => 'require|array',
+        ];
+        return $this->rule;
+    }
+    public function setEditAdminGroupRule() {
+        $this->rule = [
+            'pid|父级' => 'require|integer|>:0',
+            'status|状态' => 'require|in:'.join(',',array_keys(AppConstant::getStatusList())),
+            'title|分组标题' => 'require|max:255',
+            'rules|规则' => 'require|array',
+            'id' => 'require|integer|>:0',
         ];
         return $this->rule;
     }

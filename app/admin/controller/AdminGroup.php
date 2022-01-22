@@ -64,10 +64,6 @@ class AdminGroup extends AdminController
     {
         $request = $this->request;
         if ($request->isGet()){
-            $groupType = $request->admin_info->admin_group->type;
-            if ($groupType !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
-                error('不是超级管理员不能创建用户组');
-            }
             $ruleList = MenuRule::field('id,title as text,pid as parent,name')->select()->toArray();
             foreach ($ruleList as &$item) {
                 $item['parent'] = $item['parent'] ?: '#';
@@ -76,11 +72,11 @@ class AdminGroup extends AdminController
                 ];
             }
             unset($item);
+            $adminGroupList = AdminGroupModel::field('id,title')->select();
             $this->view('',[
                 'ruleList' => $ruleList,
-                'groupTypeList' => AppConstant::getAdminTypeList(),
-                'typeVal' => AppConstant::GROUP_TYPE_ADMIN,
-                'defaultWeigh' => 0,
+                'pidList' => $adminGroupList,
+                'pidVal' => $adminGroupList[0]['id'],
                 'statusList' => AppConstant::getStatusList(),
                 'defaultStatus' => AppConstant::STATUS_FORMAL,
             ]);
@@ -147,41 +143,51 @@ class AdminGroup extends AdminController
     {
         $request = \request();
         if ($request->isGet()){
-            if ($request->admin_info->authGroup->type !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
-                $this->error('非超级管理员不能编辑用户组');
+            $userGroup = AdminGroupModel::find($id);
+            if (!$userGroup) {
+                error('该分组已不存在');
             }
-            $userGroup = Db::name('auth_group')->field('id,title,status,rules')->find($id);
-            $ruleList = Db::name('auth_rule')->field('id,title,pid,name as field')->select()->toArray();
-            $userGroup['rules'] = explode(',',$userGroup['rules']);
-            $nodeList = [];
-            if ($ruleList){
-                $nodeList = $this->buildTreeData($ruleList,0,$userGroup['rules']);
+            $ruleList = MenuRule::field('id,title as text,pid as parent,name')->select()->toArray();
+            foreach ($ruleList as &$item) {
+                $item['parent'] = $item['parent'] ?: '#';
+                $item['state'] = [
+                    'opened' => true,
+                ];
             }
-            $statusList = AppConstant::getStatusList();
-
-//            $js = "./static/js/gardenia/userGroup_edit.js";
-
-            $gardeniaForm = new GardeniaForm();
-            $gardeniaForm->addFormItem('gardenia','hidden','id','ID',null,['value'=> $userGroup['id']])
-                ->addFormItem('gardenia','text','title','用户组名',null,['value'=> $userGroup['title']])
-                ->addFormItem('gardenia','select','status','状态',$statusList,['value' => $userGroup['status']])
-                ->addFormItem('gardenia','tree','rules','规则',$nodeList,null)
-                ->addBottomButton('gardenia','submit','submit','提交')
-                ->addBottomButton('gardenia','cancel','cancel','取消')
-//                ->addTreeItemJs('rules','path',$js)
-                ->setFormStatus(true)
-                ->display();
+            unset($item);
+            $adminGroupList = AdminGroupModel::field('id,title')->select();
+            $this->view('',[
+                'ruleList' => $ruleList,
+                'pidList' => $adminGroupList,
+                'pidVal' => $userGroup->pid,
+                'statusList' => AppConstant::getStatusList(),
+                'defaultStatus' => $userGroup->status,
+            ]);
         }elseif ($request->isPost()) {
             $data = $request->post();
-            $validate = new Validate();
-            $validate->rule([
-                'title|用户组名' => ValidateRule::isRequire(),
-                'status|状态' => ValidateRule::isRequire()->isInteger(),
-                'rules|规则' => ValidateRule::isRequire(),
-                'id|ID' => ValidateRule::isRequire(),
-            ]);
+            $adminGroup = AdminGroupModel::find($data['id']);
+            if (!$adminGroup) {
+                error('该分组已不存在');
+            }
+            $validate = new AdminGroupValidate();
+            $rule = $validate->setEditAdminGroupRule();
             if (!$validate->check($data)){
-                $this->error($validate->getError());
+                error($validate->getError());
+            }
+            $rule_key = array_keys($rule);
+            $_data = [];
+            foreach ($rule_key as $key) {
+                $temp = explode('|',$key);
+                !empty($data[$temp[0]]) && $_data[$temp[0]] = $data[$temp[0]];
+            }
+            //找出该分组的所有子节点
+            $rows = AdminGroupModel::select();
+            $children = [];
+            foreach ($rows as $item) {
+                if ($item['id'] === $adminGroup['pid']) {
+
+                }
+                $children[] = $item;
             }
             $data['rules'] = json_decode($data['rules'],true);
             $rules = $this->getMenuIds($data['rules']);
