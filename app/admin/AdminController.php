@@ -34,7 +34,7 @@ class AdminController extends BaseController
     //不需要校验是否已登录的action
     protected $noNeedLogin = [];
     //不需要校验是否拥有访问权限的action
-    protected $noCheckAccess = [];
+//    protected $noCheckAccess = [];
     protected $loadControllerLang = true;
     protected $langList = [];
 

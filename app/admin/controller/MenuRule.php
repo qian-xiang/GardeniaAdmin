@@ -52,7 +52,7 @@ class MenuRule extends AdminController
             ]);
         }
 
-        return $this->view();
+        $this->view();
 
     }
 

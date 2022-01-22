@@ -17,6 +17,7 @@ require.config({
         'validator': 'lib/nice-validator/dist/local/zh-CN',
         'viewer': 'lib/viewerjs/dist/viewer.min',
         'require-css': 'lib/require-css/css.min',
+        'vakata-jstree': 'lib/vakata-jstree/dist/jstree.min',
     },
     shim: {
         'bootstrap': {
@@ -48,6 +49,9 @@ require.config({
         'viewer':{
             deps: ['jquery','style!lib/viewerjs/dist/viewer.min']
         },
+        'vakata-jstree': {
+            deps: ['jquery','style!lib/vakata-jstree/dist/themes/default/style.min'],
+        }
     },
     map: {
         '*': {

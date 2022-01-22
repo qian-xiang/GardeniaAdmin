@@ -1,5 +1,5 @@
-require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','garForm','layui'],
-    function ($,bootstrapTable,sweetalert,BsTable,Validator,GarForm,layui) {
+require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','garForm','layui','vakata-jstree'],
+    function ($,bootstrapTable,sweetalert,BsTable,Validator,GarForm,layui,Jstree) {
 var page = {
     index: function () {
         $(document).ready(function () {
@@ -130,6 +130,9 @@ var page = {
         })
     },
     add: function () {
+        $('#pid').jstree({ 'core' : {
+                'data' : $('#pid').data('list')
+            } });
         this.api.addEdit('#form-add')
     },
     edit: function () {

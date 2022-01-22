@@ -67,7 +67,11 @@ class AdminGroup extends AdminController
             if ($groupType !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
                 error('不是超级管理员不能创建用户组');
             }
-            $ruleList = MenuRule::field('id,title,pid,name as field')->select()->toArray();
+            $ruleList = MenuRule::field('id,title as text,pid as parent,name')->select()->toArray();
+            foreach ($ruleList as &$item) {
+                $item['parent'] = $item['parent'] ?: '#';
+            }
+            unset($item);
             $this->view('',[
                 'ruleList' => $ruleList,
                 'typeList' => AppConstant::getRuleTypeList(),
