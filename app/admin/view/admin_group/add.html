@@ -1,37 +1,38 @@
+<style>
+    div.form-group.form-check.col-xs-7 {
+        padding: 0 30px;
+    }
+</style>
 <form id="form-add" onsubmit="return false;">
     <div class="form-group row">
-        <label id="test" class="col-form-label col-sm-2 text-center" for="rule_type">规则类型</label>
+        <label id="test" class="col-form-label col-sm-2 text-center" for="rule_type">分组类型</label>
         <select class="form-control col-sm-5" data-rule="required" name="type" id="rule_type">
-            {foreach $typeList as $key => $vo}
+            {foreach $groupTypeList as $key => $vo}
                 <option value="{$key}" {eq name="key" value="$typeVal"}selected{/eq}>{$vo}</option>
             {/foreach}
         </select>
-    </div>
-    <div class="form-group row">
-        <label class="col-form-label col-sm-2 text-center" for="pid">父级</label>
-        <div id="pid" data-list='{:json_encode($ruleList,JSON_UNESCAPED_UNICODE)}'></div>
     </div>
     <div class="form-group row">
         <label class="col-form-label col-sm-2 text-center" for="title">标题</label>
         <input type="text" class="form-control col-sm-5" data-rule="required;length(~255)" id="title" name="title" placeholder="请输入标题">
     </div>
     <div class="form-group row">
-        <label class="col-form-label col-sm-2 text-center" for="icon">图标</label>
-        <input type="text" class="form-control col-sm-5" data-rule="required;length(~255)" id="icon" name="icon" placeholder="请输入图标" value="fa fa-align-justify">
-    </div>
-    <div class="form-group row">
-        <label class="col-form-label col-sm-2 text-center" for="rule">规则</label>
-        <input type="text" class="form-control col-sm-5" id="rule" name="name" data-rule="required;length(~255)" placeholder="控制器名/行为名称，如Menu/index">
-    </div>
-    <div class="form-group row">
-        <label class="col-form-label col-sm-2 text-center" for="rule_condition">规则条件</label>
-        <input type="text" class="form-control col-sm-5" id="rule_condition" data-rule="length(~255)" name="condition" placeholder="请输入规则条件">
+        <label class="col-form-label col-sm-2 text-center" for="rules">父级</label>
+        <div class="form-group">
+            <div class="form-group row" style="margin-left: 0;">
+                <div class="form-group form-check col-xs-5">
+                    <input id="check-all" class="form-check-input" type="checkbox">
+                    <label class="form-check-label" for="check-all">全选</label>
+                </div>
+                <div class="form-group form-check col-xs-7">
+                    <input id="expand-all" class="form-check-input" type="checkbox">
+                    <label class="form-check-label" for="expand-all">展开全部</label>
+                </div>
+            </div>
+            <div id="rules" data-list='{:json_encode($ruleList,JSON_UNESCAPED_UNICODE)}'></div>
+        </div>
     </div>
 
-    <div class="form-group row">
-        <label class="col-form-label col-sm-2 text-center" for="weigh">权重</label>
-        <input type="number" class="form-control col-sm-5" id="weigh" data-rule="required;integer" name="weigh" value="{$defaultWeigh}" placeholder="请输入权重">
-    </div>
     <div class="form-group row">
         <label class="col-form-label col-sm-2 text-center" for="status">状态</label>
         <select class="form-control col-sm-5" id="status" data-rule="required;" name="status">

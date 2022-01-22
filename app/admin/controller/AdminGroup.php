@@ -8,6 +8,7 @@ declare (strict_types = 1);
 namespace app\admin\controller;
 
 use app\admin\model\AdminGroup as AdminGroupModel;
+use app\validate\admin\AdminGroupValidate;
 use constant\AppConstant;
 use app\admin\AdminController;
 use gardenia_admin\src\core\core_class\GardeniaForm;
@@ -70,33 +71,36 @@ class AdminGroup extends AdminController
             $ruleList = MenuRule::field('id,title as text,pid as parent,name')->select()->toArray();
             foreach ($ruleList as &$item) {
                 $item['parent'] = $item['parent'] ?: '#';
+                $item['state'] = [
+                    'opened' => true,
+                ];
             }
             unset($item);
             $this->view('',[
                 'ruleList' => $ruleList,
-                'typeList' => AppConstant::getRuleTypeList(),
-                'typeVal' => AppConstant::RULE_TYPE_MENU,
+                'groupTypeList' => AppConstant::getAdminTypeList(),
+                'typeVal' => AppConstant::GROUP_TYPE_ADMIN,
                 'defaultWeigh' => 0,
                 'statusList' => AppConstant::getStatusList(),
                 'defaultStatus' => AppConstant::STATUS_FORMAL,
             ]);
         }elseif ($request->isPost()) {
             $data = $request->post();
-            $validate = new Validate();
-            $validate->rule([
-                'title|用户组名' => ValidateRule::isRequire(),
-                'status|状态' => ValidateRule::isRequire()->isInteger(),
-                'type|类型' => ValidateRule::isRequire()->isInteger(),
-                'rules|规则' => ValidateRule::requireIf('type,'.AppConstant::GROUP_TYPE_ADMIN),
-            ]);
+            $validate = new AdminGroupValidate();
+            $rule = $validate->setAddAdminGroupRule();
             if (!$validate->check($data)){
-                $this->layuiAjaxReturn(AppConstant::CODE_ERROR,$validate->getError());
+                error($validate->getError());
             }
-            $res = AdminGroupModel::strict(false)->save($data);
-            if (!$res){
-                $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'新增用户组名失败，请稍候重试。');
+            $keys = array_keys($rule);
+            $_data = [];
+            foreach ($keys as $key) {
+                $temp = explode('|',$key);
+                !empty($data[$temp[0]]) && $_data[$temp[0]] = $data[$temp[0]];
             }
-            $this->layuiAjaxReturn(AppConstant::CODE_SUCCESS,'新增用户组成功！','',url('/'.$request->controller())->build());
+            $_data['rules'] = $_data['rules'] ? join(',',$_data['rules']) : '';
+            $model = new AdminGroupModel();
+            $model->save($_data);
+            success('新增用户组成功！');
         }
     }
 

@@ -130,9 +130,14 @@ var page = {
         })
     },
     add: function () {
-        $('#pid').jstree({ 'core' : {
-                'data' : $('#pid').data('list')
-            } });
+        $('#rules').jstree({ 'core' : {
+                    'data' : $('#rules').data('list'),
+                    'themes': {
+                       'icons': false,
+                    }
+                },
+                'plugins': ['checkbox']
+        })
         this.api.addEdit('#form-add')
     },
     edit: function () {
@@ -149,6 +154,8 @@ var page = {
                     $.each(arr,function () {
                         formData[this.name] = this.value
                     })
+                    formData.rules = $('#rules').jstree('get_checked');
+
                     $(ele).find('button[type="submit"]').attr('disabled',true);
                     swal({
                         text: '正在执行中...',
@@ -157,8 +164,9 @@ var page = {
                     $.ajax({
                         url: '',
                         method: 'POST',
-                        data: formData,
+                        data: JSON.stringify(formData),
                         dataType: 'json',
+                        contentType: 'application/json',
                         success: function (res) {
                             if (res.msg) {
                                 swal({
@@ -199,7 +207,20 @@ var page = {
                     })
                 }
             });
-
+            $('#check-all').change(function () {
+                if ($(this).is(':checked')) {
+                    $('#rules').jstree('check_all')
+                } else {
+                    $('#rules').jstree('uncheck_all')
+                }
+            })
+            $('#expand-all').change(function () {
+                if ($(this).is(':checked')) {
+                    $('#rules').jstree('open_all')
+                } else {
+                    $('#rules').jstree('close_all')
+                }
+            })
         }
     }
 }

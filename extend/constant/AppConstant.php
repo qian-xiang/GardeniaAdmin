@@ -53,34 +53,49 @@ class AppConstant
     //插件状态：未安装
     const ADDON_STATUS_UNINSTALLED = 0;
 
-    public static function getApiCodeList() {
+    public static function getApiCodeList()
+    {
         return [
             'success' => self::CODE_SUCCESS,
             'error' => self::CODE_ERROR,
         ];
     }
-    public static function getStatusList() {
-        return [self::STATUS_FORBID=> '禁用', self::STATUS_FORMAL=> '正常'];
+
+    public static function getStatusList()
+    {
+        return [self::STATUS_FORBID => '禁用', self::STATUS_FORMAL => '正常'];
     }
-    public static function getAdminTypeList() {
-        return [self::GROUP_TYPE_SUPER_ADMIN=> '超级管理', self::GROUP_TYPE_ADMIN=> '普通管理'];
+
+    public static function getAdminTypeList()
+    {
+        return [self::GROUP_TYPE_SUPER_ADMIN => '超级管理', self::GROUP_TYPE_ADMIN => '一般管理'];
     }
-    public static function getStatusAttr($value) {
+
+    public static function getStatusAttr($value)
+    {
         $list = self::getStatusList();
         return $list[$value];
     }
-    public static function getAdminTypeAttr($value) {
+
+    public static function getAdminTypeAttr($value)
+    {
         $list = self::getAdminTypeList();
         return $list[$value];
     }
-    public static function getRuleTypeList() {
-        return [self::RULE_TYPE_MENU=> '菜单', self::RULE_TYPE_OTHER=> '其它'];
+
+    public static function getRuleTypeList()
+    {
+        return [self::RULE_TYPE_MENU => '菜单', self::RULE_TYPE_OTHER => '其它'];
     }
-    public static function getRuleTypeAttr($value) {
+
+    public static function getRuleTypeAttr($value)
+    {
         $list = self::getRuleTypeList();
         return $list[$value];
     }
-    public static function timestampToMinute($value) {
-        return date('Y-m-d H:i',$value);
+
+    public static function timestampToMinute($value)
+    {
+        return date('Y-m-d H:i', $value);
     }
 }

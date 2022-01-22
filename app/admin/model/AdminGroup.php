@@ -10,7 +10,6 @@ use think\Model;
  */
 class AdminGroup extends Model
 {
-    //
     public function admin() {
         return $this->hasOne(Admin::class,'admin_id','id');
     }
