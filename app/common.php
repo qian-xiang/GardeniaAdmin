@@ -21,7 +21,7 @@ if (!function_exists('create_password')) {
      * @return string
      */
     function create_password($pwd = '', $salt = '') {
-        return md5($salt.env('admin_login.password_salt','gardenia').md5($pwd));
+        return md5($salt.md5($pwd));
     }
 }
 if (!function_exists('remove_dir')) {
@@ -344,6 +344,34 @@ if (!function_exists('get_addon_view_dir')) {
      */
     function get_addon_view_dir($onlyDirName = false) {
         return $onlyDirName ? 'view' : ADDON_APP_PATH.'view';
+    }
+}
+if (!function_exists('make_validate_rule_data')) {
+    /**
+     * 组装验证规则数据
+     * @param array $rule
+     * @param array $data
+     * @param string $func
+     * @return array
+     */
+    function make_validate_rule_data($rule = [], $data = [], $func = 'empty') {
+        $_data = [];
+        $rule_key = array_keys($rule);
+        foreach ($rule_key as $key) {
+            $temp = explode('|',$key);
+            switch ($func) {
+                case 'empty':
+                    !empty($data[$temp[0]]) && $_data[$temp[0]] = $data[$temp[0]];
+                    break;
+                case 'isset':
+                    !isset($data[$temp[0]]) && $_data[$temp[0]] = $data[$temp[0]];
+                    break;
+                default :
+                    $func($data[$temp[0]]) && $_data[$temp[0]] = $data[$temp[0]];
+                    break;
+            }
+        }
+        return $_data;
     }
 }
 

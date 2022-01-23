@@ -32,4 +32,5 @@ return [
     // 显示错误信息
     'show_error_msg'   => env('APP_DEBUG',false),
     'page_num' => 10,
+    'jwt_secret' => "sf56622544*44gss$6!?&522s",
 ];

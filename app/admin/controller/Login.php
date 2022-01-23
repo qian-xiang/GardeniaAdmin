@@ -12,6 +12,7 @@ use app\admin\extend\diy\extra_class\AppConstant;
 use app\admin\AdminController;
 use app\admin\model\Admin;
 use Firebase\JWT\JWT;
+use think\facade\Config;
 use think\facade\Session;
 use think\Validate;
 use think\validate\ValidateRule;
@@ -57,7 +58,7 @@ class Login extends AdminController
         if (env('admin_login.login_type',AppConstants::LOGIN_TYPE_COOKIE) === AppConstants::LOGIN_TYPE_COOKIE) {
             $token = login_token_generate($admin['id']);
         } else {
-            $secret = env('admin_login.jwt_secret','gardenia_1234567');
+            $secret = Config::get('app.jwt_secret','gardenia_1234567');
             $payload = array(
                 "id" => $admin['id'],
                 "username" => $admin['username'],

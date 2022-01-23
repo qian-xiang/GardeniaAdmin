@@ -1,0 +1,49 @@
+<style>
+    div.form-group.form-check.col-xs-7 {
+        padding: 0 30px;
+    }
+</style>
+<form id="form-edit" onsubmit="return false;">
+    <input type="hidden" name="id" value="{$row.id}">
+    <div class="form-group row">
+        <label id="test" class="col-form-label col-sm-2 text-center" for="group_id">管理员组</label>
+        <select class="form-control col-sm-5" data-rule="required" name="group_id" id="group_id">
+            {foreach $groupList as $vo}
+            <option value="{$vo.id}" {eq name="vo.id" value="$row.group_id"}selected{/eq}>{$vo.title}</option>
+            {/foreach}
+        </select>
+    </div>
+    <div class="form-group row">
+        <label class="col-form-label col-sm-2 text-center" for="username">用户名</label>
+        <input type="text" class="form-control col-sm-5" data-rule="用户名: required;length(2~15)" id="username" name="username" placeholder="请输入用户名" value="{$row.username|htmlspecialchars}">
+    </div>
+    <div class="form-group row">
+        <label class="col-form-label col-sm-2 text-center" for="username">密码</label>
+        <input type="password" class="form-control col-sm-5" data-rule="" id="password" name="password" placeholder="请输入密码">
+    </div>
+    <div class="form-group row">
+        <label class="col-form-label col-sm-2 text-center" for="username">确认密码</label>
+        <input type="password" class="form-control col-sm-5" data-rule="确认密码: match(password)" id="confirm_password" name="confirm_password" placeholder="请输入确认密码">
+    </div>
+    <div class="form-group row">
+        <label class="col-form-label col-sm-2 text-center" for="status">状态</label>
+        <select class="form-control col-sm-5" id="status" data-rule="required;" name="status">
+            {foreach $statusList as $key => $vo}
+            <option value="{$key}" {eq name="key" value="$row.status|htmlspecialchars"}selected{/eq}>{$vo}</option>
+            {/foreach}
+        </select>
+    </div>
+    <div class="form-group row" style="margin-top: 36px;">
+        <div class="col-sm-7 row">
+            <div class="col-sm-6 col-xs-12 row flex-xs-row flex-sm-row justify-content-sm-end">
+                <button type="reset" class="btn btn-danger">重置</button>
+            </div>
+            <div class="col-sm-6 col-xs-12 row flex-xs-row flex-sm-row justify-content-sm-center">
+                <button type="submit" class="btn btn-primary">提交</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</form>

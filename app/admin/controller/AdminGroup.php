@@ -11,8 +11,7 @@ use app\admin\model\AdminGroup as AdminGroupModel;
 use app\validate\admin\AdminGroupValidate;
 use constant\AppConstant;
 use app\admin\AdminController;
-use gardenia_admin\src\core\core_class\GardeniaForm;
-use gardenia_admin\src\core\core_class\GardeniaHelper;
+use app\admin\model\Admin;
 use think\exception\ValidateException;
 use think\facade\Db;
 use app\admin\model\MenuRule;
@@ -95,39 +94,6 @@ class AdminGroup extends AdminController
             $model = new AdminGroupModel();
             $model->save($_data);
             success('新增用户组成功！');
-        }
-    }
-
-    /**
-     * 显示指定的资源
-     *
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function read($id)
-    {
-        $request = \request();
-        if ($request->isGet()){
-            $userGroup = Db::name('auth_group')->field('id,title,status,rules')->find($id);
-            $ruleList = Db::name('auth_rule')->field('id,title,pid,name as field')->select()->toArray();
-            $userGroup['rules'] = explode(',',$userGroup['rules']);
-            if ($ruleList){
-                $nodeList = $this->buildTreeData($ruleList,0,$userGroup['rules']);
-            }
-            $statusList = AppConstant::getStatusList();
-
-
-            $gardeniaForm = new GardeniaForm();
-            $gardeniaForm->addFormItem('gardenia','hidden','id','ID',null,['value'=> $userGroup['id']])
-                ->addFormItem('gardenia','text','title','用户组名',null,['value'=> $userGroup['title'], 'readonly' => true])
-                ->addFormItem('gardenia','select','status','状态',$statusList,[
-                        'disabled' => true,
-                        'value' => $userGroup['status']
-                    ])
-                ->addFormItem('gardenia','tree','rules','规则',$nodeList,['disabled' => true])
-                ->addBottomButton('gardenia','cancel','cancel','返回')
-                ->setFormStatus(true)
-                ->display();
         }
     }
 
@@ -227,17 +193,20 @@ class AdminGroup extends AdminController
     public function delete()
     {
         $request = $this->request;
-        $id = $request->post('id',0);
-        !isset($id) && error('id必传');
-        if ($request->user['admin_type'] !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
-            error('超级管理员不能删除用户组');
+        $ids = $request->post('id',0);
+        try {
+            $this->validate(['ids' => $ids],[
+                'ids' => 'require|integer|>:0'
+            ]);
+        } catch (ValidateException $e) {
+            error($e->getMessage());
         }
-        $res = Db::name('auth_group')->where([
-            ['id','in',$id]
-        ])->delete();
-        if (!$res){
-            error('删除失败');
-        }
+        Db::startTrans();
+        AdminGroupModel::destroy($ids,true);
+        Admin::destroy(function ($query) use ($ids) {
+            $query->name('admin_group_access')->where('group_id','in',$ids)->column('admin_id');
+        },true);
+        Db::commit();
         error('删除成功',[],url('/'.$request->controller())->build());
     }
 

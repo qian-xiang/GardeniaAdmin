@@ -52,8 +52,8 @@ class AdminController extends BaseController
         if (!$request->admin_info) {
             return [];
         }
-        $controller = $request->controller(true);
-        $action = $request->action(true);
+        $controller = $request->controller();
+        $action = $request->action();
         $appName = $this->app->http->getName();
         if ($controller === config('route.default_controller') &&
             $action === config('route.default_action')){
@@ -150,13 +150,13 @@ class AdminController extends BaseController
         $accessArr = MenuRule::where($map)
             ->where(['status'=> AppConstant::STATUS_FORMAL])
             ->withAttr('name',function ($value) use ($appName) {
-                return strtolower('/'.$appName.'/'.$value);
+                return '/'.$appName.'/'.$value;
             })->order('weigh','desc')->select();
         if (!$accessArr){
             error('您没有权限访问，因为尚未有任何权限');
         }
-        $controller = $request->controller(true);
-        $action = $request->action(true);
+        $controller = $request->controller();
+        $action = $request->action();
         //还需处理appName为空的问题
         $access = '/'.$appName.'/'.$controller.'/'.$action;
         $accessNameList = array_column($accessArr->toArray(),'name');
@@ -211,12 +211,13 @@ class AdminController extends BaseController
             $controllerName = $this->request->controller();
             $actionName = $this->request->action();
             $viewCofig['view_path'] = app_path().$viewCofig['view_dir_name'].DIRECTORY_SEPARATOR;
-            $viewCofig['cache_path'] = runtime_path().'temp';
+            $viewCofig['cache_path'] = runtime_path().'temp'.DIRECTORY_SEPARATOR;
             $layoutPath = '../../common/core/tpl/layout';
         }
         if (!$template) {
             $template = Str::snake($controllerName).DIRECTORY_SEPARATOR.Str::snake($actionName);
         }
+
         $viewInstance = new Template($viewCofig);
 
         if ($isUseLayout) {
