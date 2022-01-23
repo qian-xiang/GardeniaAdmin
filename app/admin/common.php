@@ -32,52 +32,7 @@ if (!function_exists('get_client_ip')) {
         return $_SERVER['REMOTE_ADDR'];
     }
 }
-if (!function_exists('success')) {
-    function success($content = '',$redirectUrl = null,$second = 3) {
-        $redirectUrl = $redirectUrl === null ? url('/'.request()->controller()) : $redirectUrl;
-        if (is_addon_request()) {
-            $viewConfig = require_once root_path().'addon/fast_dev/config/view.php';
-            $thinkView = new \think\view\driver\Think(new App(),$viewConfig);
-        } else {
-            $thinkView = new \think\view\driver\Think(new App());
-        }
-        $thinkView->fetch('common/success',[
-            'content' => $content,
-            'redirectUrl' => $redirectUrl,
-            'second' => $second
-        ]);
-//        view('common/success',[
-//            'content' => $content,
-//            'redirectUrl' => $redirectUrl,
-//            'second' => $second
-//        ])->send();
-    }
 
-}
-if (!function_exists('error')) {
-    function error($content = '',$redirectUrl = null,$second = 3) {
-        $appPath =  app_path();
-        // 如果是插件请求，更改视图默认的访问位置
-        $viewConfig = [];
-        if (is_addon_request()) {
-            $appPath = $appPath.ADDON_APP.DIRECTORY_SEPARATOR;
-            $viewConfig = require_once root_path().'app/common/addon/config/view.php';
-        } else {
-            $viewConfig = config('view');
-        }
-        $app = new App();
-        $app->setAppPath($appPath);
-        $thinkView = new \think\view\driver\Think($app,$viewConfig);
-
-        $template = $appPath.$viewConfig['view_dir_name'].DIRECTORY_SEPARATOR.'common'.DIRECTORY_SEPARATOR.'error'.($viewConfig['view_suffix'] ? '.'.$viewConfig['view_suffix'] : '');
-
-        $thinkView->fetch($template,[
-            'content' => $content,
-            'redirectUrl' => $redirectUrl,
-            'second' => $second
-        ]);
-    }
-}
 
 
 

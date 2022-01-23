@@ -1,7 +1,6 @@
 require.config({
     baseUrl: '/static/',
     paths: {
-        'test': 'lib/test',
         'jquery': 'lib/jquery-3.6.0.min',
         'popper': 'js/popper-v1.16.0.min',
         'bootstrap': 'lib/bootstrap-4.3.1-dist/js/bootstrap.min',
@@ -51,6 +50,9 @@ require.config({
         },
         'vakata-jstree': {
             deps: ['jquery','style!lib/vakata-jstree/dist/themes/default/style.min'],
+        },
+        'garForm' : {
+            deps: ['style!lib/../css/gar-form']
         }
     },
     map: {

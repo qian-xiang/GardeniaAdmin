@@ -47,45 +47,6 @@ class AdminController extends BaseController
 
     }
 
-    /**
-     * 以layui请求数据返回的格式来返回数据
-     * @param $code
-     * @param $msg
-     * @param string $data
-     * @param string $redirectUrl
-     * @return \think\Response
-     */
-    protected function layuiAjaxReturn($code,$msg,$data = '',$redirectUrl = '') {
-        response([
-            'code' => $code,
-            'msg' => $msg,
-            'data' => $data,
-            'redirectUrl' => $redirectUrl,
-        ],200,[],'json')->send();
-    }
-    protected function success($content = '',$redirectUrl = null,$second = 3) {
-        $redirectUrl = $redirectUrl === null ? url('/'.request()->controller()) : $redirectUrl;
-        $suffix = \config('view.view_suffix');
-        $suffix = $suffix ? '.'.$suffix : '';
-        view(app_path().'view/common/success'.$suffix,[
-            'content' => $content,
-            'redirectUrl' => $redirectUrl,
-            'second' => $second
-        ])->send();
-    }
-    protected function error($content = '',$redirectUrl = null,$second = 3) {
-//        $suffix = \config('view.view_suffix');
-//        $suffix = $suffix ? '.'.$suffix : '';
-        $path = 'view/common/error';
-
-        $path = is_addon_request() ? app_path().ADDON_APP.'/'.$path.'.html' : $path;
-        $redirectUrl = $redirectUrl === null ? $this->request->header('referer') : $redirectUrl;
-        view($path,[
-            'content' => $content,
-            'redirectUrl' => $redirectUrl,
-            'second' => $second
-        ])->send();
-    }
     protected function getRenderMenuList() {
         $request = $this->request;
         if (!$request->admin_info) {
@@ -282,8 +243,8 @@ class AdminController extends BaseController
             'runtimeInfo' => [
                 'page' => [
                     'app' => 'admin',
-                    'controller' => $this->request->controller(true),
-                    'action' => $this->request->action(true),
+                    'controller' => $this->request->controller(),
+                    'action' => $this->request->action(),
                     'url' => url()->build(),
                 ],
                 'apiCode' => AppConstant::getApiCodeList(),

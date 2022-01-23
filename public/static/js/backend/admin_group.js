@@ -185,6 +185,7 @@ var page = {
                         },
                         error: function (e) {
                             console.log('出错啦',e)
+                            $(ele).find('button[type="submit"]').attr('disabled',false);
                             swal({
                                 title: '提示',
                                 text: '出错啦，请稍候重试',
@@ -206,7 +207,7 @@ var page = {
                         'icons': false,
                     }
                 },
-                'plugins': ['checkbox']
+                'plugins': ['checkbox'],
             })
             $('#check-all').change(function () {
                 if ($(this).is(':checked')) {

@@ -126,12 +126,34 @@ if (!function_exists('reply_json')) {
      * @param string $redirectUrl 跳转的url
      * @param int $code
      */
-    function reply_request($msg = '', $data = [], $code = AppConstant::CODE_SUCCESS) {
-        throw new AppException(json_encode([
-            'msg' => $msg,
-            'data' => $data,
-            'code' => $code,
-        ],JSON_UNESCAPED_UNICODE));
+    function reply_request($msg = '', $data = [], $url = '', $second = 3, $code = AppConstant::CODE_SUCCESS) {
+        if (request()->isAjax()) {
+            throw new AppException(json_encode([
+                'msg' => $msg,
+                'data' => $data,
+                'code' => $code,
+            ],JSON_UNESCAPED_UNICODE));
+        } else {
+            $appPath =  app_path();
+            // 如果是插件请求，更改视图默认的访问位置
+            if (is_addon_request()) {
+                $appPath = $appPath.ADDON_APP.DIRECTORY_SEPARATOR;
+                $viewConfig = require_once root_path().'app/common/addon/config/view.php';
+            } else {
+                $viewConfig = config('view');
+            }
+            $app = new \think\App();
+            $app->setAppPath($appPath);
+            $thinkView = new \think\view\driver\Think($app,$viewConfig);
+
+            $template = $appPath.$viewConfig['view_dir_name'].DIRECTORY_SEPARATOR.'common'.DIRECTORY_SEPARATOR.'error'.($viewConfig['view_suffix'] ? '.'.$viewConfig['view_suffix'] : '');
+
+            $thinkView->fetch($template,[
+                'content' => $msg,
+                'redirectUrl' => $url,
+                'second' => $second
+            ]);
+        }
     }
 }
 if (!function_exists('success')) {
@@ -139,9 +161,11 @@ if (!function_exists('success')) {
      * 返回成功信息
      * @param string $msg
      * @param array $data
+     * @param string $url 跳转的url，非ajax请求用到
+     * @param int $second 秒数，非ajax请求用到
      */
-    function success($msg = '',$data = []) {
-        reply_request($msg,$data,AppConstant::CODE_SUCCESS);
+    function success($msg = '',$data = [], $url = '', $second = 3) {
+        reply_request($msg,$data,$url, $second, AppConstant::CODE_SUCCESS);
     }
 }
 if (!function_exists('error')) {
@@ -149,9 +173,11 @@ if (!function_exists('error')) {
      * 返回错误信息
      * @param string $msg
      * @param array $data
+     * @param string $url 跳转的url，非ajax请求用到
+     * @param int $second 秒数，非ajax请求用到
      */
-    function error($msg = '',$data = []) {
-        reply_request($msg,$data,AppConstant::CODE_ERROR);
+    function error($msg = '',$data = [], $url = '', $second = 3) {
+        reply_request($msg,$data,$url, $second,AppConstant::CODE_ERROR);
     }
 }
 if (!function_exists('build_toolbar_btn')) {

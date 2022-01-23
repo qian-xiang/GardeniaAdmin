@@ -15,8 +15,6 @@ use gardenia_admin\src\core\core_class\GardeniaForm;
 use gardenia_admin\src\core\core_class\GardeniaHelper;
 use think\exception\ValidateException;
 use think\facade\Db;
-use think\Validate;
-use think\validate\ValidateRule;
 use app\admin\model\MenuRule;
 
 class AdminGroup extends AdminController
@@ -143,15 +141,17 @@ class AdminGroup extends AdminController
     {
         $request = \request();
         if ($request->isGet()){
-            $userGroup = AdminGroupModel::find($id);
-            if (!$userGroup) {
+            $adminGroup = AdminGroupModel::find($id);
+            if (!$adminGroup) {
                 error('该分组已不存在');
             }
+            $adminGroup['rules'] = $adminGroup['rules'] ? explode(',',$adminGroup['rules']) : [];
             $ruleList = MenuRule::field('id,title as text,pid as parent,name')->select()->toArray();
             foreach ($ruleList as &$item) {
                 $item['parent'] = $item['parent'] ?: '#';
                 $item['state'] = [
                     'opened' => true,
+                    'selected' => in_array($item['id'],$adminGroup['rules'])
                 ];
             }
             unset($item);
@@ -159,9 +159,8 @@ class AdminGroup extends AdminController
             $this->view('',[
                 'ruleList' => $ruleList,
                 'pidList' => $adminGroupList,
-                'pidVal' => $userGroup->pid,
                 'statusList' => AppConstant::getStatusList(),
-                'defaultStatus' => $userGroup->status,
+                'row' => $adminGroup,
             ]);
         }elseif ($request->isPost()) {
             $data = $request->post();
@@ -181,30 +180,42 @@ class AdminGroup extends AdminController
                 !empty($data[$temp[0]]) && $_data[$temp[0]] = $data[$temp[0]];
             }
             //找出该分组的所有子节点
-            $rows = AdminGroupModel::select();
+            $rows = AdminGroupModel::field('id,pid')->select();
             $children = [];
-            foreach ($rows as $item) {
-                if ($item['id'] === $adminGroup['pid']) {
-
-                }
-                $children[] = $item;
-            }
-            $data['rules'] = json_decode($data['rules'],true);
-            $rules = $this->getMenuIds($data['rules']);
-
-            $rules = $rules ? implode(',',$rules) : '';
-            $updateData = [
-                'title' => $data['title'],
-                'status' => $data['status'],
-                'rules' => $rules,
+            $tempList = [
+                ['id' => $data['id']]
             ];
-            $res = AdminGroup::update($updateData,[
-                'id' => $data['id'],
-            ]);
-            if (!$res){
-                $this->error('更新用户组名失败，请稍候重试。');
+
+            while (true) {
+                $temp = [];
+                foreach ($tempList as $temp_item) {
+                    foreach ($rows as $item) {
+                        if ($temp_item['id'] === $item['pid']) {
+                            $children[] = $item['id'];
+                            $temp[] = $item;
+                        }
+                    }
+                }
+                if (!$temp) {
+                    break;
+                }
+                $tempList = $temp;
             }
-            $this->success('更新用户组成功！',url('/'.$request->controller())->build());
+
+            $row = AdminGroupModel::where([
+                ['id','in',$children]
+            ])->field('id,rules')->select();
+            //连带更新子节点的规则
+            foreach ($row as &$item) {
+                $item['rules'] = $item['rules'] ? explode(',',$item['rules']) : [];
+                $item['rules'] = join(',',array_intersect($data['rules'],$item['rules']));
+            }
+            unset($item);
+            $_data['rules'] = join(',',$_data['rules']);
+            $row[] = $_data;
+            $model = new AdminGroupModel();
+            $model->saveAll($row);
+            success('更新用户组成功！',[],url('/'.$request->controller())->build());
         }
     }
 
@@ -217,51 +228,18 @@ class AdminGroup extends AdminController
     {
         $request = $this->request;
         $id = $request->post('id',0);
-        !isset($id) && $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'id必传');
+        !isset($id) && error('id必传');
         if ($request->user['admin_type'] !== AppConstant::GROUP_TYPE_SUPER_ADMIN){
-            $this->error('超级管理员不能删除用户组');
+            error('超级管理员不能删除用户组');
         }
         $res = Db::name('auth_group')->where([
             ['id','in',$id]
         ])->delete();
         if (!$res){
-            return $this->layuiAjaxReturn(AppConstant::CODE_ERROR,'删除失败');
+            error('删除失败');
         }
-        return $this->layuiAjaxReturn(AppConstant::CODE_SUCCESS,'删除成功','',url('/'.$request->controller())->build());
+        error('删除成功',[],url('/'.$request->controller())->build());
     }
-    public function getData() {
-        $list = Db::name('auth_group')
-            ->withAttr('status',function ($value) {
-                return AppConstant::getStatusAttr($value);
-            })
-            ->withAttr('type',function ($value) {
-                return AppConstant::getAdminTypeAttr($value);
-            })
-            ->order(['id' => 'desc'])->select()->toArray();
-        $recordCount = count($list);
-        $list = GardeniaHelper::layPaginate($list);
-        $data = [
-            'code' => AppConstant::CODE_SUCCESS,
-            'msg' => '获取成功！',
-            'count' => $recordCount,
-            'data' => $list
-        ];
 
-        return response($data,200,[],'json');
-    }
-    protected function getMenuIds($data = []) {
-        $list = [];
-        $_list = [];
-        foreach ($data as $item) {
-            if (!empty($item['children'])) {
-                $_list = $this->getMenuIds($item['children']);
-            }
-            $item['checked'] && $list[] = $item['id'];
-        }
-        unset($item);
-        $list = array_merge_recursive($list,$_list);
-
-        return $list;
-    }
 
 }
