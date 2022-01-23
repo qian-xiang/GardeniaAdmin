@@ -76,7 +76,10 @@ define(['helper'],function (Helper) {
                 return html;
             },
             dateTime: function (value,row,index) {
-                var d = new Date()
+                if (!value) {
+                    return '';
+                }
+                var d = new Date(value)
                 var month = Helper.numberToAddZero(d.getMonth() + 1)
                 var date = Helper.numberToAddZero(d.getDate())
                 var seconds = Helper.numberToAddZero(d.getSeconds())

@@ -47,8 +47,8 @@ class Admin extends AdminController
               'a.update_time',
             ];
             $list = AdminModel::alias('a')->leftJoin('admin p','p.id = a.pid')->where($map)->limit($data['offset'],$data['limit'])
-                ->field($field)->order(['a.create_time' => 'desc'])->select()->toArray();
-            $total = AdminModel::alias('a')->where($map)->leftJoin('admin p','p.id = a.pid')->count('a.id');
+                ->field($field)->order(['a.create_time' => 'desc'])->select();
+            $total = AdminModel::alias('a')->leftJoin('admin p','p.id = a.pid')->where($map)->count('a.id');
             return json([
                 'rows' => $list,
                 'total' => $total,
@@ -133,7 +133,7 @@ class Admin extends AdminController
         }elseif ($request->isPost()) {
             $data = $request->post();
             $validate = new AdminValidate();
-            $rule = $validate->setEditAdminRule();
+            $validate->setEditAdminRule();
             if (!$validate->check($data)){
                 error($validate->getError());
             }

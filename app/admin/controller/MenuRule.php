@@ -41,11 +41,9 @@ class MenuRule extends AdminController
             }
 
             $list = AuthRuleModel::where($map)->limit($data['offset'],$data['limit'])
-                ->order(['weigh' => 'desc','id' => 'desc'])->select()->toArray();
+                ->order(['weigh' => 'desc','id' => 'desc'])->select();
             $total = AuthRuleModel::where($map)->count('id');
-            foreach ($list as &$item) {
-                $item['create_time'] = 'https://interactive-examples.mdn.mozilla.net/media/examples/plumeria.jpg';
-            }
+
             return json([
                 'rows' => $list,
                 'total' => $total,
@@ -72,7 +70,7 @@ class MenuRule extends AdminController
             ]);
 
             if (!$validate->check($data)) {
-                error_json($validate->getError());
+                error($validate->getError());
             }
 
             $res = AuthRuleModel::where([
@@ -80,7 +78,7 @@ class MenuRule extends AdminController
                 'name' => $data['name'],
             ])->find();
             if ($res) {
-                error_json('该规则名称和标题已存在！');
+                error('该规则名称和标题已存在！');
             }
             $insertData = [
                 'type' => $data['type'],
@@ -91,31 +89,17 @@ class MenuRule extends AdminController
                 'weigh' => $data['weigh'],
                 'status' => $data['status'],
             ];
-
-            if ((int)$data['pid'] === 0){
-                $insertData['root_id'] = 0;
-            } else {
-                $res = AuthRuleModel::where(['id' => $data['pid']])->field('root_id')->find();
-                if (!$res){
-                    error_json('该父级规则不存在，或已被删除！');
-                }
-                $insertData['root_id'] = $res['root_id'] === 0 ? $data['pid'] : $res['root_id'];
-            }
             $AuthRuleModelModel = new AuthRuleModel();
-            $res = $AuthRuleModelModel->save($insertData);
-            if (!$res){
-                error_json('添加规则失败，请稍候重试。');
-            }
-
-            success_json('添加成功！');
+            $AuthRuleModelModel->save($insertData);
+            success('添加成功！');
         }
         $ruleTypeList = AppConstant::getRuleTypeList();
 
         $statusList = AppConstant::getStatusList();
 
-        $parent = Db::name('auth_rule')->where(['type' => AppConstant::RULE_TYPE_MENU])->column('title','id');
+        $parent = AuthRuleModel::where(['type' => AppConstant::RULE_TYPE_MENU])->column('title','id');
         $parent[0] = '无';
-        $max = Db::name('auth_rule')->max('weigh');
+        $max = AuthRuleModel::max('weigh');
         $max++;
         return $this->view('',[
             'ruleTypeList' => $ruleTypeList,
@@ -127,60 +111,6 @@ class MenuRule extends AdminController
             'defaultStatus' => AppConstant::LOGIN_STATUS_NORMAL,
         ]);
 
-    }
-
-
-    /**
-     * 显示指定的资源
-     *
-     * @param  int  $id
-     * @return \think\Response
-     */
-    public function read($id)
-    {
-        $request = request();
-        if ($request->isGet()){
-
-            $currentMenu = Db::name('auth_rule')->where(['id'=> $id])->find();
-            if (!$currentMenu){
-                $this->error('该条规则信息不存在！');
-            }
-            //获取菜单列表
-            $menu = Db::name('auth_rule')->whereOr([
-                ['id','>',$id],
-                ['id','<',$id],
-            ])->column('title','id');
-
-            $parent = $menu;
-
-            $parent[0] = '无';
-
-            $menu = null;
-            $ruleTypeList = AppConstant::getRuleTypeList();
-            $statusList = AppConstant::getStatusList();
-
-            $gardeniaForm = new GardeniaForm();
-            $gardeniaForm->addFormItem('gardenia','select','rule_type','规则类型',$ruleTypeList,[
-                'disabled' => 'disabled',
-                'value' => $currentMenu['type']
-            ])
-                ->addFormItem('gardenia','hidden','id','规则ID',null,['value' => $id])
-                ->addFormItem('gardenia','select','pid','父级',$parent,[
-                    'disabled' => 'disabled',
-                    'value' => $currentMenu['pid']
-                ])
-                ->addFormItem('gardenia','text','title','标题',null,['value'=> $currentMenu['title'], 'readonly' => 'readonly'])
-                ->addFormItem('gardenia','text','icon','图标',null,['value' => $currentMenu['icon'], 'readonly' => 'readonly'])
-                ->addFormItem('gardenia','text','rule','规则',null,['value' => $currentMenu['name'], 'readonly' => 'readonly'])
-                ->addFormItem('gardenia','text','rule_condition','规则条件',null,['readonly' => 'readonly','value' => $currentMenu['condition']])
-                ->addFormItem('gardenia','number','weigh','权重',null,['value' => $currentMenu['weigh'], 'readonly' => 'readonly'])
-                ->addFormItem('gardenia','select','status','状态',$statusList,[
-                    'disabled' => 'disabled',
-                    'value' => $currentMenu['status']
-                ])
-                ->addBottomButton('gardenia','cancel','cancel','取消')
-                ->display();
-        }
     }
 
     /**
@@ -196,7 +126,7 @@ class MenuRule extends AdminController
 
             $currentMenu = AuthRuleModel::find($id);
             if (!$currentMenu){
-                error_json('该条规则信息不存在！');
+                error('该条规则信息不存在！');
             }
             //获取菜单列表
             $menu = AuthRuleModel::whereOr([
@@ -210,7 +140,7 @@ class MenuRule extends AdminController
             $menu = null;
             $ruleTypeList = AppConstant::getRuleTypeList();
             $statusList = AppConstant::getStatusList();
-            return $this->view('',[
+            $this->view('',[
                 'row' => $currentMenu,
                 'ruleTypeList' => $ruleTypeList,
                 'statusList' => $statusList,
@@ -232,7 +162,7 @@ class MenuRule extends AdminController
             ]);
 
             if (!$validate->check($data)) {
-                error_json($validate->getError());
+                error($validate->getError());
             }
 
             $updateData = [
@@ -247,26 +177,8 @@ class MenuRule extends AdminController
             ];
 
             isset($data['rule_condition']) && $updateData['condition'] = $data['rule_condition'];
-            if ((int)$data['pid'] === 0){
-                $updateData['root_id'] = 0;
-            } else {
-                $res = AuthRuleModel::where(['id' => $data['pid']])->find();
-                if (!$res){
-                    error_json('该父级规则不存在，或已被删除！');
-                }
-                $updateData['root_id'] = $res['root_id'] === 0 ? $data['pid'] : $res['root_id'];
-            }
-            Db::startTrans();
-            $res = AuthRuleModel::update($updateData);
-            if ($res->getNumRows() !== 1){
-                Db::rollback();
-                error_json('修改规则失败，请稍候重试。');
-            }
-            Db::commit();
-            success_json('修改成功！',[],url('index')->build());
-
-        } else {
-            error_json('访问方式非法！');
+            AuthRuleModel::update($updateData);
+            success('修改成功！',[],url('index')->build());
         }
     }
 
@@ -275,23 +187,21 @@ class MenuRule extends AdminController
      *
      * @return \think\Response
      */
-    public function del()
+    public function delete()
     {
         $request = $this->request;
         $id = $request->post('id',0);
-        !isset($id) && error_json('id必传');
+        !isset($id) && error('id必传');
         $id = explode(',',$id);
-        $primaryKey = Db::name('auth_rule')->getPk();
+        $model = new AuthRuleModel;
+
+        $primaryKey = $model->getPk();
         Db::startTrans();
-        $res = AuthRuleModel::where([
+        AuthRuleModel::where([
             [$primaryKey,'in',$id],
-        ])->whereOr(['root_id' => $id])->whereOr(['pid' => $id])->delete();
-        if (!$res){
-            Db::rollback();
-            error_json('删除失败');
-        }
+        ])->whereOr(['pid' => $id])->delete();
         Db::commit();
-        success_json('成功删除'.count($id).'条数据',[]);
+        success('成功删除'.count($id).'条数据',[]);
     }
 
 

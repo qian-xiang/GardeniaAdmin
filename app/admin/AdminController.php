@@ -71,7 +71,6 @@ class AdminController extends BaseController
         foreach ($ruleList as $key => $item) {
             if ($item['name'] === $menuUrl) {
                 $currentMenuId = $item['id'];
-                $rootId = $item['root_id'] === 0 ? $item['id'] : $item['root_id'];
                 $ruleType = $item['type'];
                 $pid = $item['pid'];
             }
@@ -88,7 +87,7 @@ class AdminController extends BaseController
         return $this->getIndexTreeMenu($ruleList,0,$currentMenuId,$rootId);
     }
 
-    protected function getIndexTreeMenu($ruleList,$pid,$currentMenuId,$rootId,$currentLevel = 0,$maxLevel = 0) {
+    protected function getIndexTreeMenu($ruleList,$pid,$currentMenuId,$currentLevel = 0,$maxLevel = 0) {
         $treeData = [];
         foreach ($ruleList as $key => $item){
             if ($maxLevel && $currentLevel === $maxLevel){
@@ -96,12 +95,12 @@ class AdminController extends BaseController
             }
 
             if ($item['pid'] === $pid) {
-                $result = $this->getIndexTreeMenu($ruleList,$item['id'],$currentMenuId,$rootId,$currentLevel,$maxLevel);
+                $result = $this->getIndexTreeMenu($ruleList,$item['id'],$currentMenuId,$currentLevel,$maxLevel);
                 // 以下就是处理子元素没有子节点后返回的逻辑
                 if ($result){
                     $item['children'] = $result;
                 }
-                $item['spread'] = $rootId === $currentMenuId ? false : ($item['root_id'] === $rootId || $item['id'] === $rootId);
+//                $item['spread'] = $item['id'] === $pid;
                 $item['active'] = $item['id'] === $currentMenuId;
                 $treeData[] = $item;
             }

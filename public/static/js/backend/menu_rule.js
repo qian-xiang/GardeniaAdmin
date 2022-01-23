@@ -52,7 +52,7 @@ var page = {
                     },
                     {
                         field: 'level',
-                        title: '等级',
+                        title: '层级',
                     },
                     {
                         field: 'weigh',
@@ -110,7 +110,7 @@ var page = {
                         rows = rows.join(',');
 
                         $.ajax({
-                            url: '/admin/menu/del',
+                            url: 'delete',
                             method: 'POST',
                             data: {
                                 id: rows,
@@ -171,6 +171,7 @@ var page = {
                         data: formData,
                         dataType: 'json',
                         success: function (res) {
+                            $(ele).find('button[type="submit"]').attr('disabled',false);
                             if (res.msg) {
                                 swal({
                                     text: res.msg,
@@ -196,6 +197,7 @@ var page = {
                         },
                         error: function (e) {
                             console.log('出错啦',e)
+                            $(ele).find('button[type="submit"]').attr('disabled',false);
                             swal({
                                 title: '提示',
                                 text: '出错啦，请稍候重试',
@@ -204,9 +206,6 @@ var page = {
                                 timer: 2000,
                             })
                         },
-                        complete: function () {
-                            $(ele).find('button[type="submit"]').attr('disabled',true);
-                        }
                     })
                 }
             });
