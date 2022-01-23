@@ -84,6 +84,7 @@ class Admin extends AdminController
             $salt = create_salt();
             $encryptPwd = create_password($data['password'],$salt);
             $data['password'] = $encryptPwd;
+            $data['salt'] = $salt;
             $data['pid'] = $request->admin_info->admin_id;
             Db::startTrans();
             try {
@@ -122,7 +123,7 @@ class Admin extends AdminController
             if (!$row) {
                 error('该管理员不存在');
             }
-            $adminGroup = AdminGroup::where(['status'=> AppConstant::STATUS_FORMAL])->field('title,id')->select();
+            $adminGroup = AdminGroup::where(['status' => AppConstant::STATUS_FORMAL])->field('title,id')->select();
             $statusList = AppConstant::getStatusList();
             $this->view('',[
                 'row' => $row,
@@ -145,11 +146,13 @@ class Admin extends AdminController
             $_data['username'] = $data['username'];
             $_data['id'] = $data['id'];
             $_data['password'] = empty($data['password']) ? '' : $data['password'];
+
             $data = $_data;
             if ($data['password']) {
                 $salt = create_salt();
                 $encryptPwd = create_password($data['password'],$salt);
                 $data['password'] = $encryptPwd;
+                $data['salt'] = $salt;
             }
             $adminGroupAccess = AdminGroupAccess::where([
                 'admin_id' => $data['id']

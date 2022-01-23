@@ -11,8 +11,10 @@ namespace app\admin\controller;
 use app\admin\extend\diy\extra_class\AppConstant;
 use app\admin\AdminController;
 use app\admin\model\Admin;
+use app\admin\model\AdminLoginLog;
 use Firebase\JWT\JWT;
 use think\facade\Config;
+use think\facade\Db;
 use think\facade\Session;
 use think\Validate;
 use think\validate\ValidateRule;
@@ -42,12 +44,11 @@ class Login extends AdminController
         }
         $admin = Admin::where([
             'username'=> $data['username'],
-            'is_delete' => AppConstants::IS_DELETE_NO
         ])->find();
         if (!$admin) {
             error('该用户不存在或已被删除！');
         }
-        if (!$admin['login_status']){
+        if (!$admin['status']){
             error('您已被禁止登录！');
         }
         if (create_password($data['password'],$admin['salt']) !== $admin['password']) {
@@ -67,24 +68,27 @@ class Login extends AdminController
             $token = JWT::encode($payload, $secret);
         }
 
-        $updateData = [
-            'login_ip'=> $this->request->ip(),
-            'login_time'=> $loginTime,
-            'last_login_ip'=> $admin['login_ip'] ? $admin['login_ip'] : '',
-            'last_login_time'=> $admin['login_time'] ? $admin['login_time'] : '',
-        ];
         if (env('admin_login.login_type',AppConstants::LOGIN_TYPE_COOKIE) === AppConstants::LOGIN_TYPE_COOKIE) {
             $updateData['login_code'] = $token;
-            $res = Admin::update($updateData,['id' => $admin['id']]);
-            if (!$res) {
-                error(lang('login.updateLoginStatusFail'));
+            Db::startTrans();
+            try {
+                Admin::update($updateData,['id' => $admin['id']]);
+                $adminLoginLogModel = new AdminLoginLog();
+                $adminLoginLogModel->save([
+                    'admin_id' => $admin['id'],
+                    'user_agent' => $this->request->header('user-agent'),
+                    'login_ip'=> $this->request->ip(),
+                    'create_time'=> $loginTime,
+                ]);
+                Db::commit();
+            } catch (\Exception $e) {
+                Db::rollback();
+                error('登录失败，请稍候重试');
             }
             cookie('login_code',$token,7*24*60*60);
         }
 
-//        trace($res ? '登录时更新数据成功！' : '登录时更新数据失败！','log');
-//        trace('用户：'.$admin['username'].' 于'.date('Y-m-d H:i:s').' 登录！','log');
-        $this->success(lang('login.succ'),url('/')->build());
+        success(lang('login.succ'),url('/')->build());
     }
 
     /**
@@ -92,7 +96,7 @@ class Login extends AdminController
      */
     public function logout() {
         cookie('login_code',null);
-        $this->success('注销成功！',url('/Login/index'));
+        success('注销成功！',url('/Login/index'));
     }
 
 }
