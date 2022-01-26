@@ -24,31 +24,31 @@ class Module
                 [
                     'type' => AppConstant::RULE_TYPE_MENU,
                     'title' => '频道管理',
-                    'name' => '/garcms/Channel',
+                    'name' => '/garcms/ChannelValidate',
                     'weigh' => -1,
                     'children' => [
                         [
                             'type' => AppConstant::RULE_TYPE_MENU,
                             'title' => '频道列表',
-                            'name' => '/garcms/Channel/index',
+                            'name' => '/garcms/ChannelValidate/index',
                             'weigh' => -1,
                         ],
                         [
                             'type' => AppConstant::RULE_TYPE_OTHER,
                             'title' => '新增',
-                            'name' => '/garcms/Channel/add',
+                            'name' => '/garcms/ChannelValidate/add',
                             'weigh' => -2,
                         ],
                         [
                             'type' => AppConstant::RULE_TYPE_OTHER,
                             'title' => '编辑',
-                            'name' => '/garcms/Channel/edit',
+                            'name' => '/garcms/ChannelValidate/edit',
                             'weigh' => -3,
                         ],
                         [
                             'type' => AppConstant::RULE_TYPE_OTHER,
                             'title' => '删除',
-                            'name' => '/garcms/Channel/delete',
+                            'name' => '/garcms/ChannelValidate/delete',
                             'weigh' => -4,
                         ],
                     ]
