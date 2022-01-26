@@ -374,4 +374,27 @@ if (!function_exists('make_validate_rule_data')) {
         return $_data;
     }
 }
+//if (!function_exists('remove_directory')) {
+//    /**
+//     * 删除文件夹
+//     * @param $dirname
+//     * @return bool
+//     */
+//    function remove_directory($dirname)
+//    {
+//        if (!is_dir($dirname)) {
+//            return false;
+//        }
+//        $dirname = substr($dirname,strlen($dirname) - 1) === DIRECTORY_SEPARATOR ? $dirname : $dirname.DIRECTORY_SEPARATOR;
+//        $fileList = glob($dirname.'*');
+//        foreach ($fileList as $path) {
+//            if (!is_dir($path)) {
+//                unlink($path);
+//            } else {
+//                remove_directory($path);
+//            }
+//        }
+//        return rmdir($dirname);
+//    }
+//}
 

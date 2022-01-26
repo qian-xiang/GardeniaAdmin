@@ -203,6 +203,4 @@ class MenuRule extends AdminController
         Db::commit();
         success('成功删除'.count($id).'条数据',[]);
     }
-
-
 }
