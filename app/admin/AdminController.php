@@ -37,6 +37,10 @@ class AdminController extends BaseController
 //    protected $noCheckAccess = [];
     protected $loadControllerLang = true;
     protected $langList = [];
+    //bootstrap搜索字段
+    protected $searchField = 'id';
+    //查询数据库时对搜索字段使用的操作符 $operate = 'like'
+    protected $operator = '=';
 
     // 初始化
     protected function initialize()

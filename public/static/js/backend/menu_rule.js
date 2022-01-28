@@ -24,6 +24,8 @@ var page = {
                 minimumCountColumns: true,
                 // showFooter: true,
                 idField: 'id',
+                sortName: 'weigh',
+                sortOrder: 'desc',
             };
             var obj = {
                 columns: [
