@@ -17,6 +17,7 @@ class CurdValidate extends Validate
     }
     public function setCurdOptionRule() {
         $this->rule = [
+            'app|应用名称' => 'require|alphaNum',
             'table|表名称' => 'require|chsDash',
             'controller|控制器名称' => 'require|alphaNum',
             'model|模型名称' => 'require|alphaNum',

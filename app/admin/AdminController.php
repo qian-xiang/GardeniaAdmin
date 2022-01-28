@@ -8,6 +8,7 @@ declare (strict_types = 1);
 namespace app\admin;
 
 use app\admin\model\MenuRule;
+use app\common\core\lib\CurdHelper;
 use constant\AppConstant;
 use app\admin\model\AdminGroupAccess;
 use think\App;
@@ -19,6 +20,7 @@ use think\facade\Config;
 
 class AdminController extends BaseController
 {
+    use CurdHelper;
     /**
      * Request实例
      * @var \think\Request

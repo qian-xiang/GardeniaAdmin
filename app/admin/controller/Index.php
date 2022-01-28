@@ -11,7 +11,6 @@ namespace app\admin\controller;
 
 use constant\AppConstant;
 use app\admin\AdminController;
-use gardenia_admin\src\core\core_class\GardeniaList;
 use \app\admin\model\Admin;
 
 class Index extends AdminController
