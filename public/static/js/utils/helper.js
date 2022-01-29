@@ -15,7 +15,7 @@ define(function () {
             return false;
         },
         /**
-         * 将小于0的数字加前导零
+         * 将小于10的数字加前导零
          * @param value
          * @returns {*}
          */

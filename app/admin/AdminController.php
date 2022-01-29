@@ -252,9 +252,11 @@ class AdminController extends BaseController
                     'controller' => $this->request->controller(),
                     'action' => $this->request->action(),
                     'url' => url()->build(),
+                    'controllerJs' => './static/js/backend/'.Str::snake(request()->controller()).'.js',
                 ],
                 'apiCode' => AppConstant::getApiCodeList(),
                 'asideMenuList' => $this->getRenderMenuList(),
+                'adminInfo' => $this->request->admin_info,
             ],
             'langList' => $this->langList,
         ];

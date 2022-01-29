@@ -66,7 +66,7 @@ var garBackend = {}
 var garLang;
 
 // 完成一系列初始化的过程
-require(['jquery','layui','helper'],function ($, layui,helper) {
+require(['layui','jquery','helper'],function (layui, $, helper) {
     // 定义一些全局变量
     var ele = '#___main-backend___';
     garBackend = $(ele).data('runtimeInfo')
