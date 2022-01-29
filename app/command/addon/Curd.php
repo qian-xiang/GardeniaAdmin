@@ -43,8 +43,9 @@ class Curd extends Command
         switch ($arguments['operate']) {
             case 'c';
                 //执行新增curd操作
+                $curlTplDir = base_path('common').'/core/tpl/curd/';
                 //先创建模型
-                $modelTplPath = base_path('common').'/core/tpl/curd/model.tpl';
+                $modelTplPath = $curlTplDir.'model.tpl';
                 $content = file_get_contents($modelTplPath);
                 $content = str_replace('[appName]',$options['app'],$content);
                 $content = str_replace('[modelName]',$options['model'],$content);
@@ -54,7 +55,7 @@ class Curd extends Command
                     throw new AppException('新增模型失败，请稍候重试');
                 }
                 //再创建控制器
-                $modelTplPath = base_path('common').'/core/tpl/curd/controller.tpl';
+                $modelTplPath = $curlTplDir.'controller.tpl';
                 $content = file_get_contents($modelTplPath);
                 $content = str_replace('[appName]',$options['app'],$content);
                 $content = str_replace('[controllerName]',$options['controller'],$content);
@@ -64,7 +65,14 @@ class Curd extends Command
                     throw new AppException('新增控制器失败，请稍候重试');
                 }
                 //新增视图文件
-
+                //加载指定应用的视图配置文件
+                $viewConfig = require_once base_path($options['app'].DIRECTORY_SEPARATOR).'config'.DIRECTORY_SEPARATOR.'view.php';
+                $viewConfig['view_dir_name'] = $viewConfig['view_dir_name'] ?: 'view';
+                $suffixText = $viewConfig['view_suffix'] ? '.'.$viewConfig['view_suffix'] : '.html';
+                $res = file_put_contents(base_path($options['app'].DIRECTORY_SEPARATOR.'view'.DIRECTORY_SEPARATOR.Str::snake($options['controller']).DIRECTORY_SEPARATOR.'index').$suffixText,file_get_contents($curlTplDir.'view'.DIRECTORY_SEPARATOR.'index.tpl'));
+                if (!$res) {
+                    throw new AppException('新增index.html失败，请稍候重试');
+                }
                 break;
             case 'd';
                 break;
