@@ -1,30 +1,38 @@
+var garLang;
+// 定义一些全局变量
+const requireJsId = '___require-js___'
+const garBackend = JSON.parse(document.getElementById(requireJsId).getAttribute('data-runtime-info'))
+var paths = {
+    'jquery': 'lib/jquery-3.6.0.min',
+    'popper': 'js/popper-v1.16.0.min',
+    'bootstrap': 'lib/bootstrap-4.3.1-dist/js/bootstrap.min',
+    'bootstrap-table': 'lib/bootstrap-table-master/dist/bootstrap-table.min',
+    'bootstrap-table-zh-CN': 'lib/bootstrap-table-master/dist/locale/bootstrap-table-zh-CN.min',
+    'layui': 'lib/layui-v2.5.6/layui/layui',
+    'form-validate': 'lib/form-validate/index',
+    'sweetalert': 'lib/sweetalert/dist/sweetalert.min',
+    'jquery-validator': 'lib/nice-validator/dist/jquery.validator.min.js?css',
+    'bsTable': 'js/utils/bsTable',
+    'garForm': 'js/utils/garForm',
+    'helper': 'js/utils/helper',
+    'validator': 'lib/nice-validator/dist/local/zh-CN',
+    'viewer': 'lib/viewerjs/dist/viewer.min',
+    'require-css': 'lib/require-css/css.min',
+    'vakata-jstree': 'lib/vakata-jstree/dist/jstree.min',
+}
+
+paths[garBackend.page.controllerJsHump] = garBackend.page.controllerJs
+console.log(paths)
 require.config({
     baseUrl: '/static/',
-    paths: {
-        'jquery': 'lib/jquery-3.6.0.min',
-        'popper': 'js/popper-v1.16.0.min',
-        'bootstrap': 'lib/bootstrap-4.3.1-dist/js/bootstrap.min',
-        'bootstrap-table': 'lib/bootstrap-table-master/dist/bootstrap-table.min',
-        'bootstrap-table-zh-CN': 'lib/bootstrap-table-master/dist/locale/bootstrap-table-zh-CN.min',
-        'layui': 'lib/layui-v2.5.6/layui/layui',
-        'form-validate': 'lib/form-validate/index',
-        'sweetalert': 'lib/sweetalert/dist/sweetalert.min',
-        'jquery-validator': 'lib/nice-validator/dist/jquery.validator.min.js?css',
-        'bsTable': 'js/utils/bsTable',
-        'garForm': 'js/utils/garForm',
-        'helper': 'js/utils/helper',
-        'validator': 'lib/nice-validator/dist/local/zh-CN',
-        'viewer': 'lib/viewerjs/dist/viewer.min',
-        'require-css': 'lib/require-css/css.min',
-        'vakata-jstree': 'lib/vakata-jstree/dist/jstree.min',
-    },
+    paths: paths,
     shim: {
         'bootstrap': {
             deps: [
                 'jquery',
                 'popper',
-                'style!lib/bootstrap-4.3.1-dist/css/bootstrap.min',
-                'style!css/layout',
+                // 'style!lib/bootstrap-4.3.1-dist/css/bootstrap.min',
+                // 'style!css/layout',
             ],
         },
         'bootstrap-table-zh-CN': {
@@ -62,18 +70,28 @@ require.config({
         }
     }
 })
-var garBackend = {}
-var garLang;
 
+var initLoad = [
+    'jquery',
+    'helper',
+]
+initLoad.push(garBackend.page.controllerJsHump)
+const initLoadParam = [
+    '$',
+    'helper',
+    garBackend.page.controllerJsHump,
+]
 // 完成一系列初始化的过程
-require(['layui','jquery','helper'],function (layui, $, helper) {
-    // 定义一些全局变量
-    var ele = '#___main-backend___';
-    garBackend = $(ele).data('runtimeInfo')
+require(initLoad,function (...initLoadParam) {
+    const $ = arguments[0]
+    const helper = arguments[1]
+    const pageJs = arguments[2]
+
     garLang = function (name) {
         if (!name) {
             return ''
         }
+        const ele = '#' + requireJsId;
         var langList = $(ele).data('langList')
         var nameList = name.split('.')
         const nameLen = nameList.length
@@ -84,79 +102,89 @@ require(['layui','jquery','helper'],function (layui, $, helper) {
     }
 
     // 渲染侧边栏
-    layui.use(['element','layer'], function(){
-        var element = layui.element;
-        var _data = garBackend.asideMenuList;
-        renderNavTree(_data,$('.layui-nav-tree'));
-        var c = $('.layui-nav-itemed');
-        var parentNode = c.parent('dl').parent('dd');
-        if(parentNode.length){
-            parentNode.addClass('layui-nav-itemed');
-        }
-        element.on('nav(user)',function (elem) {
-            if ($(elem).attr('id') === 'logout') {
-                layer.confirm('你确定要注销登录么？',null,function (index) {
-                    layer.close(index);
-                    location.href = "{:url('/Login/logout')}?t=" + (new Date()).getTime();
-                });
+    var _data = garBackend.asideMenuList;
+    console.log('menu',_data)
+    renderNavTree(_data,$('dl.gardenia-layout-sidebar'));
+    // var c = $('.layui-nav-itemed');
+    // var parentNode = c.parent('dl').parent('dd');
+    // if(parentNode.length){
+    //     parentNode.addClass('layui-nav-itemed');
+    // }
+    // element.on('nav(user)',function (elem) {
+    //     if ($(elem).attr('id') === 'logout') {
+    //         layer.confirm('你确定要注销登录么？',null,function (index) {
+    //             layer.close(index);
+    //             location.href = "{:url('/Login/logout')}?t=" + (new Date()).getTime();
+    //         });
+    //     }
+    // })
+    $(document).on('click','a[data-href*="/"]',function (e) {
+        e.stopPropagation();
+        $(this).children('i.fas').each(function () {
+            if ($(this).hasClass('fa-caret-up')) {
+                $(this).removeClass('fa-caret-up')
+                $(this).addClass('fa-caret-down')
+            } else {
+                $(this).removeClass('fa-caret-down')
+                $(this).addClass('fa-caret-up')
             }
         })
-        $(document).on('click','.sideNav',function (e) {
-            e.stopPropagation();
-            if (!$(e.target).children('.layui-nav-more').length){
-                $(e.target).data('href') && (location.href = $(e.target).data('href'));
-            }else {
-                if ($(e.target).parent('dd.layui-nav-item').hasClass('layui-nav-itemed')){
-                    $(e.target).parent('dd.layui-nav-item').removeClass('layui-nav-itemed');
-                }else {
-                    $(e.target).parent('dd.layui-nav-item').addClass('layui-nav-itemed');
-                }
+        $(this).siblings('dl').each(function () {
+            if ($(this).hasClass('d-none')) {
+                $(this).removeClass('d-none')
+            } else {
+                $(this).addClass('d-none')
             }
-
-        });
-
-
-        function renderNavTree(data, parent) {
-            var len = data.length
-            for (let i = 0; i < len; i++) {
-                var className = "layui-nav-item sideNav";
-                var dd = $('<dd class="'+ className +'"></dd>');
-                var menuUrl = data[i].name;
-                if (data[i].active) {
-                    dd.addClass('layui-nav-itemed');
-                }
-
-                //如果检测有子节点，则进行遍历
-                if (data[i].children && data[i].children.length > 0) {
-
-                    $(dd).append('<a href="javascript: void(0);" data-href="'+ menuUrl +'"><i class="fa fa-bars"></i>&nbsp;&nbsp;'+data[i].title+'<i class="layui-icon layui-icon-down layui-nav-more"></i></a>');
-                    $(dd).append('<dl class="layui-nav-child sideNav"></dl>').appendTo(parent);
-
-                    renderNavTree(data[i].children, $(dd).children().eq(1));
-
-                } else {
-                    $(dd).append('<a href="javascript: void(0);" data-href="'+ menuUrl +'"><i class="fa fa-bars"></i>&nbsp;&nbsp;'+data[i].title+'</a>').appendTo(parent);
-                }
-            }
-        }
-
-        $('#icon_stretch').on('click',function () {
-            $('.layui-side.layui-bg-black').toggle('slow',function () {
-                if ($('.layui-side.layui-bg-black').css('display') === 'none'){
-                    $('.layui-body').css('left','0px');
-                    $('.layui-layout-admin .layui-footer').css('left','0px');
-                } else {
-                    $('.layui-body').css('left','200px');
-                    $('.layui-layout-admin .layui-footer').css('left','200px');
-                }
-            });
-
-        });
-        if (helper.isMobile()){
-            $('.layui-side.layui-bg-black').hide('slow',function () {
-                $('.layui-body').css('left','0px');
-            });
-        }
+        })
 
     });
+
+
+    function renderNavTree(data, parent) {
+        var len = data.length
+        for (let i = 0; i < len; i++) {
+            var dd = $('<dd></dd>');
+            var menuUrl = data[i].name;
+
+            //如果检测有子节点，则进行遍历
+            if (data[i].children && data[i].children.length > 0) {
+
+                $(dd).append('<a class="bleak" href="javascript: void(0);" data-href="'+ menuUrl +'"><i class="fa fa-bars"></i>&emsp;'+data[i].title+'&nbsp;<i class="fas fa-caret-down"></i></a>');
+                $(dd).append('<dl class="gardenia-layout-sidebar-item-list d-none"></dl>').appendTo(parent);
+                renderNavTree(data[i].children, $(dd).children().eq(1));
+
+            } else {
+                $(dd).append('<a class="bleak" href="'+ menuUrl +'"><i class="fa fa-bars"></i>&emsp;'+data[i].title+'</a>').appendTo(parent);
+            }
+            if (data[i].active) {
+                dd.parents().removeClass('d-none');
+                dd.parents('dl').siblings('a').removeClass('bleak');
+                dd.parents('dl').siblings('a').addClass('high-light');
+                dd.parents('dl').siblings('a').children('i.fa-caret-down').addClass('fa-caret-up');
+                dd.parents('dl').siblings('a').children('i.fa-caret-down').removeClass('fa-caret-down');
+                dd.children('a').removeClass('bleak');
+                dd.children('a').addClass('high-light');
+            }
+        }
+    }
+
+    $('#icon_stretch').on('click',function () {
+        $('.layui-side.layui-bg-black').toggle('slow',function () {
+            if ($('.layui-side.layui-bg-black').css('display') === 'none'){
+                $('.layui-body').css('left','0px');
+                $('.layui-layout-admin .layui-footer').css('left','0px');
+            } else {
+                $('.layui-body').css('left','200px');
+                $('.layui-layout-admin .layui-footer').css('left','200px');
+            }
+        });
+
+    });
+    if (helper.isMobile()){
+        $('.layui-side.layui-bg-black').hide('slow',function () {
+            $('.layui-body').css('left','0');
+        });
+    }
+    //加载页面js
+    pageJs[garBackend.page.action]()
 })

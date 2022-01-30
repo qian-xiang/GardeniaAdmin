@@ -68,3 +68,48 @@ header
     background-color: #dc3545;
     color: white;
 }
+.gardenia-layout {
+    display: flex;
+    display: -webkit-flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+.gardenia-layout-bottom {
+    display: flex;
+    display: -webkit-flex;
+    flex: 1;
+}
+.gardenia-layout-body {
+    flex: 1;
+    display: flex;
+    display: -webkit-flex;
+    flex-direction: column;
+}
+.gardenia-layout-content {
+    flex: 1;
+    padding: 0 10px 10px;
+}
+.gardenia-layout-footer {
+    text-align: center;
+}
+.gardenia-layout-sidebar {
+    width: 200px;
+    overflow-y: auto;
+    background-color: #393D49;
+    padding: 0.5rem 20px;
+}
+.gardenia-layout-sidebar-item-list {
+    padding-top: 0.5rem;
+}
+/**
+高亮
+ */
+a.high-light {
+    color: white;
+}
+/**
+黯淡
+ */
+a.bleak {
+    color: rgba(255,255,255,0.7);
+}

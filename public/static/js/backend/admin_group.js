@@ -1,5 +1,5 @@
-require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','garForm','layui','vakata-jstree'],
-    function ($,bootstrapTable,sweetalert,BsTable,Validator,GarForm,layui,Jstree) {
+require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','garForm','vakata-jstree'],
+    function ($,bootstrapTable,sweetalert,BsTable,Validator,GarForm,Jstree) {
 var page = {
     index: function () {
         $(document).ready(function () {

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{:config('app.app_name')}</title>
+    <link rel="stylesheet" href="/static/lib/bootstrap-4.3.1-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
     <style>
         .layui-body {
             overflow-x: scroll;
@@ -46,23 +48,23 @@
 </head>
 <body>
 
-<div class="layui-layout layui-layout-admin">
+<div class="gardenia-layout">
     {include file="../../common/core/tpl/header" /}
 
+    <div class="gardenia-layout-bottom">
+        {include file="../../common/core/tpl/sidebar" /}
 
-    {include file="../../common/core/tpl/sidebar" /}
-
-    <div class="layui-body">
-        {__CONTENT__}
+        <div class="gardenia-layout-body">
+            <div class="gardenia-layout-content">
+                {__CONTENT__}
+            </div>
+            {include file="../../common/core/tpl/footer" /}
+        </div>
     </div>
 
-    {include file="../../common/core/tpl/footer" /}
 </div>
 
 </body>
-<script src="/static/js/require-v2.3.6.js"></script>
-<script src="/static/js/main-backend.js" data-lang-list='{:json_encode($langList,JSON_UNESCAPED_UNICODE)}' data-runtime-info='{:json_encode($runtimeInfo,JSON_UNESCAPED_UNICODE)}' id="___main-backend___"></script>
-{if file_exists($runtimeInfo.page.controllerJs)}
-<script src="/{$runtimeInfo.page.controllerJs}" data-action="{:request()->action(true)}" id="___controller-js___"></script>
-{/if}
+<script src="/static/js/require-v2.3.6.js" data-main="/static/js/main-backend.js"  data-lang-list='{:json_encode($langList,JSON_UNESCAPED_UNICODE)}' data-runtime-info='{:json_encode($runtimeInfo,JSON_UNESCAPED_UNICODE)}' id="___require-js___"></script>
+
 </html>
