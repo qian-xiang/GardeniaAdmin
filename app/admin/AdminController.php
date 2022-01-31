@@ -244,7 +244,7 @@ class AdminController extends BaseController
         $viewInstance->assign([
             GardeniaConstant::GARDENIA_PREFIX.'Layout' => $gardeniaLayout
         ]);
-
+        $controllerJs = '/static/js/backend/'.Str::snake(request()->controller());
         $arr = [
             'runtimeInfo' => [
                 'page' => [
@@ -252,8 +252,9 @@ class AdminController extends BaseController
                     'controller' => $this->request->controller(),
                     'action' => $this->request->action(),
                     'url' => url()->build(),
-                    'controllerJs' => '/static/js/backend/'.Str::snake(request()->controller()),
+                    'controllerJs' => $controllerJs,
                     'controllerJsHump' => Str::studly(request()->controller()),
+                    'controllerJsExist' => file_exists('.'.$controllerJs.'.js')
                 ],
                 'apiCode' => AppConstant::getApiCodeList(),
                 'asideMenuList' => $this->getRenderMenuList(),

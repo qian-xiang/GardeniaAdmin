@@ -90,29 +90,51 @@ class Curd extends Command
         $output->writeln('curd');
     }
     private function getValidateRuleAndTemplateByField($field = '',$fieldInfo = []) {
-        $validateRule = [
+        $info = [
             $field => [
                 'validateRule' => 'require'
             ]
         ];
         if (strpos($field,'image') !== false || strpos($field,'picture') !== false) {
+            $title = $fieldInfo['comment'];
+            $info[$field]['template'] = '';
             $rule = 'url';
-            $validateRule[$field]['validateRule'] = $validateRule[$field]['validateRule'] ? '|'.$rule : $rule;
+            $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
         } elseif (strpos($field,'attach') !== false || strpos($field,'file') !== false) {
             $rule = 'url';
-            $validateRule[$field]['validateRule'] = $validateRule[$field]['validateRule'] ? '|'.$rule : $rule;
+            $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
         } elseif (strpos($field,'status') !== false) {
             $title = mb_substr($fieldInfo['comment'],0,mb_strpos($fieldInfo['comment'],':'));
             $_comment = mb_substr($fieldInfo['comment'],mb_strpos($fieldInfo['comment'],':') + 1);
             $_comment = explode(',',$_comment);
             $optionText = '';
+            $rule = '';
             foreach ($_comment as $item) {
                 $temp = explode('=',$item);
                 $optionText .= '<option value="'.$temp[0].'">'.$temp[1].'</option>';
+                $rule = $rule ? ','.$temp[0] : $temp[0];
             }
-            $fieldHtml = '<label class="col-form-label col-sm-2 text-center" for="'.$field.'">'.$title.'</label><select class="form-control col-sm-5" data-rule="required" id="pid"  name="'.$field.'">'.$optionText.'</select>';
-            $rule = 'url';
-            $validateRule[$field] = $validateRule[$field] ? '|'.$rule : $rule;
+            //前端仅做简单的验证
+            $fieldHtml = '<div class="form-group row"><label class="col-form-label col-sm-2 text-center" for="'.$field.'">'.$title.'</label><select class="form-control col-sm-5" data-rule="required" id="'.$field.'"  name="'.$field.'">'.$optionText.'</select></div>';
+            $info[$field]['template'] = $fieldHtml;
+            $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
+        } elseif (strpos($field,'is_') !== false) {
+            $title = mb_substr($fieldInfo['comment'],0,mb_strpos($fieldInfo['comment'],':'));
+            $_comment = mb_substr($fieldInfo['comment'],mb_strpos($fieldInfo['comment'],':') + 1);
+            $_comment = explode(',',$_comment);
+            $optionText = '';
+            $rule = '';
+            foreach ($_comment as $item) {
+                $temp = explode('=',$item);
+                $optionText .= '<div class="form-check-inline"><input class="form-check-input" type="radio" name="'.$field
+                    .'" id="'.$field.'"><label class="form-check-label" for="'.
+                    $field.'">'.$title.'</label></div>';
+                $rule = $rule ? ','.$temp[0] : $temp[0];
+            }
+            //前端仅做简单的验证
+            $fieldHtml = '<div class="form-group row"><label class="col-form-label col-sm-2 text-center" for="'.$field.'">'.$title.'</label>'.$optionText.'</div>';
+            $info[$field]['template'] = $fieldHtml;
+            $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
         }
     }
 }

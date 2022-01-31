@@ -3,7 +3,7 @@ var garLang;
 const requireJsId = '___require-js___'
 const garBackend = JSON.parse(document.getElementById(requireJsId).getAttribute('data-runtime-info'))
 var paths = {
-    'jquery': 'lib/jquery-3.6.0.min',
+    'jquery': 'js/jquery-3.6.0.min',
     'popper': 'js/popper-v1.16.0.min',
     'bootstrap': 'lib/bootstrap-4.3.1-dist/js/bootstrap.min',
     'bootstrap-table': 'lib/bootstrap-table-master/dist/bootstrap-table.min',
@@ -19,10 +19,23 @@ var paths = {
     'viewer': 'lib/viewerjs/dist/viewer.min',
     'require-css': 'lib/require-css/css.min',
     'vakata-jstree': 'lib/vakata-jstree/dist/jstree.min',
+    'flatpickr': 'lib/flatpickr/dist/flatpickr.min',
+    'flatpickr-zh': 'lib/flatpickr/dist/l10n/zh',
+}
+var initLoad = [
+    'jquery',
+    'helper',
+]
+var initLoadParam = [
+    '$',
+    'helper',
+]
+if (garBackend.page.controllerJsExist) {
+    paths[garBackend.page.controllerJsHump] = garBackend.page.controllerJs
+    initLoad.push(garBackend.page.controllerJsHump)
+    initLoadParam.push(garBackend.page.controllerJsHump)
 }
 
-paths[garBackend.page.controllerJsHump] = garBackend.page.controllerJs
-console.log(paths)
 require.config({
     baseUrl: '/static/',
     paths: paths,
@@ -40,7 +53,7 @@ require.config({
             exports: '$.fn.bootstrapTable.locales[\'zh-CN\']'
         },
         'bootstrap-table': {
-            deps: ['bootstrap','style!lib/fontawesome-free-5.15.4-web/css/all.min','style!lib/bootstrap-table-master/dist/bootstrap-table.min'],
+            deps: ['bootstrap','style!lib/bootstrap-table-master/dist/bootstrap-table.min'],
             exports: '$.fn.bootstrapTable'
         },
         'layui': {
@@ -61,6 +74,9 @@ require.config({
         },
         'garForm' : {
             deps: ['style!lib/../css/gar-form']
+        },
+        'flatpickr': {
+            deps: ['flatpickr-zh','style!lib/flatpickr/dist/flatpickr.min']
         }
     },
     map: {
@@ -71,17 +87,6 @@ require.config({
     }
 })
 
-var initLoad = [
-    'jquery',
-    'helper',
-]
-initLoad.push(garBackend.page.controllerJsHump)
-const initLoadParam = [
-    '$',
-    'helper',
-    garBackend.page.controllerJsHump,
-]
-// 完成一系列初始化的过程
 require(initLoad,function (...initLoadParam) {
     const $ = arguments[0]
     const helper = arguments[1]
@@ -103,7 +108,7 @@ require(initLoad,function (...initLoadParam) {
 
     // 渲染侧边栏
     var _data = garBackend.asideMenuList;
-    console.log('menu',_data)
+
     renderNavTree(_data,$('dl.gardenia-layout-sidebar'));
     // var c = $('.layui-nav-itemed');
     // var parentNode = c.parent('dl').parent('dd');
@@ -185,6 +190,8 @@ require(initLoad,function (...initLoadParam) {
             $('.layui-body').css('left','0');
         });
     }
-    //加载页面js
-    pageJs[garBackend.page.action]()
+    if (garBackend.page.controllerJsExist) {
+        //加载页面js
+        pageJs[garBackend.page.action]()
+    }
 })
