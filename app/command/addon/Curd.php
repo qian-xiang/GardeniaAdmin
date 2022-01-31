@@ -20,10 +20,10 @@ class Curd extends Command
         $this->setName('curd')
             ->addArgument('operate',Argument::OPTIONAL,'具体操作','c')
             ->addOption('app','app',Option::VALUE_REQUIRED,'应用名称，默认为admin','admin')
-            ->addOption('table','t',Option::VALUE_REQUIRED,'数据库表名称，可不加表前缀','gardenia')
-            ->addOption('controller','c',Option::VALUE_OPTIONAL,'控制器名，无需加控制器后缀，可在前面加目录名称以/相隔','')
-            ->addOption('model','m',Option::VALUE_OPTIONAL,'模型名，可在前面加目录名称以/相隔','')
-            ->addOption('field','f',Option::VALUE_OPTIONAL,'显示字段，*=全部，多个字段用半角逗号,隔开')
+            ->addOption('table','t',Option::VALUE_OPTIONAL,'数据库表名称，可不加表前缀','gardenia')
+            ->addOption('controller','c',Option::VALUE_REQUIRED,'控制器名，无需加控制器后缀，可在前面加目录名称以/相隔','')
+            ->addOption('model','m',Option::VALUE_REQUIRED,'模型名，可在前面加目录名称以/相隔','')
+            ->addOption('field','f',Option::VALUE_REQUIRED,'显示字段，*=全部，多个字段用半角逗号,隔开','*')
             ->setDescription('GardeniaAdmin官方一键curd命令');
     }
 
@@ -40,6 +40,12 @@ class Curd extends Command
         if (!$validate->check($options)) {
             throw new AppException($validate->getError());
         }
+        $options['model'] = $options['model'] ?: Str::studly($options['table']);
+        $namespaceModel = 'app\\'.$options['app'].'\\model\\'.$options['model'];
+        $model = new $namespaceModel();
+        $output->writeln(json_encode($model->getFields(),JSON_UNESCAPED_UNICODE));
+        return ;
+
         switch ($arguments['operate']) {
             case 'c';
                 //执行新增curd操作
@@ -73,6 +79,7 @@ class Curd extends Command
                 if (!$res) {
                     throw new AppException('新增index.html失败，请稍候重试');
                 }
+
                 break;
             case 'd';
                 break;
@@ -81,5 +88,31 @@ class Curd extends Command
         }
         // 指令输出
         $output->writeln('curd');
+    }
+    private function getValidateRuleAndTemplateByField($field = '',$fieldInfo = []) {
+        $validateRule = [
+            $field => [
+                'validateRule' => 'require'
+            ]
+        ];
+        if (strpos($field,'image') !== false || strpos($field,'picture') !== false) {
+            $rule = 'url';
+            $validateRule[$field]['validateRule'] = $validateRule[$field]['validateRule'] ? '|'.$rule : $rule;
+        } elseif (strpos($field,'attach') !== false || strpos($field,'file') !== false) {
+            $rule = 'url';
+            $validateRule[$field]['validateRule'] = $validateRule[$field]['validateRule'] ? '|'.$rule : $rule;
+        } elseif (strpos($field,'status') !== false) {
+            $title = mb_substr($fieldInfo['comment'],0,mb_strpos($fieldInfo['comment'],':'));
+            $_comment = mb_substr($fieldInfo['comment'],mb_strpos($fieldInfo['comment'],':') + 1);
+            $_comment = explode(',',$_comment);
+            $optionText = '';
+            foreach ($_comment as $item) {
+                $temp = explode('=',$item);
+                $optionText .= '<option value="'.$temp[0].'">'.$temp[1].'</option>';
+            }
+            $fieldHtml = '<label class="col-form-label col-sm-2 text-center" for="'.$field.'">'.$title.'</label><select class="form-control col-sm-5" data-rule="required" id="pid"  name="'.$field.'">'.$optionText.'</select>';
+            $rule = 'url';
+            $validateRule[$field] = $validateRule[$field] ? '|'.$rule : $rule;
+        }
     }
 }

@@ -17,11 +17,11 @@ class CurdValidate extends Validate
     }
     public function setCurdOptionRule() {
         $this->rule = [
-            'app|应用名称' => 'require|alphaNum',
+            'app|应用名称' => 'alphaNum',
             'table|表名称' => 'require|chsDash',
-            'controller|控制器名称' => 'require|alphaNum',
-            'model|模型名称' => 'require|alphaNum',
-            'field|显示字段' => 'require',
+            'controller|控制器名称' => 'alphaNum',
+            'model|模型名称' => 'alphaNum',
+            'field|显示字段' => 'min:1',
         ];
         return $this->rule;
     }

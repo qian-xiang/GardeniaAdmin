@@ -88,6 +88,14 @@ class MenuRule extends AdminController
                 'weigh' => $data['weigh'],
                 'status' => $data['status'],
             ];
+            if ($data['pid']) {
+                $res = AuthRuleModel::find($data['pid']);
+                if (!$res) {
+                    error('该父级菜单规则不存在！');
+                }
+                $insertData['level'] = $res['level'] + 1;
+            }
+
             $AuthRuleModelModel = new AuthRuleModel();
             $AuthRuleModelModel->save($insertData);
             success('添加成功！');

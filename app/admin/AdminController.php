@@ -69,8 +69,8 @@ class AdminController extends BaseController
         }
 
         $ruleList = $request->admin_info->access_list->toArray();
+
         $currentMenuId = 0;
-        $rootId = 0;
         $pid = 0;
         $ruleType = AppConstant::RULE_TYPE_MENU;
         //通过权限校验才会开始获取用于渲染的菜单列表 因此此处不用校验 当前规则ID的合法性
@@ -89,8 +89,7 @@ class AdminController extends BaseController
         if ($ruleType === AppConstant::RULE_TYPE_OTHER) {
             $currentMenuId = $pid;
         }
-
-        return $this->getIndexTreeMenu($ruleList,0,$currentMenuId,$rootId);
+        return $this->getIndexTreeMenu($ruleList,0,$currentMenuId,0);
     }
 
     protected function getIndexTreeMenu($ruleList,$pid,$currentMenuId,$currentLevel = 0,$maxLevel = 0) {
@@ -160,6 +159,7 @@ class AdminController extends BaseController
         if (!$accessArr){
             error('您没有权限访问，因为尚未有任何权限');
         }
+
         $controller = $request->controller();
         $action = $request->action();
         //还需处理appName为空的问题

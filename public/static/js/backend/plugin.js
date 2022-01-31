@@ -1,6 +1,6 @@
-require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','garForm'],
-    function ($,bootstrapTable,sweetalert,BsTable,Validator,GarForm) {
-        var page = {
+define(['jquery', 'bootstrap-table-zh-CN', 'sweetalert', 'bsTable', 'validator', 'garForm'],
+    function ($, bootstrapTable, sweetalert, BsTable, Validator, GarForm) {
+        return {
             index: function () {
                 $(document).ready(function () {
                     const table = '#table';
@@ -56,7 +56,7 @@ require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','ga
                                 field: 'website',
                                 title: '官网',
                                 formatter: function (value) {
-                                    return '<a href="'+ value +'">官网</a>';
+                                    return '<a href="' + value + '">官网</a>';
                                 },
                             },
                             {
@@ -65,12 +65,12 @@ require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','ga
                                 formatter: function (value, row, index) {
                                     row.status = Number(row.status);
                                     var statusText = row.status ? '卸载' : '安装';
-                                    return '<a href="javascript: void(0)" class="btn btn-sm '+ (row.status ? 'btn-danger' : 'btn-success') + ' plugin-operate" data-row=\''+ JSON.stringify(row) +'\'>'+ statusText +'</a>'
+                                    return '<a href="javascript: void(0)" class="btn btn-sm ' + (row.status ? 'btn-danger' : 'btn-success') + ' plugin-operate" data-row=\'' + JSON.stringify(row) + '\'>' + statusText + '</a>'
                                 },
                             }
                         ]
                     };
-                    obj = Object.assign(obj,tableOptions)
+                    obj = Object.assign(obj, tableOptions)
 
                     $(table).bootstrapTable('destroy').bootstrapTable(obj)
                     $('#plugin-online').click(function () {
@@ -82,7 +82,7 @@ require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','ga
                             icon: 'info',
                         })
                     })
-                    $(document).on('click','a.plugin-operate',function () {
+                    $(document).on('click', 'a.plugin-operate', function () {
                         var url
                         var typeText = $(this).text()
                         var row = $(this).data('row')
@@ -97,7 +97,7 @@ require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','ga
 
                         swal({
                             title: '提示',
-                            text: '您确定要'+ typeText +'么？',
+                            text: '您确定要' + typeText + '么？',
                             buttons: [
                                 '确认',
                                 '取消'
@@ -130,18 +130,18 @@ require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','ga
                                         }
                                         if (res.code === garBackend.apiCode.success) {
                                             if (url === 'uninstall') {
-                                                $(that).text( '安装')
-                                                $(that).removeClass( 'btn-danger')
-                                                $(that).addClass( 'btn-success')
+                                                $(that).text('安装')
+                                                $(that).removeClass('btn-danger')
+                                                $(that).addClass('btn-success')
                                             } else {
-                                                $(that).text( '卸载')
-                                                $(that).removeClass( 'btn-success')
-                                                $(that).addClass( 'btn-danger')
+                                                $(that).text('卸载')
+                                                $(that).removeClass('btn-success')
+                                                $(that).addClass('btn-danger')
                                             }
                                         }
                                     },
                                     error: function (e) {
-                                        console.log('出错了',e)
+                                        console.log('出错了', e)
                                         swal({
                                             title: '错误提示',
                                             text: '发生了错误，请稍候重试',
@@ -153,7 +153,7 @@ require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','ga
                         })
                     })
                     const eleDel = '.btn-operate-del'
-                    $(document).on('click',eleDel,function () {
+                    $(document).on('click', eleDel, function () {
                         swal({
                             title: '提示',
                             text: '您确定要删除么？',
@@ -200,7 +200,7 @@ require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','ga
                                         if (res.redirectUrl) {
                                             return setTimeout(function () {
                                                 location.href = res.redirectUrl
-                                            },2000)
+                                            }, 2000)
                                         }
                                         $(table).bootstrapTable('refresh')
                                     },
@@ -226,13 +226,13 @@ require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','ga
                     ele = ele || '#form-add'
                     $(ele).validator({
                         // 验证通过
-                        valid: function(form) {
+                        valid: function (form) {
                             var arr = $(form).serializeArray()
                             var formData = {}
-                            $.each(arr,function () {
+                            $.each(arr, function () {
                                 formData[this.name] = this.value
                             })
-                            $(ele).find('button[type="submit"]').attr('disabled',true);
+                            $(ele).find('button[type="submit"]').attr('disabled', true);
                             $.ajax({
                                 url: '',
                                 method: 'POST',
@@ -249,21 +249,21 @@ require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','ga
                                         if (res.code === garBackend.apiCode.success) {
                                             setTimeout(function () {
                                                 !res.redirectUrl && history.back()
-                                                location.href =  res.redirectUrl
-                                            },2000)
+                                                location.href = res.redirectUrl
+                                            }, 2000)
                                         } else if (res.redirectUrl) {
                                             setTimeout(function () {
                                                 location.href = res.redirectUrl
-                                            },2000)
+                                            }, 2000)
                                         }
 
                                     }
                                 },
                                 error: function (e) {
-                                    console.log('出错啦',e)
+                                    console.log('出错啦', e)
                                 },
                                 complete: function () {
-                                    $(ele).find('button[type="submit"]').attr('disabled',true);
+                                    $(ele).find('button[type="submit"]').attr('disabled', true);
                                 }
                             })
                         }
@@ -272,6 +272,5 @@ require(['jquery','bootstrap-table-zh-CN','sweetalert','bsTable','validator','ga
                 }
             }
         }
-        var action = $('#___controller-js___').data('action');
-        page[action]();
+
     })
