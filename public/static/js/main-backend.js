@@ -21,6 +21,8 @@ var paths = {
     'vakata-jstree': 'lib/vakata-jstree/dist/jstree.min',
     'flatpickr': 'lib/flatpickr/dist/flatpickr.min',
     'flatpickr-zh': 'lib/flatpickr/dist/l10n/zh',
+    'bootstrap-select': 'lib/bootstrap-select/dist/js/bootstrap-select.min',
+    'bootstrap-select-locale-zh': 'lib/bootstrap-select/dist/js/i18n/defaults-zh_CN.min',
 }
 var initLoad = [
     'jquery',
@@ -77,6 +79,12 @@ require.config({
         },
         'flatpickr': {
             deps: ['flatpickr-zh','style!lib/flatpickr/dist/flatpickr.min']
+        },
+        'bootstrap-select': {
+            deps: ['bootstrap','style!lib/bootstrap-select/dist/css/bootstrap-select.min']
+        },
+        'bootstrap-select-locale-zh': {
+            deps: ['bootstrap-select']
         }
     },
     map: {

@@ -135,6 +135,17 @@ class Curd extends Command
             $fieldHtml = '<div class="form-group row"><label class="col-form-label col-sm-2 text-center" for="'.$field.'">'.$title.'</label>'.$optionText.'</div>';
             $info[$field]['template'] = $fieldHtml;
             $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
+        } elseif (($mapList = array_map(function ($value) use ($field) {
+            return strpos($field,$value) !== false;
+        },['time','date','birthday','year','month'])) && in_array(true,$mapList)) {
+            $rule = 'require|integer|length:10';
+            $title = $fieldInfo['comment'];
+            //前端仅做简单的验证
+            $info[$field]['template'] = '<div class="form-group row"><label for="'.
+                $field.'">'.$title.'</label><input class="form-control flatpickr-input" type="text" name="'.$field
+                .'" id="'.$field.'"></div>';
+            $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
         }
+
     }
 }
