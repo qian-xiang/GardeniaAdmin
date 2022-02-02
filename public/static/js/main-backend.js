@@ -23,6 +23,11 @@ var paths = {
     'flatpickr-zh': 'lib/flatpickr/dist/l10n/zh',
     'bootstrap-select': 'lib/bootstrap-select/dist/js/bootstrap-select.min',
     'bootstrap-select-locale-zh': 'lib/bootstrap-select/dist/js/i18n/defaults-zh_CN.min',
+    'ueditor': 'lib/ueditor1.4.3.3/ueditor.all.min',
+    'ueditor-locale-zh': 'lib/ueditor1.4.3.3/lang/zh-cn/zh-cn',
+    'ueditor-config': 'lib/ueditor1.4.3.3/ueditor.config',
+    'zeroclipboard': 'lib/ueditor1.4.3.3/third-party/zeroclipboard/zeroclipboard.min',
+
 }
 var initLoad = [
     'jquery',
@@ -85,6 +90,9 @@ require.config({
         },
         'bootstrap-select-locale-zh': {
             deps: ['bootstrap-select']
+        },
+        'ueditor-locale-zh': {
+            deps: ['ueditor-config','ueditor']
         }
     },
     map: {
