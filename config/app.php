@@ -32,4 +32,13 @@ return [
     // 显示错误信息
     'show_error_msg'   => env('APP_DEBUG',false),
     'app_trace' =>  true,
+    //上传配置
+    'upload' => [
+        //使用的上传驱动
+        'driver' => 'File',
+        //单个文件大小限制
+        'maxSize' => 10*1024*1024,
+        //接受的文件格式
+        'accept_ext' => 'jpg,jpeg,png,gif,bmp,mp4,mp3,zip,rar',
+    ]
 ];

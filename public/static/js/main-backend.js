@@ -6,6 +6,7 @@ var paths = {
     'jquery': 'js/jquery-3.6.0.min',
     'popper': 'js/popper-v1.16.0.min',
     'bootstrap': 'lib/bootstrap-4.3.1-dist/js/bootstrap.min',
+    'bootstrap-bundle': 'lib/bootstrap-4.3.1-dist/js/bootstrap.bundle.min',
     'bootstrap-table': 'lib/bootstrap-table-master/dist/bootstrap-table.min',
     'bootstrap-table-zh-CN': 'lib/bootstrap-table-master/dist/locale/bootstrap-table-zh-CN.min',
     'layui': 'lib/layui-v2.5.6/layui/layui',
@@ -27,7 +28,11 @@ var paths = {
     'ueditor-locale-zh': 'lib/ueditor1.4.3.3/lang/zh-cn/zh-cn',
     'ueditor-config': 'lib/ueditor1.4.3.3/ueditor.config',
     'zeroclipboard': 'lib/ueditor1.4.3.3/third-party/zeroclipboard/zeroclipboard.min',
-
+    'fileinput-locale-zh': 'lib/bootstrap-fileinput/js/locales/zh',
+    'fileinput': 'lib/bootstrap-fileinput/js/fileinput.min',
+    'piexif': 'lib/bootstrap-fileinput/js/plugins/piexif.min',
+    'sortable': 'lib/bootstrap-fileinput/js/plugins/sortable.min',
+    'fileinput-theme': 'lib/bootstrap-fileinput/themes/fa/theme.min',
 }
 var initLoad = [
     'jquery',
@@ -93,6 +98,9 @@ require.config({
         },
         'ueditor-locale-zh': {
             deps: ['ueditor-config','ueditor']
+        },
+        'fileinput-locale-zh': {
+            deps: ['jquery','piexif','sortable','bootstrap-bundle','fileinput','fileinput-theme','style!lib/bootstrap-fileinput/css/fileinput.min']
         }
     },
     map: {
