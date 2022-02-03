@@ -115,7 +115,7 @@ class Curd extends Command
                 $rule = $rule ? ','.$temp[0] : $temp[0];
             }
             //前端仅做简单的验证
-            $fieldHtml = '<div class="form-group row"><label class="col-form-label col-sm-2 text-center" for="'.$field.'">'.$title.'</label><select class="form-control col-sm-5" data-rule="required" id="'.$field.'"  name="'.$field.'">'.$optionText.'</select></div>';
+            $fieldHtml = '<div class="form-group row"><label class="col-form-label col-sm-2 text-center" for="'.$field.'">'.$title.'</label><select class="form-control col-xs-12 col-sm-10" data-rule="required" id="'.$field.'"  name="'.$field.'">'.$optionText.'</select></div>';
             $info[$field]['template'] = $fieldHtml;
             $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
         } elseif (strpos($field,'is_') !== false) {
@@ -132,7 +132,7 @@ class Curd extends Command
                 $rule = $rule ? ','.$temp[0] : $temp[0];
             }
             //前端仅做简单的验证
-            $fieldHtml = '<div class="form-group row"><label class="col-form-label col-sm-2 text-center" for="'.$field.'">'.$title.'</label>'.$optionText.'</div>';
+            $fieldHtml = '<div class="form-group row"><label class="col-xs-12 col-sm-2 col-form-label text-center" for="'.$field.'">'.$title.'</label><div class="col-xs-12 col-sm-10">'.$optionText.'</div></div>';
             $info[$field]['template'] = $fieldHtml;
             $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
         } elseif (($mapList = array_map(function ($value) use ($field) {
@@ -142,8 +142,63 @@ class Curd extends Command
             $title = $fieldInfo['comment'];
             //前端仅做简单的验证
             $info[$field]['template'] = '<div class="form-group row"><label for="'.
-                $field.'">'.$title.'</label><input class="form-control flatpickr-input" type="text" name="'.$field
-                .'" id="'.$field.'"></div>';
+                $field.'">'.$title.'</label><div class="col-xs-12 col-sm-2"><input class="form-control flatpickr-input" type="text" name="'.$field
+                .'" id="'.$field.'"></div></div>';
+            $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
+        } elseif (strpos($fieldInfo['type'],'set') !== false) {
+            //如果字段是set类型 则表明是多选
+            $title = mb_substr($fieldInfo['comment'],0,mb_strpos($fieldInfo['comment'],':'));
+            $_comment = mb_substr($fieldInfo['comment'],mb_strpos($fieldInfo['comment'],':') + 1);
+            $_comment = explode(',',$_comment);
+            $optionText = '';
+            $rule = 'require';
+            foreach ($_comment as $item) {
+                $temp = explode('=',$item);
+                $optionText .= '<option value="'.$temp[0].'">'.$temp[1].'</option>';
+            }
+            //前端仅做简单的验证
+            $info[$field]['template'] = '<div class="form-group row"><label class="col-xs-12 col-sm-2 col-form-label" for="'.
+                $field.'">'.$title.'</label><select class="col-xs-12 col-sm-10 selectpicker" multiple name="'.$field.'" id="'.$field.'">'.$optionText.'</select></div>';
+            $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
+        } elseif (($mapList = array_map(function ($value) use ($field) {
+                return strpos($field,$value) !== false;
+            },['password','pwd','secret'])) && in_array(true,$mapList)) {
+            $rule = 'require';
+            $title = $fieldInfo['comment'];
+            //前端仅做简单的验证
+            $info[$field]['template'] = '<div class="form-group row"><label for="'.
+                $field.'">'.$title.'</label><div class="col-xs-12 col-sm-2"><input class="form-control" type="password" name="'.$field
+                .'" id="'.$field.'"></div></div>';
+            $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
+        } elseif (($mapList = array_map(function ($value) use ($field) {
+                return strpos($field,$value) !== false;
+            },['price','count','num','number','stock'])) && in_array(true,$mapList)) {
+            $rule = 'require';
+            $title = $fieldInfo['comment'];
+            //前端仅做简单的验证
+            $info[$field]['template'] = '<div class="form-group row"><label for="'.
+                $field.'">'.$title.'</label><div class="col-xs-12 col-sm-2"><input class="form-control" type="number" name="'.$field
+                .'" id="'.$field.'"></div></div>';
+            $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
+        } elseif (($mapList = array_map(function ($value) use ($field) {
+                return strpos($field,$value) !== false;
+            },['email'])) && in_array(true,$mapList)) {
+            $rule = 'require';
+            $title = $fieldInfo['comment'];
+            //前端仅做简单的验证
+            $info[$field]['template'] = '<div class="form-group row"><label for="'.
+                $field.'">'.$title.'</label><div class="col-xs-12 col-sm-2"><input class="form-control" data-rule="required;email"  type="email" name="'.$field
+                .'" id="'.$field.'"></div></div>';
+            $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
+        } elseif (($mapList = array_map(function ($value) use ($field) {
+                return strpos($field,$value) !== false;
+            },['mobile','phone'])) && in_array(true,$mapList)) {
+            $rule = 'require';
+            $title = $fieldInfo['comment'];
+            //前端仅做简单的验证
+            $info[$field]['template'] = '<div class="form-group row"><label for="'.
+                $field.'">'.$title.'</label><div class="col-xs-12 col-sm-2"><input class="form-control" data-rule="required;mobile" type="text" name="'.$field
+                .'" id="'.$field.'"></div></div>';
             $info[$field]['validateRule'] = $info[$field]['validateRule'] ? '|'.$rule : $rule;
         }
 
