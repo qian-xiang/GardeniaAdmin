@@ -9,6 +9,7 @@
 namespace app\admin\controller;
 
 
+use app\validate\common\UploadValidate;
 use constant\AppConstant;
 use app\admin\AdminController;
 use \app\admin\model\Admin;

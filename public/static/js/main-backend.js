@@ -33,6 +33,7 @@ var paths = {
     'piexif': 'lib/bootstrap-fileinput/js/plugins/piexif.min',
     'sortable': 'lib/bootstrap-fileinput/js/plugins/sortable.min',
     'fileinput-theme': 'lib/bootstrap-fileinput/themes/fa/theme.min',
+    'sweetalert2': 'lib/sweetalert2/dist/sweetalert2.all.min',
 }
 var initLoad = [
     'jquery',
@@ -101,6 +102,9 @@ require.config({
         },
         'fileinput-locale-zh': {
             deps: ['jquery','piexif','sortable','bootstrap-bundle','fileinput','fileinput-theme','style!lib/bootstrap-fileinput/css/fileinput.min']
+        },
+        'sweetalert2': {
+            deps: ['style!lib/sweetalert2/dist/sweetalert2.min']
         }
     },
     map: {
