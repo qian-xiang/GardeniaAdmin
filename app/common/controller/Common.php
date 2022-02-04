@@ -7,10 +7,13 @@
 namespace app\common\controller;
 
 
+use app\admin\model\Upload;
 use app\BaseController;
 use app\common\core\lib\upload\UploadLibrary;
 use app\validate\common\UploadValidate;
+use think\exception\ValidateException;
 use think\facade\Config;
+use think\facade\Filesystem;
 use think\File;
 
 /**
@@ -20,6 +23,9 @@ use think\File;
  */
 class Common extends BaseController
 {
+    /**
+     * 上传文件
+     */
     public function upload() {
         $data = $this->request->get();
         $data['file'] = $this->request->file('file');
@@ -39,5 +45,42 @@ class Common extends BaseController
 
         $uploadLibrary = new UploadLibrary();
         success('上传成功！',$uploadLibrary->upload($data));
+    }
+
+    /**
+     * 获取上传文件列表
+     * @return \think\response\Json
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
+     */
+    public function uploadFileList() {
+        $data = $this->request->get();
+        try {
+            $this->validate($data,[
+                'offset|偏移量' => 'require|integer',
+                'limit|记录数' => 'require|integer',
+            ]);
+        } catch (ValidateException $e) {
+            error($e->getMessage());
+        }
+
+        $data['limit'] = (int)$data['limit'];
+        $data['offset'] = (int)$data['offset'];
+        $map = [];
+        if (!empty($data['search'])) {
+            $map[] = [
+                'name','like','%'.$data['search'].'%'
+            ];
+        }
+
+        $list = Upload::where($map)->limit($data['offset'],$data['limit'])
+            ->order(['id' => 'desc'])->select();
+        $total = Upload::where($map)->count('id');
+
+        return json([
+            'rows' => $list,
+            'total' => $total,
+        ]);
     }
 }

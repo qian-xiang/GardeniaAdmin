@@ -6,6 +6,7 @@
 
 namespace app\common\core\lib\upload;
 
+use app\admin\model\Upload;
 use think\facade\Filesystem;
 
 class UploadLibrary
@@ -14,14 +15,26 @@ class UploadLibrary
         $tag = empty($data['tag']) ? 'default' : $data['tag'];
         // 获取表单上传文件
         $savename = [];
+        $insert = [];
         foreach($data['file'] as $file){
-            $filePath = Filesystem::disk('public')->putFile($tag, $file);
-            $filePath = Filesystem::disk('public')->url($filePath);
+            $savePath = Filesystem::disk('public')->putFile($tag, $file);
+            $filePath = Filesystem::disk('public')->url($savePath);
             $savename[] = [
                 'url' => $filePath,
-                'filename' => $file->getOriginalName(),
+                'name' => $file->getOriginalName(),
+            ];
+            $insert[] = [
+                'name' => $file->getOriginalName(),
+                'url' => $savePath,
+                'size' => $file->getSize(),
+                'ext' => $file->getExtension(),
+                'mime' => $file->getMime(),
+                //暂时固定7
+                'admin_id' => 7,
             ];
         }
+        $uploadModel = new Upload();
+        $uploadModel->saveAll($insert);
         return $savename;
     }
 }
