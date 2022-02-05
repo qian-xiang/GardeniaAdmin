@@ -52,6 +52,8 @@ if (garBackend.page.controllerJsExist) {
 require.config({
     baseUrl: '/static/',
     paths: paths,
+    waitSeconds: 15,
+    urlArgs: 'v=' + (new Date()).getTime(),
     shim: {
         'bootstrap': {
             deps: [

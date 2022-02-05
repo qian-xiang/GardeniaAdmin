@@ -32,6 +32,22 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
                     showCloseButton: true,
                     width: '95%',
                     html: `<table id="${field}-choose-table" style="width: 100%; max-height: 300px; height: 50vh;"></table>`,
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        const data = $(table).bootstrapTable('getSelections')
+                        const checkedLen = data.length
+                        var imageCardText = ''
+                        var urls = []
+                        for (var i = 0; i < checkedLen; i++) {
+                            imageCardText += page.buildImageCard(data[i].url,data[i].name)
+                            urls.push(data[i].url)
+                        }
+                        //更新表单字段里的文件url
+                        $(targetSelector).val(urls.join(','))
+                        //更新预览图
+                        $(targetSelector).parent().siblings('.gar-upload-preview-image').empty().append(imageCardText)
+
+                    }
                 })
                 const table = `#${field}-choose-table`
 
@@ -39,7 +55,7 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
                     url: '/common/Common/uploadFileList',
                     pagination: true,
                     sidePagination: "server",
-                    pageList: [10, 20, 'all'],
+                    pageList: [15, 30, 'all'],
                     pageSize: 10,
                     showPaginationswitch: true,
                     height: 500,
@@ -93,7 +109,9 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
                 $(table).bootstrapTable('destroy').bootstrapTable(obj)
 
                 $(document).off('click','button.upload-choose').on('click','button.upload-choose',function () {
-                    const data = $(table).bootstrapTable('getData')
+                    const data = $(table).bootstrapTable('getData',{
+                        useCurrentPage: false
+                    })
                     const index = $(this).data('index')
                     const url = data[index].url
                     $(targetSelector).val(url)
