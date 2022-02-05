@@ -7,13 +7,20 @@
     max-width: 100px;
     background-color: rgba(250, 246, 246, 0.93);
     padding-bottom: 8px;
+    font-size: 0.6rem;
 }
 .image-card img {
     width: 100%;
-    margin-bottom: 10px;
+    max-height: 100%;
 }
-.image-card i.far {
-    font-size: 1.5rem;
+.image-card-bottom {
+    background-color: #ff0404;
+    width: 100%;
+    text-align: center;
+}
+.image-card > .image-card-bottom > i.far {
+    font-size: 0.2rem;
+    color: white;
 }
 .gar-upload-preview-image {
     display: flex;
@@ -21,4 +28,24 @@
 }
 .image-card:nth-of-type(n+2) {
     margin-left: 3px;
+}
+.gar-upload-title-above {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    display: -webkit-flex;
+    justify-content: center;
+    align-items: center;
+}
+.gar-upload-title-above > i.far {
+    font-size: 3rem;
+    color: #1d65cf;
+}
+.image-card p {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    width:100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
