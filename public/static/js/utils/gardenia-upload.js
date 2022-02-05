@@ -111,8 +111,7 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                         $(this).parent().remove()
                     })
                     //当用户点击选择按钮时
-                    // console.log('选择按钮',$(containerContext .input-group.mb-3 > .input-group-append > .gardenia-upload-btn-choose).)
-                    $(containerContext).children('.input-group').children('.gardenia-upload-btn-choose').off('click').on('click',function () {
+                    $(containerContext).find('.input-group.mb-3 > .input-group-append > .gardenia-upload-btn-choose').off('click').on('click',function () {
                         sweetalert.fire({
                             title: '文件列表',
                             // showConfirmButton: false,
