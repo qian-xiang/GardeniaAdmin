@@ -1,12 +1,12 @@
 define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','ueditor-locale-zh','fileinput-locale-zh',
-    'sweetalert2','bootstrap-table-zh-CN','bsTable'],function ($, flatpickr,zh,zeroclipboard,ueditorZh,fileinputLocaleZh,sweetalert,bootstrapTable,bsTable) {
+    'sweetalert2','bootstrap-table-zh-CN','gardenia-upload'],function ($, flatpickr,zh,zeroclipboard,ueditorZh,fileinputLocaleZh,sweetalert,bootstrapTable,gardeniaUpload) {
     return {
         index: function () {
             const page = this
             $('.flatpickr-input').flatpickr()
             $('.selectpicker').selectpicker()
             $('#upload').fileinput()
-
+            gardeniaUpload.init()
             const targetSelector = 'input[name="idcard"]'
             //删除文件
             $(document).off('click','.gar-upload-preview-image-delete').on('click','.gar-upload-preview-image-delete',function () {
@@ -94,7 +94,6 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
                         {
                             field: 'create_time',
                             title: '时间',
-                            formatter: bsTable.formatter.dateTime,
                         },
                         {
                             field: 'operate',

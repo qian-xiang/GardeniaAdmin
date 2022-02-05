@@ -15,6 +15,7 @@ var paths = {
     'bsTable': 'js/utils/bsTable',
     'garForm': 'js/utils/garForm',
     'helper': 'js/utils/helper',
+    'gardenia-upload': 'js/utils/gardenia-upload',
     'validator': 'lib/nice-validator/dist/local/zh-CN',
     'viewer': 'lib/viewerjs/dist/viewer.min',
     'require-css': 'lib/require-css/css.min',
