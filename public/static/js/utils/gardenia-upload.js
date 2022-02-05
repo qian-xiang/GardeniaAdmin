@@ -9,7 +9,7 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                             <button class="btn btn-dark gardenia-upload-btn-choose" type="button">选择</button>
                         </div>
                     </div>
-                    <div class="gar-upload-preview-image">
+                    <div class="gardenia-upload-preview-image">
         
                     </div>`
 
@@ -26,18 +26,22 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                     throw new Error(`选择器：${selector}的元素未填写data-field属性`)
                 }
                 var containerContext = this
+
                 var targetSelector = `input[name="${field}"]`
                 inputFileId = `gardenia-upload-file-${field}`
                 _template = template.replace('[field]',field)
                 _template = _template.replace('[input-file-id]',inputFileId)
+
+                var tag = $(containerContext).data('tag') ? $(containerContext).data('tag') : 'default'
+                var uploadUrl = $(containerContext).data('upload-url') ? $(containerContext).data('upload-url') : '/common/Common/upload?tag=' + tag
+                var uploadListUrl = $(containerContext).data('upload-list-url') ? $(containerContext).data('upload-list-url') : '/common/Common/uploadFileList'
+
                 //将没初始化的元素初始化
-                if (!$(this).children('.gar-upload-preview-image').length) {
+                if (!$(this).children('.gardenia-upload-preview-image').length) {
                     $(this).append(_template)
                     //当用户上传文件时
                     $(document).off('change',inputFileId).on('change',inputFileId,function () {
                         var files = $(this)[0].files
-                        var tag = $(containerContext).data('tag') ? $(containerContext).data('tag') : 'default'
-                        var url = $(containerContext).data('url') ? $(containerContext).data('url') : '/common/Common/upload?tag=' + tag
                         var formData = new FormData()
                         const fileLen = files.length
                         for (var i = 0; i < fileLen; i++) {
@@ -45,7 +49,7 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                         }
                         var that = this
                         $.ajax({
-                            url: url,
+                            url: uploadUrl,
                             method: 'POST',
                             data: formData,
                             contentType: false,
@@ -92,7 +96,7 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                     })
 
                     //删除文件
-                    var delEleSeletor = `${selector} .gar-upload-preview-image-delete`
+                    var delEleSeletor = `${selector} .gardenia-upload-preview-image-delete`
                     $(document).off('click',delEleSeletor).on('click',delEleSeletor,function () {
                         const replacedStr = $(this).data('url')
                         const targetValue = $(targetSelector).val()
@@ -106,10 +110,9 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                         $(targetSelector).val(urlList.join(','))
                         $(this).parent().remove()
                     })
-
                     //当用户点击选择按钮时
-                    var btnOutChooseSelector = `${selector} .gardenia-upload-btn-choose`
-                    $(document).off('click',btnOutChooseSelector).on('click',btnOutChooseSelector,function () {
+                    // console.log('选择按钮',$(containerContext .input-group.mb-3 > .input-group-append > .gardenia-upload-btn-choose).)
+                    $(containerContext).children('.input-group').children('.gardenia-upload-btn-choose').off('click').on('click',function () {
                         sweetalert.fire({
                             title: '文件列表',
                             // showConfirmButton: false,
@@ -124,20 +127,20 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                                 var imageCardText = ''
                                 var urls = []
                                 for (var i = 0; i < checkedLen; i++) {
-                                    imageCardText += page.buildImageCard(data[i].url,data[i].name,data[i].mime)
+                                    imageCardText += context.buildImageCard(data[i].url,data[i].name,data[i].mime)
                                     urls.push(data[i].url)
                                 }
                                 //更新表单字段里的文件url
                                 $(targetSelector).val(urls.join(','))
                                 //更新预览图
-                                $(targetSelector).children('.gar-upload-preview-image').empty().append(imageCardText)
+                                $(containerContext).children('.gar-upload-preview-image').empty().append(imageCardText)
 
                             }
                         })
                         const table = `#${field}-choose-table`
 
                         var tableOptions = {
-                            url: '/common/Common/uploadFileList',
+                            url: uploadListUrl,
                             pagination: true,
                             sidePagination: "server",
                             pageList: [15, 30, 'all'],
@@ -193,13 +196,13 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                         $(table).bootstrapTable('destroy').bootstrapTable(obj)
 
                         $(document).off('click','button.upload-choose').on('click','button.upload-choose',function () {
-                            const data = $(table).bootstrapTable('getData',{
+                            var data = $(table).bootstrapTable('getData',{
                                 useCurrentPage: false
                             })
-                            const index = $(this).data('index')
-                            const url = data[index].url
+                            var index = $(this).data('index')
+                            var url = data[index].url
                             $(targetSelector).val(url)
-                            $(targetSelector).parent().siblings('.gar-upload-preview-image').empty().append(page.buildImageCard(data[index].url,data[index].name,data[index].mime))
+                            $(containerContext).children('.gar-upload-preview-image').empty().append(context.buildImageCard(data[index].url,data[index].name,data[index].mime))
                             sweetalert.close()
                         })
                     })
