@@ -122,6 +122,7 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
             //当用户上传文件时
             $(document).off('change','#gar-upload-file').on('change','#gar-upload-file',function () {
                 var files = $(this)[0].files
+                console.log('files',files[0])
                 var url = '/common/Common/upload?tag=default'
                 var formData = new FormData()
                 const fileLen = files.length
@@ -180,7 +181,7 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
             }
         },
         buildImageCard: function (url,name) {
-            return `<div class="image-card"><img src="${url}" alt="${name}">
+            return `<div class="image-card"><img src="${url}" title="${name}" alt="${name}">
                                     <i class="far fa-trash-alt gar-upload-preview-image-delete" data-url="${url}"></i>
                                 </div>`
         }

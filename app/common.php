@@ -128,11 +128,13 @@ if (!function_exists('reply_json')) {
      */
     function reply_request($msg = '', $data = [], $url = '', $second = 3, $code = AppConstant::CODE_SUCCESS) {
         if (request()->isAjax()) {
-            throw new AppException(json_encode([
+            $response = json_encode([
                 'msg' => $msg,
                 'data' => $data,
                 'code' => $code,
-            ],JSON_UNESCAPED_UNICODE));
+            ],JSON_UNESCAPED_UNICODE);
+            throw new AppException($response);
+
         } else {
             $appPath =  app_path();
             // 如果是插件请求，更改视图默认的访问位置
@@ -142,18 +144,16 @@ if (!function_exists('reply_json')) {
             } else {
                 $viewConfig = config('view');
             }
-            $app = new \think\App();
-            $app->setAppPath($appPath);
-            $thinkView = new \think\view\driver\Think($app,$viewConfig);
 
-            $template = $appPath.$viewConfig['view_dir_name'].DIRECTORY_SEPARATOR.'common'.DIRECTORY_SEPARATOR.'error'.($viewConfig['view_suffix'] ? '.'.$viewConfig['view_suffix'] : '');
+            $template = $appPath.$viewConfig['view_dir_name'].DIRECTORY_SEPARATOR.'common'.DIRECTORY_SEPARATOR.($code === AppConstant::CODE_ERROR ? 'error' : 'success').($viewConfig['view_suffix'] ? '.'.$viewConfig['view_suffix'] : '');
 
-            $thinkView->fetch($template,[
+            view($template,[
                 'content' => $msg,
                 'redirectUrl' => $url,
                 'second' => $second
-            ]);
+            ])->send();
         }
+
     }
 }
 if (!function_exists('success')) {

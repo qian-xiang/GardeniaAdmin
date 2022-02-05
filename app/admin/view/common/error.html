@@ -49,7 +49,7 @@
                 {if $redirectUrl}
                     location.href = '{$redirectUrl}';
                 {else /}
-                    history.back();
+                    location.href = '{:request()->header("referer")}';
                 {/if}
 
             }

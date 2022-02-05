@@ -12,6 +12,7 @@ use app\common\core\lib\CurdHelper;
 use constant\AppConstant;
 use app\admin\model\AdminGroupAccess;
 use think\App;
+use think\facade\Cookie;
 use think\facade\Lang;
 use think\helper\Str;
 use think\Template;
@@ -115,19 +116,20 @@ class AdminController extends BaseController
     protected function checkLogin() {
         $this->noNeedLogin = empty($this->noNeedLogin) ? [] : $this->noNeedLogin;
         if (in_array($this->request->action(true),$this->noNeedLogin) === false) {
-            $loginCode = cookie('login_code');
+
+            $loginCode = Cookie::get('login_code','');
             if (!$loginCode) {
-                error(lang('login.not'),url('/admin/Login/index'));
+                error(lang('login.not'),[],url('/admin/Login/index'));
             }
             $admin = AdminGroupAccess::with('admin_group')->hasWhere('admin',[
                 'login_code' => $loginCode
             ])->find();
             if (!$admin) {
-                error(lang('login.not'),url('/admin/Login/index')->build());
+                error(lang('login.not'),[],url('/admin/Login/index')->build());
             }
 
             if ($admin->admin->login_code !== $loginCode) {
-                error(lang('login.not'),url('/admin/Login/index')->build());
+                error(lang('login.not'),[],url('/admin/Login/index')->build());
             }
             $this->request->admin_info = $admin;
 

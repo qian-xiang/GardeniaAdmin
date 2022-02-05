@@ -8,14 +8,12 @@
  */
 namespace app\admin\controller;
 
-use app\admin\extend\diy\extra_class\AppConstant;
 use app\admin\AdminController;
 use app\admin\model\Admin;
 use app\admin\model\AdminLoginLog;
 use Firebase\JWT\JWT;
 use think\facade\Config;
 use think\facade\Db;
-use think\facade\Session;
 use think\Validate;
 use think\validate\ValidateRule;
 use \constant\AppConstant as AppConstants;
@@ -85,10 +83,9 @@ class Login extends AdminController
                 Db::rollback();
                 error('登录失败，请稍候重试');
             }
-            cookie('login_code',$token,7*24*60*60);
+            cookie('login_code',$token,time()+7*24*60*60);
         }
-
-        success(lang('login.succ'),url('/')->build());
+        success(lang('login.succ'),[],url('/admin')->build());
     }
 
     /**
