@@ -39,7 +39,7 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
                         var imageCardText = ''
                         var urls = []
                         for (var i = 0; i < checkedLen; i++) {
-                            imageCardText += page.buildImageCard(data[i].url,data[i].name)
+                            imageCardText += page.buildImageCard(data[i].url,data[i].name,data[i].mime)
                             urls.push(data[i].url)
                         }
                         //更新表单字段里的文件url
@@ -115,7 +115,7 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
                     const index = $(this).data('index')
                     const url = data[index].url
                     $(targetSelector).val(url)
-                    $(targetSelector).parent().siblings('.gar-upload-preview-image').empty().append(page.buildImageCard(data[index].url,data[index].name))
+                    $(targetSelector).parent().siblings('.gar-upload-preview-image').empty().append(page.buildImageCard(data[index].url,data[index].name,data[index].mime))
                     sweetalert.close()
                 })
             })
@@ -149,7 +149,7 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
                         var filePreviewChildren = ''
                         var urlStr = ''
                         for (var i = 0; i < fileLen; i++) {
-                            filePreviewChildren += page.buildImageCard(res.data[i].url,res.data[i].name)
+                            filePreviewChildren += page.buildImageCard(res.data[i].url,res.data[i].name,res.data[i].mime)
                             urlStr = urlStr ? (urlStr + ',' + res.data[i].url) : res.data[i].url
                         }
                         $(that).parents('.input-group').siblings('.gar-upload-preview-image').empty().append(filePreviewChildren)
@@ -179,7 +179,18 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
                 location.reload()
             }
         },
-        buildImageCard: function (url,name) {
+        buildImageCard: function (url = '', name = '', mime = 'image/png') {
+            if (mime.indexOf('image') > -1) {
+                return `<div class="image-card">
+                    <div class="gar-upload-title-above">
+                        <img title="${name}" src="${url}" alt="${name}">
+                    </div>
+                    <p>${name}</p>
+                    <div class="image-card-bottom">
+                        <i class="far fa-trash-alt gar-upload-preview-image-delete"></i>
+                    </div>
+                </div>`
+            }
             return `<div class="image-card">
                     <div class="gar-upload-title-above">
                         <i class="far fa-file-alt"></i>
@@ -187,15 +198,6 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
                     <p>${name}</p>
                     <div class="image-card-bottom">
                         <i class="far fa-trash-alt"></i>
-                    </div>
-                </div>
-                <div class="image-card">
-                    <div class="gar-upload-title-above">
-                        <img title="${name}" src="${url}" alt="${name}">
-                    </div>
-                    <p>${name}</p>
-                    <div class="image-card-bottom">
-                        <i class="far fa-trash-alt gar-upload-preview-image-delete"></i>
                     </div>
                 </div>`
         }

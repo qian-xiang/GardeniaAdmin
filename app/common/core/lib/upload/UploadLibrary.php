@@ -19,16 +19,18 @@ class UploadLibrary
         foreach($data['file'] as $file){
             $savePath = Filesystem::disk('public')->putFile($tag, $file);
             $filePath = Filesystem::disk('public')->url($savePath);
+            $mime = $file->getMime();
             $savename[] = [
                 'url' => $filePath,
                 'name' => $file->getOriginalName(),
+                'mime' => $mime,
             ];
             $insert[] = [
                 'name' => $file->getOriginalName(),
                 'url' => $savePath,
                 'size' => $file->getSize(),
                 'ext' => $file->getExtension(),
-                'mime' => $file->getMime(),
+                'mime' => $mime,
                 //暂时固定7
                 'admin_id' => 7,
             ];

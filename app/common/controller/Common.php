@@ -13,7 +13,6 @@ use app\common\core\lib\upload\UploadLibrary;
 use app\validate\common\UploadValidate;
 use think\exception\ValidateException;
 use think\facade\Config;
-use think\facade\Filesystem;
 use think\File;
 
 /**
