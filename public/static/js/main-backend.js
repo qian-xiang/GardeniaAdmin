@@ -1,7 +1,6 @@
-var garLang;
+
 // 定义一些全局变量
-const requireJsId = '___require-js___'
-const garBackend = JSON.parse(document.getElementById(requireJsId).getAttribute('data-runtime-info'))
+
 var paths = {
     'jquery': 'js/jquery-3.6.0.min',
     'popper': 'js/popper-v1.16.0.min',

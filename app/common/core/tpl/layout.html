@@ -66,6 +66,10 @@
 </div>
 
 </body>
-<script src="/static/js/require-v2.3.6.js" data-main="/static/js/main-backend.js"  data-lang-list='{:json_encode($langList,JSON_UNESCAPED_UNICODE)}' data-runtime-info='{:json_encode($runtimeInfo,JSON_UNESCAPED_UNICODE)}' id="___require-js___"></script>
+<script>
+    var garLang = {:json_encode($langList,JSON_UNESCAPED_UNICODE)};
+    var garBackend = {:json_encode($runtimeInfo,JSON_UNESCAPED_UNICODE)};
+</script>
+<script src="/static/js/require-v2.3.6.js" data-main="/static/js/main-backend.js"></script>
 
 </html>
