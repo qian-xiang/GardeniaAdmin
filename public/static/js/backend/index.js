@@ -3,9 +3,9 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
     return {
         index: function () {
             const page = this
-            $('.flatpickr-input').flatpickr()
-            $('.selectpicker').selectpicker()
-            $('#upload').fileinput()
+            // $('.flatpickr-input').flatpickr()
+            // $('.selectpicker').selectpicker()
+            // $('#upload').fileinput()
             gardeniaUpload.init()
             const targetSelector = 'input[name="idcard"]'
             //删除文件
@@ -24,14 +24,14 @@ define(['jquery','flatpickr','bootstrap-select-locale-zh','zeroclipboard','uedit
             })
 
 
-            try {
-                console.log('ue',UE)
-                UE.getEditor('rich-text').ready(function () {
-                    window.ZeroClipboard = zeroclipboard
-                })
-            } catch (e) {
-                location.reload()
-            }
+            // try {
+            //     console.log('ue',UE)
+            //     UE.getEditor('rich-text').ready(function () {
+            //         window.ZeroClipboard = zeroclipboard
+            //     })
+            // } catch (e) {
+            //     location.reload()
+            // }
         },
         buildImageCard: function (url = '', name = '', mime = 'image/png') {
             if (mime.indexOf('image') > -1) {

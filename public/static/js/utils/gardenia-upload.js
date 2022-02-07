@@ -16,6 +16,7 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
     return {
         init: function (selector = '') {
             selector = selector || '.gardenia-upload'
+            const previewContainerSelector = '.gardenia-upload-preview-image'
             var field
             var _template
             var inputFileId
@@ -71,8 +72,10 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                                     filePreviewChildren += context.buildImageCard(res.data[i].url,res.data[i].name,res.data[i].mime)
                                     urlStr = urlStr ? (urlStr + ',' + res.data[i].url) : res.data[i].url
                                 }
-                                $(that).parents('.input-group').siblings('.gar-upload-preview-image').empty().append(filePreviewChildren)
-                                $(targetSelector).val(urlStr)
+                                const tempArr = $(this).attr('id').split('-')
+                                const field = tempArr[tempArr.length - 1]
+                                $(that).parents('.input-group').siblings('.gardenia-upload-preview-image').empty().append(filePreviewChildren)
+                                $(that).parents('.input-group-append').siblings(`input[name="${field}"]`).val(urlStr)
                                 $(that).val('')
                             },
                             error: function (e) {
@@ -95,33 +98,25 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                         })
                     })
 
-                    //删除文件
-                    var delEleSeletor = `${selector} .gardenia-upload-preview-image-delete`
-                    $(document).off('click',delEleSeletor).on('click',delEleSeletor,function () {
-                        const replacedStr = $(this).data('url')
-                        const targetValue = $(targetSelector).val()
-                        var urlList = targetValue.split(',')
-                        const urlListLen = urlList.length
-                        for (var i = 0; i < urlListLen; i++) {
-                            if (urlList[i] === replacedStr) {
-                                urlList.splice(i,1)
-                            }
-                        }
-                        $(targetSelector).val(urlList.join(','))
-                        $(this).parent().remove()
-                    })
+
                     //当用户点击选择按钮时
                     $(containerContext).find('.input-group.mb-3 > .input-group-append > .gardenia-upload-btn-choose').off('click').on('click',function () {
+                        field = $(this).parents('.gardenia-upload').first().data('field')
+                        var table = `#${field}-choose-table`
                         sweetalert.fire({
                             title: '文件列表',
                             // showConfirmButton: false,
                             confirmButtonText: '确定',
                             showCloseButton: true,
                             width: '95%',
-                            html: `<table id="${field}-choose-table" style="width: 100%; max-height: 300px; height: 50vh;"></table>`,
+                            html: `<table id="${field}-choose-table" class="gardenia-upload-choose-table"></table>`,
                         }).then(function (result) {
+                            const tableSelector = $(sweetalert.getHtmlContainer()).find('.fixed-table-body > table.gardenia-upload-choose-table').attr('id')
+                            const field = tableSelector.split('-')[0]
+                            targetSelector = `input[name="${field}"]`
+                            console.log('targetSelector',targetSelector)
                             if (result.isConfirmed) {
-                                const data = $(table).bootstrapTable('getSelections')
+                                const data = $(`#${tableSelector}`).bootstrapTable('getSelections')
                                 const checkedLen = data.length
                                 var imageCardText = ''
                                 var urls = []
@@ -132,11 +127,9 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                                 //更新表单字段里的文件url
                                 $(targetSelector).val(urls.join(','))
                                 //更新预览图
-                                $(containerContext).children('.gar-upload-preview-image').empty().append(imageCardText)
-
+                                $(targetSelector).parent().siblings(previewContainerSelector).empty().append(imageCardText)
                             }
                         })
-                        const table = `#${field}-choose-table`
 
                         var tableOptions = {
                             url: uploadListUrl,
@@ -186,47 +179,68 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                                     field: 'operate',
                                     title: '操作',
                                     formatter: function (value, row, index) {
-                                        return `<button type="button" class="btn btn-dark upload-choose" data-index="${index}">选择</button>`
+                                        // var inputSelector = $(this).data('input-selector')
+                                        // var containerSelector = $(this).data('container-selector')
+                                        return `<button type="button" class="btn btn-dark upload-choose" data-index="${index}"
+                                                data-input-selector='${targetSelector}'
+                                                >选择</button>`
                                     },
                                 }
                             ]
                         };
                         obj = Object.assign(obj, tableOptions)
                         $(table).bootstrapTable('destroy').bootstrapTable(obj)
-
-                        $(document).off('click','button.upload-choose').on('click','button.upload-choose',function () {
-                            var data = $(table).bootstrapTable('getData',{
-                                useCurrentPage: false
-                            })
-                            var index = $(this).data('index')
-                            var url = data[index].url
-                            $(targetSelector).val(url)
-                            $(containerContext).children('.gar-upload-preview-image').empty().append(context.buildImageCard(data[index].url,data[index].name,data[index].mime))
-                            sweetalert.close()
-                        })
                     })
                 }
             })
-
+            const rowChooseBtnSelector = 'button.upload-choose'
+            $(document).off('click',rowChooseBtnSelector).on('click',rowChooseBtnSelector,function () {
+                var data = $(this).parents('table.gardenia-upload-choose-table').first().bootstrapTable('getData',{
+                    useCurrentPage: false
+                })
+                var index = $(this).data('index')
+                var inputSelector = $(this).data('input-selector')
+                var url = data[index].url
+                $(inputSelector).val(url)
+                $(inputSelector).parent().siblings('.gardenia-upload-preview-image').empty().append(context.buildImageCard(data[index].url,data[index].name,data[index].mime))
+                sweetalert.close()
+            })
+            //删除文件
+            var delEleSeletor = `${selector} .image-card-bottom`
+            $(document).off('click',delEleSeletor).on('click',delEleSeletor,function () {
+                const field = $(this).parents('.gardenia-upload').first().data('field')
+                var targetSelector = `input[name="${field}"]`
+                const replacedStr = $(this).data('url')
+                const targetValue = $(targetSelector).val()
+                var urlList = targetValue.split(',')
+                const urlListLen = urlList.length
+                for (var i = 0; i < urlListLen; i++) {
+                    if (urlList[i] === replacedStr) {
+                        urlList.splice(i,1)
+                    }
+                }
+                $(targetSelector).val(urlList.join(','))
+                $(this).parents('.image-card').first().remove()
+            })
         },
         buildImageCard: function (url = '', name = '', mime = 'image/png') {
             if (mime.indexOf('image') > -1) {
                 return `<div class="image-card">
-                    <div class="gar-upload-title-above">
+                    <div class="gardenia-upload-title-above">
                         <img title="${name}" src="${url}" alt="${name}">
                     </div>
                     <p>${name}</p>
-                    <div class="image-card-bottom">
-                        <i class="far fa-trash-alt gar-upload-preview-image-delete"></i>
+                    <div class="image-card-bottom" data-url="${url}">
+                        <i class="far fa-trash-alt gardenia-upload-preview-image-delete"></i>
                     </div>
                 </div>`
             }
             return `<div class="image-card">
-                    <div class="gar-upload-title-above">
+                    <div class="gardenia-upload-title-above">
                         <i class="far fa-file-alt"></i>
                     </div>
                     <p>${name}</p>
-                    <div class="image-card-bottom">
+                    <div class="image-card-bottom" data-url="${url}">
                         <i class="far fa-trash-alt"></i>
                     </div>
                 </div>`
