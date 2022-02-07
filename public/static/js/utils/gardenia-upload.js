@@ -41,7 +41,7 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                 if (!$(this).children('.gardenia-upload-preview-image').length) {
                     $(this).append(_template)
                     //当用户上传文件时
-                    $(document).off('change',inputFileId).on('change',inputFileId,function () {
+                    $(document).off('change','#'+inputFileId).on('change','#'+inputFileId,function () {
                         var files = $(this)[0].files
                         var formData = new FormData()
                         const fileLen = files.length
@@ -72,9 +72,10 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                                     filePreviewChildren += context.buildImageCard(res.data[i].url,res.data[i].name,res.data[i].mime)
                                     urlStr = urlStr ? (urlStr + ',' + res.data[i].url) : res.data[i].url
                                 }
-                                const tempArr = $(this).attr('id').split('-')
+                                const tempArr = $(that).attr('id').split('-')
                                 const field = tempArr[tempArr.length - 1]
-                                $(that).parents('.input-group').siblings('.gardenia-upload-preview-image').empty().append(filePreviewChildren)
+
+                                $(that).parents('.input-group').siblings(previewContainerSelector).empty().append(filePreviewChildren)
                                 $(that).parents('.input-group-append').siblings(`input[name="${field}"]`).val(urlStr)
                                 $(that).val('')
                             },
@@ -114,7 +115,6 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                             const tableSelector = $(sweetalert.getHtmlContainer()).find('.fixed-table-body > table.gardenia-upload-choose-table').attr('id')
                             const field = tableSelector.split('-')[0]
                             targetSelector = `input[name="${field}"]`
-                            console.log('targetSelector',targetSelector)
                             if (result.isConfirmed) {
                                 const data = $(`#${tableSelector}`).bootstrapTable('getSelections')
                                 const checkedLen = data.length
