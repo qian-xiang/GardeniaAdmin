@@ -9,6 +9,7 @@ use think\Validate;
 class CurdValidate extends Validate
 {
     protected $rule = [];
+    protected $scene = [];
     public function setCurdParamRule() {
         $this->rule = [
             'operate|操作名称' => 'require|in:c,d',

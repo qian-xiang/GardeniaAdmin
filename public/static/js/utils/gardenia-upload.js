@@ -1,5 +1,4 @@
 define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,bootstrapTable) {
-    // gar-upload-file
     var template = `<div class="input-group mb-3">
                         <input type="text" class="form-control" name="[field]" placeholder="请选择或上传文件">
                         <div class="input-group-append">
