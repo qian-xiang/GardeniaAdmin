@@ -39,6 +39,17 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                 //将没初始化的元素初始化
                 if (!$(this).children('.gardenia-upload-preview-image').length) {
                     $(this).append(_template)
+                    $(document).off('input propertychange',targetSelector).on('input propertychange',targetSelector,function () {
+                        const targetValue = $(this).val()
+                        var urlList = targetValue.split(',')
+                        const urlListLen = urlList.length
+                        var imageCardText = ''
+                        for (var i = 0; i < urlListLen; i++) {
+                            imageCardText += context.buildImageCard(urlList[i])
+                        }
+                        $(this).parent().siblings(previewContainerSelector).empty().append(imageCardText)
+
+                    })
                     //当用户上传文件时
                     $(document).off('change','#'+inputFileId).on('change','#'+inputFileId,function () {
                         var files = $(this)[0].files
@@ -68,15 +79,16 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                                 var filePreviewChildren = ''
                                 var urlStr = ''
                                 for (var i = 0; i < fileLen; i++) {
-                                    filePreviewChildren += context.buildImageCard(res.data[i].url,res.data[i].name,res.data[i].mime)
+                                    filePreviewChildren += context.buildImageCard(res.data[i].url)
                                     urlStr = urlStr ? (urlStr + ',' + res.data[i].url) : res.data[i].url
                                 }
                                 const tempArr = $(that).attr('id').split('-')
                                 const field = tempArr[tempArr.length - 1]
+                                var targetSelector = `input[name="${field}"]`
 
-                                $(that).parents('.input-group').siblings(previewContainerSelector).empty().append(filePreviewChildren)
-                                $(that).parents('.input-group-append').siblings(`input[name="${field}"]`).val(urlStr)
                                 $(that).val('')
+                                $(targetSelector).val(urlStr)
+                                $(targetSelector).trigger('input')
                             },
                             error: function (e) {
                                 console.log('e',e)
@@ -120,13 +132,13 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                                 var imageCardText = ''
                                 var urls = []
                                 for (var i = 0; i < checkedLen; i++) {
-                                    imageCardText += context.buildImageCard(data[i].url,data[i].name,data[i].mime)
+                                    imageCardText += context.buildImageCard(data[i].url)
                                     urls.push(data[i].url)
                                 }
                                 //更新表单字段里的文件url
                                 $(targetSelector).val(urls.join(','))
-                                //更新预览图
-                                $(targetSelector).parent().siblings(previewContainerSelector).empty().append(imageCardText)
+                                $(targetSelector).trigger('input')
+
                             }
                         })
 
@@ -193,6 +205,7 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                 }
             })
             const rowChooseBtnSelector = 'button.upload-choose'
+            //当用户点击表格上的选择按钮时
             $(document).off('click',rowChooseBtnSelector).on('click',rowChooseBtnSelector,function () {
                 var data = $(this).parents('table.gardenia-upload-choose-table').first().bootstrapTable('getData',{
                     useCurrentPage: false
@@ -201,7 +214,7 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                 var inputSelector = $(this).data('input-selector')
                 var url = data[index].url
                 $(inputSelector).val(url)
-                $(inputSelector).parent().siblings('.gardenia-upload-preview-image').empty().append(context.buildImageCard(data[index].url,data[index].name,data[index].mime))
+                $(inputSelector).trigger('input')
                 sweetalert.close()
             })
             //删除文件
@@ -222,25 +235,25 @@ define(['jquery','sweetalert2','bootstrap-table-zh-CN'], function ($,sweetalert,
                 $(this).parents('.image-card').first().remove()
             })
         },
-        buildImageCard: function (url = '', name = '', mime = 'image/png') {
-            if (mime.indexOf('image') > -1) {
-                return `<div class="image-card">
-                    <div class="gardenia-upload-title-above">
-                        <img title="${name}" src="${url}" alt="${name}">
-                    </div>
-                    <p>${name}</p>
-                    <div class="image-card-bottom" data-url="${url}">
-                        <i class="far fa-trash-alt gardenia-upload-preview-image-delete"></i>
-                    </div>
-                </div>`
+        buildImageCard: function (url = '') {
+            var arr = url.split('/')
+            const defaultValue = 'File'
+            var end = arr[arr.length - 1]
+            var suffix
+            if (!end) {
+                suffix = defaultValue
+            } else if (end.indexOf('.') > -1) {
+                var temp = end.split('.')
+                suffix = temp[temp.length - 1] ? temp[temp.length - 1] : defaultValue
+            } else {
+                suffix = end
             }
             return `<div class="image-card">
                     <div class="gardenia-upload-title-above">
-                        <i class="far fa-file-alt"></i>
+                        <img src="${url}" alt="${url}" data-suffix="${suffix}" onerror="this.src = '/common/Common/createPreviewImage?content='+ this.getAttribute('data-suffix')">
                     </div>
-                    <p>${name}</p>
                     <div class="image-card-bottom" data-url="${url}">
-                        <i class="far fa-trash-alt"></i>
+                        <i class="far fa-trash-alt gardenia-upload-preview-image-delete"></i>
                     </div>
                 </div>`
         }

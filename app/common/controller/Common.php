@@ -82,4 +82,27 @@ class Common extends BaseController
             'total' => $total,
         ]);
     }
+
+    /**
+     * 生成预览图片内容
+     * @return \think\Response
+     */
+    public function createPreviewImage() {
+        $content = $this->request->get('content','File');
+        $content = mb_substr($content,0,4);
+        $template = <<<'EOT'
+<svg version="1.1"
+         baseProfile="full"
+         width="100" height="80"
+         xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#16c2c2" />
+        <text x="46" y="42" font-size="30" text-anchor="middle" fill="white">[content]</text>
+    </svg>
+EOT;
+        $template = str_replace('[content]',$content,$template);
+        return response($template,200,[
+            'Content-Type' => 'image/svg+xml',
+            'Vary' => 'Accept-Encoding',
+        ]);
+    }
 }

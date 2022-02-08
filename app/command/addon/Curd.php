@@ -122,7 +122,8 @@ class Curd extends Command
     private function getValidateRuleAndTemplateByField($field = '',$fieldInfo = []) {
         $info = [
             'validateRule' => 'require',
-            'template' => '',
+            'template_add' => '',
+            'template_edit' => '',
         ];
         $template = <<<'EOT'
 <div class="form-group row">
@@ -142,7 +143,9 @@ EOT;
             $template = str_replace('[title]',$title,$template);
             $template = str_replace('[field]',$field,$template);
             $template = str_replace('[mime]',$mime,$template);
-            $info['template'] = $template;
+            $info['template_add'] = $template;
+            //还需修改
+            $info['template_edit'] = $template;
             $rule = 'url';
             $info['validateRule'] = $info['validateRule'] ? '|'.$rule : $rule;
         } elseif (strpos($field,'attach') !== false || strpos($field,'file') !== false) {
@@ -151,7 +154,9 @@ EOT;
             $template = str_replace('[title]',$title,$template);
             $template = str_replace('[field]',$field,$template);
             $template = str_replace('[mime]','',$template);
-            $info['template'] = $template;
+            $info['template_add'] = $template;
+            //还需修改
+            $info['template_edit'] = $template;
             $rule = 'url';
             $info['validateRule'] = $info['validateRule'] ? '|'.$rule : $rule;
         } elseif (strpos($field,'status') !== false) {
@@ -162,12 +167,14 @@ EOT;
             $rule = '';
             foreach ($_comment as $item) {
                 $temp = explode('=',$item);
-                $optionText .= '<option value="'.$temp[0].'">'.$temp[1].'</option>';
+                $optionText .= '<option value="'.$temp[0].'" selected>'.$temp[1].'</option>';
                 $rule = $rule ? ','.$temp[0] : $temp[0];
             }
             //前端仅做简单的验证
             $fieldHtml = '<div class="form-group row"><label class="col-form-label col-sm-2 text-center" for="'.$field.'">'.$title.'</label><select class="form-control col-xs-12 col-sm-10" data-rule="required" id="'.$field.'"  name="'.$field.'">'.$optionText.'</select></div>';
-            $info['template'] = $fieldHtml;
+            $info['template_add'] = $fieldHtml;
+            //还需修改
+            $info['template_edit'] = $template;
             $info['validateRule'] = $info['validateRule'] ? '|'.$rule : $rule;
         } elseif (strpos($field,'is_') !== false) {
             $title = mb_substr($fieldInfo['comment'],0,mb_strpos($fieldInfo['comment'],':'));
@@ -253,5 +260,45 @@ EOT;
             $info['validateRule'] = $info['validateRule'] ? '|'.$rule : $rule;
         }
         return $info;
+    }
+    private function buildAddTemplate($template = '') {
+        $_template = <<<'EOT'
+        <form id="form-add" onsubmit="return false;">
+            [template]
+            <div class="form-group row" style="margin-top: 36px;">
+            <div class="col-sm-7 row">
+                <div class="col-sm-6 col-xs-12 row flex-xs-row flex-sm-row justify-content-sm-end">
+                    <button type="reset" class="btn btn-danger">重置</button>
+                </div>
+                <div class="col-sm-6 col-xs-12 row flex-xs-row flex-sm-row justify-content-sm-center">
+                    <button type="submit" class="btn btn-primary">提交</button>
+                </div>
+    
+            </div>
+    
+            </div>
+        </form>
+EOT;
+        return str_replace('[template]',$template,$_template);
+    }
+    private function buildEditTemplate($template = '',$primaryKey = '') {
+        $_template = <<<'EOT'
+        <form id="form-add" onsubmit="return false;">
+            [template]
+            <div class="form-group row" style="margin-top: 36px;">
+            <div class="col-sm-7 row">
+                <div class="col-sm-6 col-xs-12 row flex-xs-row flex-sm-row justify-content-sm-end">
+                    <button type="reset" class="btn btn-danger">重置</button>
+                </div>
+                <div class="col-sm-6 col-xs-12 row flex-xs-row flex-sm-row justify-content-sm-center">
+                    <button type="submit" class="btn btn-primary">提交</button>
+                </div>
+    
+            </div>
+    
+            </div>
+        </form>
+EOT;
+        return str_replace('[template]',$template,$_template);
     }
 }
