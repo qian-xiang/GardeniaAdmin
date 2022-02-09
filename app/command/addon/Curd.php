@@ -124,6 +124,7 @@ class Curd extends Command
             'validateRule' => 'require',
             'template_add' => '',
             'template_edit' => '',
+            'model' => '',
         ];
         $template = <<<'EOT'
 <div class="form-group row">
@@ -163,18 +164,31 @@ EOT;
             $title = mb_substr($fieldInfo['comment'],0,mb_strpos($fieldInfo['comment'],':'));
             $_comment = mb_substr($fieldInfo['comment'],mb_strpos($fieldInfo['comment'],':') + 1);
             $_comment = explode(',',$_comment);
-            $optionText = '';
             $rule = '';
+            $listText = '';
             foreach ($_comment as $item) {
                 $temp = explode('=',$item);
-                $optionText .= '<option value="'.$temp[0].'" selected>'.$temp[1].'</option>';
                 $rule = $rule ? ','.$temp[0] : $temp[0];
+                $value = is_numeric($temp[1]) ? $temp[1] : "'{$temp[1]}'";
+                $listText .= "'{$temp[0]}' => {$value},";
             }
+            $fieldModelTpl = <<<'EOT'
+            public function [function]() {
+                return [list];
+            }
+EOT;
+            $functionName = 'get'.Str::studly($field).'List';
+            $list = '['.$listText.']';
+            $fieldModel = str_replace('[function]',$functionName,$fieldModelTpl);
+            $fieldModel = str_replace('[list]',$list,$fieldModel);
+
+            $optionText = '{foreach $'.$field.'List as $key => $vo} <option value="$key" {eq name="key" value="'."row.{$field}".'"}selected{/eq}>{$vo}</option> {/foreach}';
             //前端仅做简单的验证
             $fieldHtml = '<div class="form-group row"><label class="col-form-label col-sm-2 text-center" for="'.$field.'">'.$title.'</label><select class="form-control col-xs-12 col-sm-10" data-rule="required" id="'.$field.'"  name="'.$field.'">'.$optionText.'</select></div>';
             $info['template_add'] = $fieldHtml;
             //还需修改
             $info['template_edit'] = $template;
+            $info['model'] = $fieldModel;
             $info['validateRule'] = $info['validateRule'] ? '|'.$rule : $rule;
         } elseif (strpos($field,'is_') !== false) {
             $title = mb_substr($fieldInfo['comment'],0,mb_strpos($fieldInfo['comment'],':'));
