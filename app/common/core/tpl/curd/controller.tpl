@@ -7,6 +7,7 @@ use app\[appName]\AdminController;
 
 class [controllerName] extends AdminController
 {
+    [extra]
     /**
     * 具体逻辑见app\common\core\lib\CurlHelper.php
     */

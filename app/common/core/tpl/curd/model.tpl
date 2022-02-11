@@ -10,5 +10,5 @@ use think\Model;
  */
 class [modelName] extends Model
 {
-
+    [extra]
 }
