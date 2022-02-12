@@ -208,10 +208,10 @@ EOT;
             $rule = 'url';
             $info['validateRule'] = $info['validateRule'] ? '|' . $rule : $rule;
             $info['js'] = "{
-                                field: '{$field}',
-                                title: '{$title}',
-                                formatter: ,
-                            },";
+                field: '{$field}',
+                title: '{$title}',
+                formatter: BsTable.formatter.image,
+            },";
         } elseif (strpos($field, 'attach') !== false || strpos($field, 'file') !== false) {
             $title = $fieldInfo['comment'];
 
@@ -223,6 +223,11 @@ EOT;
             $info['template_edit'] = $template;
             $rule = 'url';
             $info['validateRule'] = $info['validateRule'] ? '|' . $rule : $rule;
+            $info['js'] = "{
+                field: '{$field}',
+                title: '{$title}',
+                formatter: BsTable.formatter.image,
+            },";
         } elseif (strpos($field, 'status') !== false) {
             $title = mb_substr($fieldInfo['comment'], 0, mb_strpos($fieldInfo['comment'], ':'));
             $_comment = mb_substr($fieldInfo['comment'], mb_strpos($fieldInfo['comment'], ':') + 1);
@@ -250,6 +255,12 @@ EOT;
             $info['model'] = $fieldModel;
             $info['controller'] = "\$${$field}List = \$this->model->get${$studlyField}List();" . PHP_EOL . "\\think\\facade\\View::assign('${$field}List',\$${$field}List);" . PHP_EOL;
             $info['validateRule'] = $info['validateRule'] ? '|' . $rule : $rule;
+            $statusType = count($_comment) > 2 ? 'normal' : 'simple';
+            $info['js'] = "{
+                field: '{$field}',
+                title: '{$title}',
+                formatter: BsTable.formatter.status.{$statusType},
+            },";
         } elseif (strpos($field, 'is_') !== false) {
             $title = mb_substr($fieldInfo['comment'], 0, mb_strpos($fieldInfo['comment'], ':'));
             $_comment = mb_substr($fieldInfo['comment'], mb_strpos($fieldInfo['comment'], ':') + 1);
@@ -281,6 +292,12 @@ EOT;
             $info['template'] = $fieldHtml;
             $info['controller'] = "\$${$field}List = \$this->model->get${$studlyField}List();" . PHP_EOL . "\\think\\facade\\View::assign('${$field}List',\$${$field}List);" . PHP_EOL;
             $info['validateRule'] = $info['validateRule'] ? '|' . $rule : $rule;
+            $statusType = count($_comment) > 2 ? 'normal' : 'simple';
+            $info['js'] = "{
+                field: '{$field}',
+                title: '{$title}',
+                formatter: BsTable.formatter.status.{$statusType},
+            },";
         } elseif (($mapList = array_map(function ($value) use ($field) {
                 return strpos($field, $value) !== false;
             }, ['time', 'date', 'birthday', 'year', 'month'])) && in_array(true, $mapList)) {
@@ -317,6 +334,13 @@ EOT;
                 $field . '">' . $title . '</label><select class="col-xs-12 col-sm-10 selectpicker" multiple name="' . $field . '" id="' . $field . '">' . $optionText . '</select></div>';
             $info['controller'] = "\$${$field}List = \$this->model->get${$studlyField}List();" . PHP_EOL . "\\think\\facade\\View::assign('${$field}List',\$${$field}List);" . PHP_EOL;
             $info['validateRule'] = $info['validateRule'] ? '|' . $rule : $rule;
+
+            $statusType = count($_comment) > 2 ? 'normal' : 'simple';
+            $info['js'] = "{
+                field: '{$field}',
+                title: '{$title}',
+                formatter: BsTable.formatter.status.{$statusType},
+            },";
         } elseif (($mapList = array_map(function ($value) use ($field) {
                 return strpos($field, $value) !== false;
             }, ['password', 'pwd', 'secret'])) && in_array(true, $mapList)) {

@@ -1,4 +1,4 @@
-define(['helper'],function (Helper) {
+define(['helper','sweetalert2'],function (Helper,sweetalert) {
     return {
         formatter: {
             status: {
@@ -33,8 +33,20 @@ define(['helper'],function (Helper) {
                     return '<a href="#" class="badge badge-'+ type +'">'+ title +'</a>'
                 },
             },
-            image: function (value, row, index, className, callback) {
-                return '<div class="gar-preview-image-td-parent"><img class="gar-preview-image-td" src="'+value+'" alt=""></div>';
+            image: function (value, row, index) {
+                var arr = url.split('/')
+                const defaultValue = 'File'
+                var end = arr[arr.length - 1]
+                var suffix
+                if (!end) {
+                    suffix = defaultValue
+                } else if (end.indexOf('.') > -1) {
+                    var temp = end.split('.')
+                    suffix = temp[temp.length - 1] ? temp[temp.length - 1] : defaultValue
+                } else {
+                    suffix = end
+                }
+                return '<div class="gar-preview-image-td-parent"><img class="gar-preview-image-td" src="'+value+'"  data-suffix="${suffix}" onerror="this.src = \'/common/Common/createPreviewImage?content=\'+ this.getAttribute(\'data-suffix\')"></div>';
             },
             garOperate: function (btns,extra) {
                 if (!btns) {
@@ -103,7 +115,7 @@ define(['helper'],function (Helper) {
                             $('.swal-modal.'+className).css('width','fit-content')
                         }
                         if (!$(this).data('status')) {
-                            swal({
+                            sweetalert.fire({
                                 icon: $(element).attr('src'),
                                 closeOnClickOutside: true,
                                 buttons: false,
@@ -112,7 +124,7 @@ define(['helper'],function (Helper) {
                             $(this).data('status',1)
                             _callback()
                         } else {
-                            swal.close()
+                            sweetalert.close()
                             $(this).data('status',0)
                         }
                     })
