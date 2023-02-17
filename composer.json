@@ -28,7 +28,7 @@
         "topthink/think-migration": "^3.0",
         "topthink/think-captcha": "^3.0",
         "qian-xiang/gardenia_admin": "dev-master",
-        "firebase/php-jwt": "^5.4",
+        "firebase/php-jwt": "^6.0",
       "ext-json": "*"
     },
     "require-dev": {
